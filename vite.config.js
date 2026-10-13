@@ -1,24 +1,42 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
-import tailwindcss from '@tailwindcss/vite';
+import vue from '@vitejs/plugin-vue';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
-            refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
+            input: [
+                'resources/js/admin/app.ts',
+                'resources/js/account/app.ts'
             ],
+            ssr: [
+                'resources/js/admin/ssr.ts',
+                'resources/js/account/ssr.ts'
+            ],
+            refresh: true,
         }),
-        tailwindcss(),
+        vue({
+            template: {
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
+        }),
     ],
     server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
+        cors: true, // Разрешает CORS для всех источников в dev-режиме
+        origin: 'http://127.0.0.1:5174', // Явно указываем адрес сервера Vite
+        // Если порт меняется, можно указать фиксированный порт:
+        port: 5174,
+        strictPort: true,
+    },
+    resolve: {
+        alias: {
+            '@admin': path.resolve(__dirname, './resources/js/admin'),
+            '@account': path.resolve(__dirname, './resources/js/account'),
+            'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
 });
