@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Roles;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     return Inertia::render('Index');
-})->middleware(['auth', 'verified', HandleInertiaAdminRequests::class])->name('dashboard');
+})->middleware(['auth', 'verified', 'role:'.implode(',', Roles::employeeRoles()), HandleInertiaAdminRequests::class])->name('dashboard');
 
 require __DIR__.'/admin.php';
 require __DIR__.'/account.php';

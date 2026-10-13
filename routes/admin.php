@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Roles;
 use App\Http\Middleware\HandleInertiaAdminRequests;
 use App\Http\Controllers\Admin\MainController;
 use App\Http\Controllers\Admin\LanguageController;
@@ -28,8 +29,8 @@ Route::prefix('admin')->middleware(['guest', HandleInertiaAdminRequests::class])
 });
 // - - - GUEST
 
-// AUTH
-Route::prefix('admin')->middleware(['auth', HandleInertiaAdminRequests::class])->group(function () {
+// AUTH (staff only)
+Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employeeRoles()), HandleInertiaAdminRequests::class])->group(function () {
     Route::get('/', [MainController::class, 'index'])->name('admin.index');
 
     // Languages

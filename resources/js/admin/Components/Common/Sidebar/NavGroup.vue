@@ -1,13 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
-defineProps<{
+const props = defineProps<{
     title: string;
     active?: boolean;
+    // Шаблоны роутов группы, например 'admin.languages.*'
+    routes?: string | string[];
 }>();
 
-// Состояние открыто/закрыто по умолчанию
-const isOpen = ref(false);
+// Группа активна, если текущий роут совпадает с одним из её шаблонов
+const isActive = computed(() => {
+    if (props.active) {
+        return true;
+    }
+
+    if (!props.routes || typeof route === 'undefined') {
+        return false;
+    }
+
+    const patterns = Array.isArray(props.routes) ? props.routes : [props.routes];
+
+    return patterns.some((pattern) => route().current(pattern));
+});
+
+// Лейаут пересоздаётся при каждом переходе, поэтому группа текущей страницы открывается сразу
+const isOpen = ref(isActive.value);
 </script>
 
 <template>
@@ -17,13 +34,13 @@ const isOpen = ref(false);
             @click="isOpen = !isOpen"
             type="button"
             class="w-full flex items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors group text-slate-400 hover:bg-slate-900/50 hover:text-white"
-            :class="{ 'bg-slate-900/40 text-slate-200': isOpen || active }"
+            :class="{ 'bg-slate-900/40 text-slate-200': isOpen || isActive }"
         >
             <div class="flex items-center">
                 <!-- Слот для иконки родительского пункта -->
                 <div
                     class="h-5 w-5 mr-3 transition-colors"
-                    :class="[isOpen || active ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-200']"
+                    :class="[isOpen || isActive ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-200']"
                 >
                     <slot name="icon" />
                 </div>
