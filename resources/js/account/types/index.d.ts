@@ -5,6 +5,7 @@ export interface User {
     name: string;
     email: string;
     email_verified_at?: string;
+    role?: 'admin' | 'manager' | 'seo' | 'customer' | null;
 }
 
 export type PageProps<
@@ -14,4 +15,8 @@ export type PageProps<
         user: User;
     };
     ziggy: Config & { location: string };
+    flash?: {
+        success?: string | null;
+        error?: string | null;
+    };
 };

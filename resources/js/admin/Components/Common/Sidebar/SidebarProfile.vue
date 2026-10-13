@@ -87,7 +87,7 @@ onUnmounted(() => {
             >
                 <!-- Ссылка на Профиль -->
                 <a
-                    :href="route('profile.edit')"
+                    :href="route('admin.profile.edit')"
                     class="flex items-center rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
                 >
                     <svg class="mr-2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -3,6 +3,8 @@
 use App\Http\Middleware\HandleInertiaAdminRequests;
 use App\Http\Controllers\Admin\MainController;
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
@@ -34,6 +36,25 @@ Route::prefix('admin')->middleware(['auth', HandleInertiaAdminRequests::class])-
     Route::prefix('languages')->group(function () {
         Route::get('/', [LanguageController::class, 'index'])->name('admin.languages.index');
         Route::get('/create', [LanguageController::class, 'create'])->name('admin.languages.create');
+        Route::post('/', [LanguageController::class, 'store'])->name('admin.languages.store');
+    });
+
+    // Users (staff)
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('users', UserController::class)
+            ->except('show')
+            ->names('admin.users');
+
+        Route::post('users/{user}/verification-notification', [UserController::class, 'sendVerification'])
+            ->middleware('throttle:6,1')
+            ->name('admin.users.verification.send');
+    });
+
+    // Profile
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'edit'])->name('admin.profile.edit');
+        Route::patch('/', [ProfileController::class, 'update'])->name('admin.profile.update');
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('admin.profile.destroy');
     });
 
 

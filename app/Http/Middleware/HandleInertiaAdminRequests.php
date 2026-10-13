@@ -40,6 +40,10 @@ class HandleInertiaAdminRequests extends Middleware
                 'location' => $request->url(),
             ],
             'app_name' => config('app.name'),
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ];
     }
 }

@@ -27,4 +27,22 @@ enum Roles: string
             self::SEO->value,
         ];
     }
+
+    public function isEmployee(): bool
+    {
+        return in_array($this->value, self::employeeRoles(), true);
+    }
+
+    /**
+     * Options for <select> on the frontend.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public static function employeeOptions(): array
+    {
+        return array_map(
+            fn (string $role) => ['value' => $role, 'label' => self::from($role)->label()],
+            self::employeeRoles(),
+        );
+    }
 }

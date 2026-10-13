@@ -3,31 +3,34 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\StoreLanguageRequest;
+use App\Models\Language;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class LanguageController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
-        // todo need to implement
         return Inertia::render('languages/IndexLanguages', [
-            'laravelVersion' => app()->version(),
-            'phpVersion' => phpversion(),
-            'data' => [
-                1,
-                2,
-                3,
-                4,
-            ],
+            'languages' => Language::query()
+                ->orderBy('code')
+                ->paginate(20, ['id', 'code', 'name', 'name_en', 'created_at']),
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
-        // todo need to implement
-        return Inertia::render('languages/CreateLanguage', [
+        return Inertia::render('languages/CreateLanguage');
+    }
 
-        ]);
+    public function store(StoreLanguageRequest $request): RedirectResponse
+    {
+        Language::create($request->validated());
+
+        return redirect()
+            ->route('admin.languages.index')
+            ->with('success', 'Язык добавлен.');
     }
 }

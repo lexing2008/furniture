@@ -2,21 +2,23 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Roles;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'email', 'password', 'email_verified_at', 'role'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.
@@ -30,6 +32,19 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => Roles::class,
         ];
+    }
+
+    /**
+     * Site staff: admin, manager, seo.
+     */
+    public function scopeEmployees(Builder $query): void
+    {
+        $query->whereIn('role', Roles::employeeRoles());
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this->role?->isEmployee() ?? false;
     }
 
     public function isAdmin(): bool

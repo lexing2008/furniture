@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import ApplicationLogo from '@/account/Components/ApplicationLogo.vue';
 import Dropdown from '@/account/Components/Dropdown.vue';
 import DropdownLink from '@/account/Components/DropdownLink.vue';
 import NavLink from '@/account/Components/NavLink.vue';
@@ -8,6 +7,7 @@ import ResponsiveNavLink from '@/account/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
 import SidebarProfile from "@/admin/Components/Common/Sidebar/SidebarProfile.vue";
 import Sidebar from "@/admin/Components/Common/Sidebar/Sidebar.vue";
+import FlashMessages from '@/admin/Components/Common/FlashMessages.vue';
 
 const showingNavigationDropdown = ref(false);
 </script>
@@ -48,6 +48,8 @@ const showingNavigationDropdown = ref(false);
 
             <!-- Page Content -->
             <main>
+                <FlashMessages />
+
                 <slot />
             </main>
         </div>
