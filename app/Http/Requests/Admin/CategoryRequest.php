@@ -12,7 +12,7 @@ use Illuminate\Validation\Validator;
 /**
  * Store and update of a category.
  *
- * translations: [{lang, name, slug, seo_title, seo_description, seo_block}, ...]
+ * translations: [{lang, name, slug, seo_template_id, seo_title, seo_description, seo_block}, ...]
  * A language block with an empty name means "no translation for this language".
  */
 class CategoryRequest extends FormRequest
@@ -35,6 +35,8 @@ class CategoryRequest extends FormRequest
                     'name' => $name,
                     // Str::slug transliterates Cyrillic: "Мягкая мебель" -> "miagkaia-mebel"
                     'slug' => Str::slug($slug !== '' ? $slug : $name),
+                    // The select sends "" for "no template"
+                    'seo_template_id' => ($translation['seo_template_id'] ?? null) ?: null,
                 ];
             })
             ->all();
@@ -77,6 +79,14 @@ class CategoryRequest extends FormRequest
                         ->when($category, fn ($rule) => $rule->whereNot('category_id', $category->id)),
                 ]
                 : ['nullable'];
+
+            // Only a template that has a translation in the same language can be linked
+            $rules["translations.{$index}.seo_template_id"] = [
+                'nullable',
+                'integer',
+                Rule::exists('seo_template_translations', 'seo_template_id')
+                    ->where('lang', (string) ($translation['lang'] ?? '')),
+            ];
         }
 
         return $rules;
@@ -95,8 +105,9 @@ class CategoryRequest extends FormRequest
 
                 // SEO texts without a name would be silently dropped otherwise
                 foreach ($this->input('translations', []) as $index => $translation) {
-                    $hasSeo = collect(['seo_title', 'seo_description', 'seo_block'])
-                        ->contains(fn ($field) => trim((string) ($translation[$field] ?? '')) !== '');
+                    $hasSeo = ($translation['seo_template_id'] ?? null) !== null
+                        || collect(['seo_title', 'seo_description', 'seo_block'])
+                            ->contains(fn ($field) => trim((string) ($translation[$field] ?? '')) !== '');
 
                     if (($translation['name'] ?? '') === '' && $hasSeo) {
                         $validator->errors()->add("translations.{$index}.name", 'Укажите название, иначе SEO-поля не сохранятся.');
@@ -111,6 +122,7 @@ class CategoryRequest extends FormRequest
         return [
             'translations.*.slug.unique' => 'Такой slug уже используется для этого языка.',
             'translations.*.slug.required' => 'Не удалось построить slug из названия, укажите его вручную.',
+            'translations.*.seo_template_id.exists' => 'У выбранного SEO-шаблона нет перевода на этот язык.',
         ];
     }
 

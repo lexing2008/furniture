@@ -8,6 +8,7 @@ import type {
     ExistingTranslation,
     Language,
     ParentOption,
+    SeoTemplateOption,
 } from '@/admin/Components/Categories/categoryForm';
 import { Head, useForm } from '@inertiajs/vue3';
 
@@ -21,6 +22,7 @@ const props = defineProps<{
     };
     languages: Language[];
     parents: ParentOption[];
+    seoTemplates: SeoTemplateOption[];
 }>();
 
 const form = useForm<CategoryFormData>({
@@ -50,6 +52,7 @@ const submit = () => {
                 :form="form"
                 :languages="languages"
                 :parents="parents"
+                :seo-templates="seoTemplates"
                 @submit="submit"
             />
         </Content>

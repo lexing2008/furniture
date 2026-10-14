@@ -6,12 +6,13 @@ import TextInput from '@/account/Components/TextInput.vue';
 import { Link } from '@inertiajs/vue3';
 import type { InertiaForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import type { CategoryFormData, Language, ParentOption, TranslationData } from './categoryForm';
+import type { CategoryFormData, Language, ParentOption, SeoTemplateOption, TranslationData } from './categoryForm';
 
 const props = defineProps<{
     form: InertiaForm<CategoryFormData>;
     languages: Language[];
     parents: ParentOption[];
+    seoTemplates: SeoTemplateOption[];
 }>();
 
 defineEmits<{
@@ -27,6 +28,8 @@ const error = (index: number, field: keyof TranslationData) => errors.value[`tra
 
 const tabHasErrors = (index: number) =>
     Object.keys(errors.value).some((key) => key.startsWith(`translations.${index}.`));
+
+const templatesFor = (lang: string) => props.seoTemplates.filter((template) => template.languages.includes(lang));
 
 const indent = (depth: number) => '  '.repeat(depth * 2) + (depth > 0 ? '└ ' : '');
 
@@ -109,6 +112,27 @@ const inputClass =
                             placeholder="Сгенерируется из названия"
                         />
                         <InputError class="mt-2" :message="error(index, 'slug')" />
+                    </div>
+
+                    <div>
+                        <InputLabel :for="`seo_template_id_${index}`" value="SEO-шаблон" />
+
+                        <select :id="`seo_template_id_${index}`" v-model="translation.seo_template_id" :class="inputClass">
+                            <option :value="null">— Без шаблона —</option>
+                            <option v-for="template in templatesFor(translation.lang)" :key="template.id" :value="template.id">
+                                {{ template.name }}
+                            </option>
+                        </select>
+
+                        <p class="mt-1 text-xs text-gray-500">
+                            Незаполненные SEO-поля ниже возьмутся из шаблона.
+                            <template v-if="templatesFor(translation.lang).length === 0">
+                                Шаблонов с переводом на этот язык пока нет —
+                                <Link :href="route('admin.seo-templates.create')" class="underline">добавить</Link>.
+                            </template>
+                        </p>
+
+                        <InputError class="mt-2" :message="error(index, 'seo_template_id')" />
                     </div>
 
                     <div>

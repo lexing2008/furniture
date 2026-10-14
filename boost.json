@@ -1,0 +1,9 @@
+{
+    "cloud": true,
+    "guidelines": true,
+    "skills": [
+        "deploying-to-cloud",
+        "laravel-best-practices",
+        "tailwindcss-development"
+    ]
+}

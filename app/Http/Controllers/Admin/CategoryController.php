@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\CategoryRequest;
 use App\Models\Category;
 use App\Models\CategoryTranslation;
 use App\Models\Language;
+use App\Models\SeoTemplate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -60,6 +61,7 @@ class CategoryController extends Controller
         return Inertia::render('categories/CreateCategory', [
             'languages' => $this->languages(),
             'parents' => $this->parentOptions(),
+            'seoTemplates' => $this->seoTemplateOptions(),
         ]);
     }
 
@@ -89,6 +91,7 @@ class CategoryController extends Controller
             ],
             'languages' => $this->languages(),
             'parents' => $this->parentOptions($category),
+            'seoTemplates' => $this->seoTemplateOptions(),
         ]);
     }
 
@@ -118,6 +121,24 @@ class CategoryController extends Controller
     private function languages()
     {
         return Language::query()->orderBy('id')->get(['id', 'code', 'name']);
+    }
+
+    /**
+     * Templates with the languages they are translated to: the form offers a template only in those languages.
+     *
+     * @return \Illuminate\Support\Collection<int, array{id: int, name: string, languages: array<int, string>}>
+     */
+    private function seoTemplateOptions()
+    {
+        return SeoTemplate::query()
+            ->with('translations:id,seo_template_id,lang')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (SeoTemplate $template) => [
+                'id' => $template->id,
+                'name' => $template->name,
+                'languages' => $template->translations->pluck('lang')->values(),
+            ]);
     }
 
     /**

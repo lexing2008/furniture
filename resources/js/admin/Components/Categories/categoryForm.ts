@@ -10,10 +10,18 @@ export interface ParentOption {
     depth: number;
 }
 
+export interface SeoTemplateOption {
+    id: number;
+    name: string;
+    // Language codes the template is translated to
+    languages: string[];
+}
+
 export interface TranslationData {
     lang: string;
     name: string;
     slug: string;
+    seo_template_id: number | null;
     seo_title: string;
     seo_description: string;
     seo_block: string;
@@ -38,6 +46,7 @@ export const makeTranslations = (
         lang: language.code,
         name: String(existing[language.code]?.name ?? ''),
         slug: String(existing[language.code]?.slug ?? ''),
+        seo_template_id: existing[language.code]?.seo_template_id ? Number(existing[language.code]?.seo_template_id) : null,
         seo_title: String(existing[language.code]?.seo_title ?? ''),
         seo_description: String(existing[language.code]?.seo_description ?? ''),
         seo_block: String(existing[language.code]?.seo_block ?? ''),

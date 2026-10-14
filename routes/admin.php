@@ -5,6 +5,7 @@ use App\Http\Middleware\HandleInertiaAdminRequests;
 use App\Http\Controllers\Admin\MainController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\SeoTemplateController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -45,6 +46,11 @@ Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employee
     Route::resource('categories', CategoryController::class)
         ->except(['show', 'destroy'])
         ->names('admin.categories');
+
+    // SEO templates
+    Route::resource('seo-templates', SeoTemplateController::class)
+        ->except(['show', 'destroy'])
+        ->names('admin.seo-templates');
 
     // Users (staff)
     Route::middleware('role:admin')->group(function () {
