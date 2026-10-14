@@ -3,6 +3,7 @@
 use App\Enums\Roles;
 use App\Http\Middleware\HandleInertiaAdminRequests;
 use App\Http\Controllers\Admin\MainController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
@@ -39,6 +40,11 @@ Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employee
         Route::get('/create', [LanguageController::class, 'create'])->name('admin.languages.create');
         Route::post('/', [LanguageController::class, 'store'])->name('admin.languages.store');
     });
+
+    // Furniture categories
+    Route::resource('categories', CategoryController::class)
+        ->except(['show', 'destroy'])
+        ->names('admin.categories');
 
     // Users (staff)
     Route::middleware('role:admin')->group(function () {

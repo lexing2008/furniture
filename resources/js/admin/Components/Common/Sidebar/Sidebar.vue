@@ -81,6 +81,20 @@ watch(isSidebarOpen, (newValue) => {
                 Главная
             </MainNavLink>
 
+            <!-- Категории мебели -->
+            <NavGroup title="Категории" routes="admin.categories.*">
+                <template #icon>
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                </template>
+
+                <template #links>
+                    <SubNavLink name="Добавить" routeName="admin.categories.create" />
+                    <SubNavLink name="Все категории" routeName="admin.categories.index" />
+                </template>
+            </NavGroup>
+
             <!-- Языки -->
             <NavGroup title="Языки" routes="admin.languages.*">
                 <!-- Иконка передается в именной слот #icon -->
@@ -92,7 +106,7 @@ watch(isSidebarOpen, (newValue) => {
 
                 <template #links>
                     <SubNavLink name="Добавить" routeName="admin.languages.create" />
-                    <SubNavLink name="Просмотр всех" routeName="admin.languages.index" />
+                    <SubNavLink name="Все языки" routeName="admin.languages.index" />
                 </template>
             </NavGroup>
 
@@ -106,7 +120,7 @@ watch(isSidebarOpen, (newValue) => {
 
                 <template #links>
                     <SubNavLink name="Добавить" routeName="admin.users.create" />
-                    <SubNavLink name="Просмотр всех" routeName="admin.users.index" />
+                    <SubNavLink name="Все пользователи" routeName="admin.users.index" />
                 </template>
             </NavGroup>
 
