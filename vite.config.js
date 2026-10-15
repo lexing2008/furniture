@@ -27,9 +27,9 @@ export default defineConfig({
     ],
     server: {
         cors: true, // Разрешает CORS для всех источников в dev-режиме
-        origin: 'http://127.0.0.1:5174', // Явно указываем адрес сервера Vite
+        origin: 'http://127.0.0.1:5175', // Явно указываем адрес сервера Vite
         // Если порт меняется, можно указать фиксированный порт:
-        port: 5174,
+        port: 5175,
         strictPort: true,
     },
     resolve: {

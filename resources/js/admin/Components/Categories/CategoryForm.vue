@@ -61,6 +61,23 @@ const inputClass =
             <InputError class="mt-2" :message="props.form.errors.parent_id" />
         </div>
 
+        <div>
+            <InputLabel for="seo_template_id" value="SEO-шаблон категории" />
+
+            <select id="seo_template_id" v-model="props.form.seo_template_id" :class="inputClass">
+                <option :value="null">— Без шаблона —</option>
+                <option v-for="template in seoTemplates" :key="template.id" :value="template.id">
+                    {{ template.name }}
+                </option>
+            </select>
+
+            <p class="mt-1 text-xs text-gray-500">
+                Действует на все языки категории. Шаблон, выбранный на вкладке языка, имеет приоритет.
+            </p>
+
+            <InputError class="mt-2" :message="props.form.errors.seo_template_id" />
+        </div>
+
         <label class="flex items-center gap-2">
             <input
                 type="checkbox"

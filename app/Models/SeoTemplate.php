@@ -14,6 +14,11 @@ class SeoTemplate extends Model
         return $this->hasMany(SeoTemplateTranslation::class);
     }
 
+    public function categories(): HasMany
+    {
+        return $this->hasMany(Category::class);
+    }
+
     public function categoryTranslations(): HasMany
     {
         return $this->hasMany(CategoryTranslation::class);

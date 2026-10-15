@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['parent_id', 'is_active'])]
+#[Fillable(['parent_id', 'seo_template_id', 'is_active'])]
 class Category extends Model
 {
     protected function casts(): array
@@ -21,6 +21,11 @@ class Category extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function seoTemplate(): BelongsTo
+    {
+        return $this->belongsTo(SeoTemplate::class);
     }
 
     public function children(): HasMany

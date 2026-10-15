@@ -14,6 +14,7 @@ const props = defineProps<{
 
 const form = useForm<CategoryFormData>({
     parent_id: null,
+    seo_template_id: null,
     is_active: true,
     translations: makeTranslations(props.languages),
 });

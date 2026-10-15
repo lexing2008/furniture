@@ -5,6 +5,7 @@ use App\Http\Middleware\HandleInertiaAdminRequests;
 use App\Http\Controllers\Admin\MainController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\RegionController;
 use App\Http\Controllers\Admin\SeoTemplateController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
@@ -46,6 +47,13 @@ Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employee
     Route::resource('categories', CategoryController::class)
         ->except(['show', 'destroy'])
         ->names('admin.categories');
+
+    // Regions: country -> area -> city
+    Route::resource('regions', RegionController::class)
+        ->except(['show', 'destroy'])
+        ->names('admin.regions');
+    Route::patch('regions/{region}/toggle', [RegionController::class, 'toggle'])
+        ->name('admin.regions.toggle');
 
     // SEO templates
     Route::resource('seo-templates', SeoTemplateController::class)

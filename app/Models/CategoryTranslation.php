@@ -27,14 +27,15 @@ class CategoryTranslation extends Model
     }
 
     /**
-     * SEO texts for the page: own fields win, empty ones are taken from the linked template
-     * translation in the same language.
+     * SEO texts for the page: own fields win, empty ones are taken from the template translation
+     * in the same language. The template of the translation wins over the template of the category.
      *
      * @return array{seo_title: ?string, seo_description: ?string, seo_block: ?string}
      */
     public function seo(): array
     {
-        $template = $this->seoTemplate?->translations->firstWhere('lang', $this->lang);
+        $template = ($this->seoTemplate ?? $this->category?->seoTemplate)
+            ?->translations->firstWhere('lang', $this->lang);
 
         $result = [];
 

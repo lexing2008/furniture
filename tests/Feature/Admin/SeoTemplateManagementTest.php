@@ -248,4 +248,58 @@ class SeoTemplateManagementTest extends TestCase
             'seo_block' => null,
         ], $translation->seo());
     }
+
+    public function test_category_can_be_linked_to_template(): void
+    {
+        $template = $this->createTemplate();
+
+        $this->actingAs($this->staff)
+            ->post('/admin/categories', [
+                'is_active' => true,
+                'seo_template_id' => $template->id,
+                'translations' => [$this->categoryTranslation($this->ru, ['name' => 'Диваны'])],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $category = Category::firstOrFail();
+        $this->assertSame($template->id, $category->seo_template_id);
+
+        $this->actingAs($this->staff)
+            ->put("/admin/categories/{$category->id}", [
+                'is_active' => true,
+                'seo_template_id' => '',
+                'translations' => [$this->categoryTranslation($this->ru, ['name' => 'Диваны'])],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($category->refresh()->seo_template_id);
+    }
+
+    public function test_unknown_category_template_is_rejected(): void
+    {
+        $this->actingAs($this->staff)
+            ->post('/admin/categories', [
+                'is_active' => true,
+                'seo_template_id' => 999,
+                'translations' => [$this->categoryTranslation($this->ru, ['name' => 'Диваны'])],
+            ])
+            ->assertSessionHasErrors('seo_template_id');
+    }
+
+    public function test_category_template_is_used_unless_translation_has_its_own(): void
+    {
+        $general = $this->createTemplate('Общий');
+        $own = $this->createTemplate('Свой', [
+            ['lang' => 'ru', 'name' => 'Свой', 'seo_title' => 'Особый {name}'],
+        ]);
+
+        $category = Category::create(['is_active' => true, 'seo_template_id' => $general->id]);
+        $translation = $category->translations()->create(['lang' => 'ru', 'name' => 'Диваны', 'slug' => 'divany']);
+
+        $this->assertSame('Купить Диваны', $translation->seo()['seo_title']);
+
+        $translation->update(['seo_template_id' => $own->id]);
+
+        $this->assertSame('Особый Диваны', $translation->fresh()->seo()['seo_title']);
+    }
 }

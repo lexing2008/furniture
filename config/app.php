@@ -56,6 +56,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Domain
+    |--------------------------------------------------------------------------
+    |
+    | Region pages are served from subdomains of this domain: berlin.furniture.com.
+    | Include the port when it is not a default one: furniture.local:8000.
+    |
+    */
+
+    'domain' => env('APP_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)
+        .(parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_PORT)
+            ? ':'.parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_PORT)
+            : '')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

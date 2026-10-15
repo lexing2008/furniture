@@ -16,6 +16,7 @@ const props = defineProps<{
     category: {
         id: number;
         parent_id: number | null;
+        seo_template_id: number | null;
         is_active: boolean;
         // Keyed by language code; an empty PHP collection arrives as []
         translations: Record<string, ExistingTranslation> | [];
@@ -27,6 +28,7 @@ const props = defineProps<{
 
 const form = useForm<CategoryFormData>({
     parent_id: props.category.parent_id,
+    seo_template_id: props.category.seo_template_id,
     is_active: props.category.is_active,
     translations: makeTranslations(
         props.languages,

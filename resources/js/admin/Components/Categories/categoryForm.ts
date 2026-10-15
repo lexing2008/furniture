@@ -29,6 +29,7 @@ export interface TranslationData {
 
 export interface CategoryFormData {
     parent_id: number | null;
+    seo_template_id: number | null;
     is_active: boolean;
     translations: TranslationData[];
 }

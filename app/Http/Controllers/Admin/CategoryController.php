@@ -68,7 +68,7 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request) {
-            $category = Category::create($request->safe()->only(['parent_id', 'is_active']));
+            $category = Category::create($request->safe()->only(['parent_id', 'seo_template_id', 'is_active']));
 
             $category->translations()->createMany($request->filledTranslations());
         });
@@ -86,6 +86,7 @@ class CategoryController extends Controller
             'category' => [
                 'id' => $category->id,
                 'parent_id' => $category->parent_id,
+                'seo_template_id' => $category->seo_template_id,
                 'is_active' => $category->is_active,
                 'translations' => $category->translations->keyBy('lang'),
             ],
@@ -98,7 +99,7 @@ class CategoryController extends Controller
     public function update(CategoryRequest $request, Category $category): RedirectResponse
     {
         DB::transaction(function () use ($request, $category) {
-            $category->update($request->safe()->only(['parent_id', 'is_active']));
+            $category->update($request->safe()->only(['parent_id', 'seo_template_id', 'is_active']));
 
             foreach ($request->filledTranslations() as $translation) {
                 $category->translations()->updateOrCreate(

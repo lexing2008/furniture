@@ -1,10 +1,19 @@
 <?php
 
 use App\Enums\Roles;
+use App\Http\Controllers\RegionPageController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use App\Http\Middleware\HandleInertiaAdminRequests;
+
+// Region pages: berlin.furniture.com. Registered first, the main domain never matches "{subdomain}.domain"
+Route::domain('{subdomain}.'.Str::before(config('app.domain'), ':'))->group(function () {
+    Route::get('/', [RegionPageController::class, 'show'])
+        ->where('subdomain', '[a-z0-9-]+')
+        ->name('region.show');
+});
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [

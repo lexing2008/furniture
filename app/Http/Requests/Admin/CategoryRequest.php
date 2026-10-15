@@ -43,6 +43,8 @@ class CategoryRequest extends FormRequest
 
         $this->merge([
             'translations' => $translations,
+            // The select sends "" for "no template"
+            'seo_template_id' => $this->input('seo_template_id') ?: null,
             'is_active' => $this->boolean('is_active'),
         ]);
     }
@@ -56,6 +58,7 @@ class CategoryRequest extends FormRequest
 
         $rules = [
             'parent_id' => ['nullable', 'integer', Rule::exists('categories', 'id'), $this->parentRule($category)],
+            'seo_template_id' => ['nullable', 'integer', Rule::exists('seo_templates', 'id')],
             'is_active' => ['required', 'boolean'],
             'translations' => ['required', 'array'],
             'translations.*.lang' => ['required', 'string', 'distinct', Rule::exists('languages', 'code')],
