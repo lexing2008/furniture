@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Country (parent_id = null) -> area -> city.
  */
 #[Fillable([
-    'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang',
+    'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'is_capital',
     'seo_title', 'seo_description', 'seo_block', 'is_active',
 ])]
 class Region extends Model
@@ -28,6 +28,7 @@ class Region extends Model
     protected function casts(): array
     {
         return [
+            'is_capital' => 'boolean',
             'is_active' => 'boolean',
         ];
     }
@@ -85,12 +86,14 @@ class Region extends Model
      */
     public function seo(): array
     {
-        $root = $this->root();
+        $root = $this->root(); // country
 
         $result = [];
 
         foreach (self::SEO_FIELDS as $field) {
-            $result[$field] = filled($this->{$field}) ? $this->{$field} : $root->{$field};
+            $value = filled($this->{$field}) ? $this->{$field} : $root->{$field};
+            $value = str_replace('{region_in}', $this->name_in, $value);
+            $result[$field] = $value;
         }
 
         return $result;
@@ -119,7 +122,12 @@ class Region extends Model
 
         $walk = function (int $parentId, int $depth) use (&$walk, $byParent, $result): void {
             $children = ($byParent[$parentId] ?? collect())
-                ->sortBy(fn (Region $region) => mb_strtolower($region->name));
+                ->sortBy([
+                    // 1. Сначала столицы (true идет выше false)
+                    fn (Region $a, Region $b) => $b->is_capital <=> $a->is_capital,
+                    // 2. Затем по алфавиту без учета регистра
+                    fn (Region $a, Region $b) => mb_strtolower($a->name) <=> mb_strtolower($b->name),
+                ]);
 
             foreach ($children as $region) {
                 $region->setAttribute('depth', $depth);

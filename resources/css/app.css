@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.link{
+    border-bottom: 1px solid #c6d8e9;
+    color: #0073b8;
+}
+.link:hover {
+    border: none;
+}

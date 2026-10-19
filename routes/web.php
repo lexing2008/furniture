@@ -9,9 +9,9 @@ use Inertia\Inertia;
 use App\Http\Middleware\HandleInertiaAdminRequests;
 
 // Region pages: berlin.furniture.com. Registered first, the main domain never matches "{subdomain}.domain"
-Route::domain('{subdomain}.'.Str::before(config('app.domain'), ':'))->group(function () {
+Route::domain('{region}.'.config('app.domain'))->group(function () {
     Route::get('/', [RegionPageController::class, 'show'])
-        ->where('subdomain', '[a-z0-9-]+')
+        ->where('region', '[a-z0-9-]+')
         ->name('region.show');
 });
 

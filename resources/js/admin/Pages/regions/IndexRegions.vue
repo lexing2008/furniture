@@ -11,6 +11,7 @@ interface Region {
     url: string;
     depth: number;
     lang: string | null;
+    is_capital: boolean;
     is_active: boolean;
 }
 
@@ -66,8 +67,11 @@ const toggle = (region: Region) => {
                             <td class="px-4 py-3">
                                 <span :style="{ paddingLeft: `${region.depth * 1.5}rem` }">
                                     <span v-if="region.depth > 0" class="text-gray-400">└ </span>
-                                    {{ region.name }}
+                                    <span :class="['mr-1',{'font-bold': region.is_capital}]">
+                                        {{ region.name }}
+                                    </span>
                                     <span class="text-gray-400">({{ region.name_en }})</span>
+                                    <span v-if="region.is_capital" class="ml-1 font-bold text-red-300">столица</span>
                                 </span>
                             </td>
                             <td class="px-4 py-3">{{ levels[region.depth] }}</td>

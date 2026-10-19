@@ -130,6 +130,15 @@ const inputClass =
         <label class="flex items-center gap-2">
             <input
                 type="checkbox"
+                v-model="props.form.is_capital"
+                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+            />
+            <span class="text-sm text-gray-700">Столица области</span>
+        </label>
+
+        <label class="flex items-center gap-2">
+            <input
+                type="checkbox"
                 v-model="props.form.is_active"
                 class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
             />

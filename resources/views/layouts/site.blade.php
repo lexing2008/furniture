@@ -3,10 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $seo['seo_title'] ?? $region->name }}</title>
-    @if (filled($seo['seo_description']))
-        <meta name="description" content="{{ $seo['seo_description'] }}">
+    <title>@yield('title')</title>
+    @hasSection('description')
+        <meta name="description" content="@yield('description')">
     @endif
+
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; background: #f9fafb; }
@@ -26,58 +27,80 @@
         .area.is-open > .area-button .arrow { transform: rotate(90deg); }
         .cities { display: none; padding: 4px 0 8px 16px; }
         .area.is-open > .cities { display: block; }
-        .cities a, .area-link { display: block; padding: 6px 4px; color: #4338ca; text-decoration: none; }
-        .cities a:hover, .area-link:hover { text-decoration: underline; }
-        .cities a.current { font-weight: 700; color: #111827; }
+        .area-link { display: block; padding: 6px 4px; color: #4338ca; text-decoration: none; }
         .content { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
         .seo-block { margin-top: 24px; line-height: 1.6; }
     </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
     <header class="header">
-        <a href="{{ $country->url() }}" class="logo">{{ config('app.name') }}</a>
+        <div class="container mx-auto  p-3 flex justify-between">
+            <a href="{{ $country->url() }}" class="logo">{{ config('app.name') }}</a>
 
-        <button type="button" class="region-button" id="region-button" aria-haspopup="true" aria-expanded="false">
-            {{ $region->name }}
-            <span aria-hidden="true">▾</span>
-        </button>
+            <button type="button" class="region-button ml-3" id="region-button" aria-haspopup="true" aria-expanded="false">
+                {{ $region->name }}
+                <span aria-hidden="true">▾</span>
+            </button>
 
-        <div class="popup-backdrop" id="region-backdrop"></div>
+            <div class="popup-backdrop" id="region-backdrop"></div>
 
-        <div class="popup" id="region-popup" role="dialog" aria-label="{{ $country->name }}">
-            <h2>{{ $country->name }}</h2>
+            <div class="popup" id="region-popup" role="dialog" aria-label="{{ $country->name }}">
+                <h2>{{ $country->name }}</h2>
 
-            <ul>
-                @foreach ($areas as $item)
-                    <li class="area{{ $item['region']->id === $region->id || $item['cities']->contains('id', $region->id) ? ' is-open' : '' }}">
-                        @if ($item['cities']->isEmpty())
-                            <a href="{{ $item['region']->url() }}" class="area-link">{{ $item['region']->name }}</a>
-                        @else
-                            <button type="button" class="area-button" data-area-toggle>
-                                <span>{{ $item['region']->name }}</span>
-                                <span class="arrow" aria-hidden="true">▸</span>
-                            </button>
+                <ul>
+                    @foreach ($areas as $item)
+                        <li class="area{{ $item['region']->id === $region->id || $item['cities']->contains('id', $region->id) ? ' is-open' : '' }}">
+                            @if ($item['cities']->isEmpty())
+                                <a href="{{ $item['region']->url() }}" class="area-link">{{ $item['region']->name }}</a>
+                            @else
+                                <button type="button" class="area-button" data-area-toggle>
+                                    <span>{{ $item['region']->name }}</span>
+                                    <span class="arrow" aria-hidden="true">▸</span>
+                                </button>
 
-                            <div class="cities">
-                                <a href="{{ $item['region']->url() }}"{!! $item['region']->id === $region->id ? ' class="current"' : '' !!}>{{ $item['region']->name }}</a>
+                                <div class="cities">
+                                    <a href="{{ $item['region']->url() }}"
+                                        @class([
+                                             'link text-sm',
+                                             'font-bold' => $item['region']->id === $region->id,
+                                        ])
+                                    >{{ $item['region']->name }}</a>
 
-                                @foreach ($item['cities'] as $city)
-                                    <a href="{{ $city->url() }}"{!! $city->id === $region->id ? ' class="current"' : '' !!}>{{ $city->name }}</a>
-                                @endforeach
-                            </div>
-                        @endif
-                    </li>
-                @endforeach
-            </ul>
+                                    @foreach ($item['cities'] as $city)
+                                        <div class="py-1">
+                                            <a href="{{ $city->url() }}"
+                                                @class([
+                                                     'link text-sm',
+                                                     'font-bold text-black' => $city->id === $region->id,
+                                                ])
+                                            >{{ $city->name }}</a>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     </header>
 
-    <main class="content">
-        @yield('content')
+    <main class="flex-grow">
+        <div class="container mx-auto p-3">
+            @yield('content')
+        </div>
     </main>
 
+    <footer>
+        <div class="container mx-auto p-3">
+            Footer
+        </div>
+    </footer>
     <script>
         (function () {
+            // regions popup
             var button = document.getElementById('region-button');
             var popup = document.getElementById('region-popup');
             var backdrop = document.getElementById('region-backdrop');
@@ -95,6 +118,7 @@
             document.querySelectorAll('[data-area-toggle]').forEach(function (toggle) {
                 toggle.addEventListener('click', function () { toggle.parentElement.classList.toggle('is-open'); });
             });
+            // - - - regions popup
         })();
     </script>
 </body>

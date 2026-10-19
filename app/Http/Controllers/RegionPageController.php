@@ -8,36 +8,27 @@ use Illuminate\View\View;
 
 class RegionPageController extends Controller
 {
-    public function show(string $subdomain): View
+    public function show(Region $region): View
     {
-        $region = Region::query()->where('subdomain', $subdomain)->first();
-
+        // todo: move to middleware
         abort_unless($region?->isAvailable(), 404);
 
-        $country = $region->root();
-
-        $language = $country->lang;
-
-        if ($language !== null) {
-            App::setLocale($language);
+        // страна
+        if($region->parent_id === null){
+            return view('region.country.show', [
+                'seo' => $region->seo(),
+            ]);
         }
 
-        $active = Region::query()->where('is_active', true)->get()->groupBy('parent_id');
-
-        $byName = fn ($regions) => collect($regions)->sortBy(fn (Region $r) => mb_strtolower($r->name));
-
-        // Areas of the country with their cities, only the active ones
-        $areas = $byName($active[$country->id] ?? [])->map(fn (Region $area) => [
-            'region' => $area,
-            'cities' => $byName($active[$area->id] ?? []),
-        ]);
+        // область
+        if($region->children->isNotEmpty()){
+            return view('region.region.show', [
+                'seo' => $region->seo(),
+            ]);
+        }
 
         return view('region.show', [
-            'region' => $region,
-            'country' => $country,
-            'language' => $language ?? config('app.locale'),
             'seo' => $region->seo(),
-            'areas' => $areas,
         ]);
     }
 }
