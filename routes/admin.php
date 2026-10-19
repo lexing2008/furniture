@@ -4,6 +4,8 @@ use App\Enums\Roles;
 use App\Http\Middleware\HandleInertiaAdminRequests;
 use App\Http\Controllers\Admin\MainController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\FilterController;
+use App\Http\Controllers\Admin\FilterTranslationController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\RegionController;
 use App\Http\Controllers\Admin\SeoTemplateController;
@@ -47,6 +49,20 @@ Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employee
     Route::resource('categories', CategoryController::class)
         ->except(['show', 'destroy'])
         ->names('admin.categories');
+
+    // Category filters: filled in ru, translated on a separate page
+    Route::get('categories/{category}/filters', [FilterController::class, 'index'])->name('admin.categories.filters.index');
+    Route::get('categories/{category}/filters/create', [FilterController::class, 'create'])->name('admin.categories.filters.create');
+    Route::post('categories/{category}/filters', [FilterController::class, 'store'])->name('admin.categories.filters.store');
+    Route::prefix('filters/{filter}')->group(function () {
+        Route::get('edit', [FilterController::class, 'edit'])->name('admin.filters.edit');
+        Route::put('/', [FilterController::class, 'update'])->name('admin.filters.update');
+        Route::delete('/', [FilterController::class, 'destroy'])->name('admin.filters.destroy');
+        Route::patch('toggle', [FilterController::class, 'toggle'])->name('admin.filters.toggle');
+        Route::patch('move', [FilterController::class, 'move'])->name('admin.filters.move');
+        Route::get('translations/{lang}', [FilterTranslationController::class, 'edit'])->name('admin.filters.translations.edit');
+        Route::put('translations/{lang}', [FilterTranslationController::class, 'update'])->name('admin.filters.translations.update');
+    });
 
     // Regions: country -> area -> city
     Route::resource('regions', RegionController::class)

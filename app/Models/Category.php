@@ -23,6 +23,11 @@ class Category extends Model
         return $this->belongsTo(self::class, 'parent_id');
     }
 
+    public function filters(): HasMany
+    {
+        return $this->hasMany(Filter::class)->orderBy('order')->orderBy('id');
+    }
+
     public function seoTemplate(): BelongsTo
     {
         return $this->belongsTo(SeoTemplate::class);
@@ -56,7 +61,7 @@ class Category extends Model
      */
     public static function tree(): Collection
     {
-        $all = self::query()->with('translations')->orderBy('id')->get();
+        $all = self::query()->with('translations')->withCount('filters')->orderBy('id')->get();
 
         $byParent = $all->groupBy(fn (Category $category) => $category->parent_id ?? 0);
 

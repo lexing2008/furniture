@@ -3,9 +3,9 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Category;
+use App\Support\Slug;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -33,8 +33,8 @@ class CategoryRequest extends FormRequest
                 return [
                     ...$translation,
                     'name' => $name,
-                    // Str::slug transliterates Cyrillic: "Мягкая мебель" -> "miagkaia-mebel"
-                    'slug' => Str::slug($slug !== '' ? $slug : $name),
+                    // Slug transliterates Cyrillic: "Мягкая мебель" -> "myagkaya-mebel"
+                    'slug' => Slug::make($slug !== '' ? $slug : $name),
                     // The select sends "" for "no template"
                     'seo_template_id' => ($translation['seo_template_id'] ?? null) ?: null,
                 ];

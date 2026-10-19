@@ -22,7 +22,7 @@ const showingNavigationDropdown = ref(false);
                 class="border-b border-gray-100 bg-white"
             >
                 <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
 
                         <slot name="tabs" />
@@ -37,7 +37,7 @@ const showingNavigationDropdown = ref(false);
                 class="bg-white shadow"
                 v-if="$slots.header"
             >
-                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-full px-4 py-6 sm:px-6 lg:px-8">
                     <h2
                         class="text-xl font-semibold leading-tight text-gray-800"
                     >

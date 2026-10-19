@@ -8,6 +8,7 @@ interface Category {
     name: string;
     depth: number;
     is_active: boolean;
+    filters_count: number;
     translations: { code: string; slug: string }[];
 }
 
@@ -79,6 +80,7 @@ const toggleShowAll = () => {
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Название</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Slug</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Языки</th>
+                            <th class="px-4 py-3 text-left font-medium text-gray-500">Фильтры</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Статус</th>
                             <th class="px-4 py-3" />
                         </tr>
@@ -105,6 +107,14 @@ const toggleShowAll = () => {
                                 </span>
                             </td>
                             <td class="px-4 py-3">
+                                <Link
+                                    :href="route('admin.categories.filters.index', category.id)"
+                                    :class="category.filters_count > 0 ? 'text-indigo-600 hover:text-indigo-900' : 'text-gray-400'"
+                                >
+                                    {{ category.filters_count }}
+                                </Link>
+                            </td>
+                            <td class="px-4 py-3">
                                 <span
                                     class="rounded-full px-2 py-0.5 text-xs"
                                     :class="category.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
@@ -113,6 +123,12 @@ const toggleShowAll = () => {
                                 </span>
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-right">
+                                <Link
+                                    :href="route('admin.categories.filters.index', category.id)"
+                                    class="mr-3 text-indigo-600 hover:text-indigo-900"
+                                >
+                                    Фильтры
+                                </Link>
                                 <Link
                                     :href="route('admin.categories.edit', category.id)"
                                     class="text-indigo-600 hover:text-indigo-900"
