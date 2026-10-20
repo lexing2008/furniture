@@ -1,12 +1,53 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss'; /* Новый синтаксис импорта v4 */
 
+@plugin '@tailwindcss/forms';
 
-.link{
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* Явно указываем Tailwind, где искать классы в Laravel-проекте */
+@source "../views/**/*.blade.php";
+@source "../js/**/*.js";
+@source "../js/**/*.vue";
+
+@theme {
+  --font-sans:
+    Figtree, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  /* Теперь ваша настройка цвета заработает именно здесь! */
+  --color-brand-blue: #0073b8;
+  --color-bord-blue: #c6d8e9;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/* Ваши кастомные классы */
+.link {
     border-bottom: 1px solid #c6d8e9;
-    color: #0073b8;
+    color: var(--color-brand-blue); /* Можно использовать как переменную */
 }
 .link:hover {
     border: none;
 }
+.current_region{
+    font-size: 19px;
+    border-bottom: 1px dashed ;
+}
+

@@ -37,8 +37,15 @@
 <body class="flex flex-col min-h-screen">
     <header class="header">
         <div class="container mx-auto  p-3 flex justify-between">
-            <a href="{{ $country->url() }}" class="logo">{{ config('app.name') }}</a>
+            <div>
+                <div class="text-xs">Мебель в {{ $region->name_in }}</div>
+                <a href="{{ $country->url() }}" class="logo">{{ config('app.name') }}</a>
+            </div>
 
+
+            <div>
+                <span class="border-b border-dashed border-bord-blue  text-[19px] font-semibold text-brand-blue cursor-pointer hover:border-transparent">{{ $region->name }}</span>
+            </div>
             <button type="button" class="region-button ml-3" id="region-button" aria-haspopup="true" aria-expanded="false">
                 {{ $region->name }}
                 <span aria-hidden="true">▾</span>
@@ -48,6 +55,8 @@
 
             <div class="popup" id="region-popup" role="dialog" aria-label="{{ $country->name }}">
                 <h2>{{ $country->name }}</h2>
+
+                <div class="my-1 text-xs">Выберите город. Будет показана мебель в вашем городе или с доставкой в ваш регион.</div>
 
                 <ul>
                     @foreach ($areas as $item)
@@ -87,7 +96,7 @@
         </div>
     </header>
 
-    <main class="flex-grow">
+    <main class="grow">
         <div class="container mx-auto p-3">
             @yield('content')
         </div>

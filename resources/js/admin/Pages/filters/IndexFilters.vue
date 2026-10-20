@@ -44,7 +44,7 @@ const remove = (filter: Filter) => {
     }
 };
 
-const smallButton = 'rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-30';
+const smallButton = 'rounded-sm border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-30';
 </script>
 
 <template>

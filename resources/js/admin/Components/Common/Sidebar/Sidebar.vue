@@ -24,7 +24,7 @@ watch(isSidebarOpen, (newValue) => {
     <div class="md:hidden fixed top-4 left-4 z-40">
         <button
             @click="isSidebarOpen = true"
-            class="p-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 focus:outline-none shadow-md"
+            class="p-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 focus:outline-hidden shadow-md"
         >
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -44,7 +44,7 @@ watch(isSidebarOpen, (newValue) => {
         <div
             v-if="isSidebarOpen"
             @click="isSidebarOpen = false"
-            class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm md:hidden"
+            class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs md:hidden"
         ></div>
     </Transition>
 
@@ -61,7 +61,7 @@ watch(isSidebarOpen, (newValue) => {
             <!-- Кнопка закрытия для мобильных -->
             <button
                 @click="isSidebarOpen = false"
-                class="md:hidden text-gray-400 hover:text-white p-1 rounded-md hover:bg-slate-900 focus:outline-none"
+                class="md:hidden text-gray-400 hover:text-white p-1 rounded-md hover:bg-slate-900 focus:outline-hidden"
             >
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

@@ -55,7 +55,7 @@ const rowGrid =
 const cellLabel = 'block text-sm font-medium text-gray-700 lg:sr-only';
 
 const selectClass =
-    'mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 lg:mt-0';
+    'mt-1 block w-full rounded-md border-gray-300 text-sm shadow-xs focus:border-indigo-500 focus:ring-indigo-500 lg:mt-0';
 
 </script>
 
@@ -77,7 +77,7 @@ const selectClass =
                     v-for="item in languages"
                     :key="item.code"
                     :href="route('admin.filters.translations.edit', [filter.id, item.code])"
-                    class="rounded px-3 py-1"
+                    class="rounded-sm px-3 py-1"
                     :class="item.code === language.code ? 'bg-gray-800 text-white' : 'text-gray-700 hover:bg-gray-100'"
                 >
                     {{ item.name }} <span class="uppercase opacity-60">({{ item.code }})</span>
@@ -108,7 +108,7 @@ const selectClass =
                     <input
                         type="checkbox"
                         v-model="form.is_active"
-                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                        class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
                     />
                     <span class="text-sm text-gray-700">Перевод активен</span>
                 </label>
@@ -120,7 +120,7 @@ const selectClass =
 
                     <!-- On a large screen one variant is one table row, the table scrolls sideways when it does not fit -->
                     <div class="overflow-x-auto">
-                        <div class="lg:min-w-[64rem]">
+                        <div class="lg:min-w-5xl">
                             <div
                                 :class="rowGrid"
                                 class="hidden gap-3 border-b border-gray-200 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-500 lg:grid"
@@ -191,7 +191,7 @@ const selectClass =
                                     <input
                                         type="checkbox"
                                         v-model="variant.is_active"
-                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                        class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
                                     />
                                     <span class="text-sm text-gray-700 lg:hidden">Перевод варианта активен</span>
                                 </label>
@@ -202,7 +202,7 @@ const selectClass =
                     <!-- Variants are created in Russian: the edit page opens with an empty one -->
                     <Link
                         :href="route('admin.filters.edit', { filter: filter.id, add: 1 })"
-                        class="inline-block rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                        class="inline-block rounded-sm border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
                     >
                         + Добавить вариант
                     </Link>

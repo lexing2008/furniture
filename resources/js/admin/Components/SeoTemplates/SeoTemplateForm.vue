@@ -29,7 +29,7 @@ const tabHasErrors = (index: number) =>
     Object.keys(errors.value).some((key) => key.startsWith(`translations.${index}.`));
 
 const inputClass =
-    'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500';
+    'mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500';
 </script>
 
 <template>
@@ -74,7 +74,7 @@ const inputClass =
                 <div v-show="activeTab === index" class="space-y-6 pt-6">
                     <p class="text-xs text-gray-500">
                         Оставьте название пустым, если шаблон на этом языке не нужен.
-                        В SEO-полях можно использовать <code class="rounded bg-gray-100 px-1">{name}</code> —
+                        В SEO-полях можно использовать <code class="rounded-sm bg-gray-100 px-1">{name}</code> —
                         подставится название категории.
                     </p>
 

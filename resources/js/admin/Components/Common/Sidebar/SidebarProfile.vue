@@ -44,7 +44,7 @@ onUnmounted(() => {
         <!-- Кнопка-триггер (клик переключает меню) -->
         <button
             @click="toggleMenu"
-            class="flex w-full items-center text-left focus:outline-none group"
+            class="flex w-full items-center text-left focus:outline-hidden group"
             aria-haspopup="true"
             :aria-expanded="isMenuOpen"
         >

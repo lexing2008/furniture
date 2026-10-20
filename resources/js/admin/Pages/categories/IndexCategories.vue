@@ -62,7 +62,7 @@ const toggleShowAll = () => {
                     <input
                         type="checkbox"
                         :checked="showAll"
-                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                        class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
                         @change="toggleShowAll"
                     />
                     Показать все без постраничной навигации
@@ -150,13 +150,13 @@ const toggleShowAll = () => {
                         v-if="link.url"
                         :href="link.url"
                         preserve-scroll
-                        class="rounded px-3 py-1 text-sm"
+                        class="rounded-sm px-3 py-1 text-sm"
                         :class="link.active ? 'bg-gray-800 text-white' : 'text-gray-700 hover:bg-gray-100'"
                         v-html="link.label"
                     />
                     <span
                         v-else
-                        class="rounded px-3 py-1 text-sm text-gray-400"
+                        class="rounded-sm px-3 py-1 text-sm text-gray-400"
                         v-html="link.label"
                     />
                 </template>

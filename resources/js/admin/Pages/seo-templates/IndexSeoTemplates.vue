@@ -92,13 +92,13 @@ defineProps<{
                         v-if="link.url"
                         :href="link.url"
                         preserve-scroll
-                        class="rounded px-3 py-1 text-sm"
+                        class="rounded-sm px-3 py-1 text-sm"
                         :class="link.active ? 'bg-gray-800 text-white' : 'text-gray-700 hover:bg-gray-100'"
                         v-html="link.label"
                     />
                     <span
                         v-else
-                        class="rounded px-3 py-1 text-sm text-gray-400"
+                        class="rounded-sm px-3 py-1 text-sm text-gray-400"
                         v-html="link.label"
                     />
                 </template>

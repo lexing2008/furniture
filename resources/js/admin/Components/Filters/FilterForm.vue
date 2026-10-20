@@ -51,7 +51,7 @@ const moveVariant = (index: number, shift: -1 | 1) => {
 };
 
 const inputClass =
-    'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500';
+    'mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500';
 
 // Order, three names, slug, two templates, active, delete
 const rowGrid =
@@ -61,9 +61,9 @@ const rowGrid =
 const cellLabel = 'block text-sm font-medium text-gray-700 lg:sr-only';
 
 const selectClass =
-    'mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 lg:mt-0';
+    'mt-1 block w-full rounded-md border-gray-300 text-sm shadow-xs focus:border-indigo-500 focus:ring-indigo-500 lg:mt-0';
 
-const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-30';
+const smallButton = 'rounded-sm border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-30';
 </script>
 
 <template>
@@ -104,7 +104,7 @@ const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-
                 type="number"
                 min="1"
                 max="6"
-                class="mt-1 block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                class="mt-1 block w-32 rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500"
                 v-model.number="props.form.digits_after_point"
             />
             <InputError class="mt-2" :message="props.form.errors.digits_after_point" />
@@ -114,7 +114,7 @@ const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-
             <input
                 type="checkbox"
                 v-model="props.form.is_active"
-                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
             />
             <span class="text-sm text-gray-700">Активен (показывается на сайте)</span>
         </label>
@@ -133,7 +133,7 @@ const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-
 
             <!-- On a large screen one variant is one table row, the table scrolls sideways when it does not fit -->
             <div v-else class="overflow-x-auto">
-                <div class="lg:min-w-[68rem]">
+                <div class="lg:min-w-272">
                     <div
                         :class="rowGrid"
                         class="hidden gap-3 border-b border-gray-200 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-500 lg:grid"
@@ -250,7 +250,7 @@ const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-
                             <input
                                 type="checkbox"
                                 v-model="variant.is_active"
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
                             />
                             <span class="text-sm text-gray-700 lg:hidden">Вариант активен</span>
                         </label>

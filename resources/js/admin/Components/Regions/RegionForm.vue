@@ -25,7 +25,7 @@ const isCountry = computed(() => props.form.parent_id === null);
 const indent = (depth: number) => '  '.repeat(depth * 2) + (depth > 0 ? '└ ' : '');
 
 const inputClass =
-    'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500';
+    'mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500';
 </script>
 
 <template>
@@ -131,7 +131,7 @@ const inputClass =
             <input
                 type="checkbox"
                 v-model="props.form.is_capital"
-                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
             />
             <span class="text-sm text-gray-700">Столица области</span>
         </label>
@@ -140,7 +140,7 @@ const inputClass =
             <input
                 type="checkbox"
                 v-model="props.form.is_active"
-                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
             />
             <span class="text-sm text-gray-700">Активен (страница доступна на сайте)</span>
         </label>
