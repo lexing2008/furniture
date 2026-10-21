@@ -51,3 +51,31 @@
     border-bottom: 1px dashed ;
 }
 
+/* Красивый кастомный скроллбар */
+.custom-scrollbar {
+    /* Настройка для Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent; /* цвет бегунка / цвет трека */
+}
+
+/* Настройки для Chrome, Safari и Edge */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px; /* Делаем скроллбар очень тонким и аккуратным */
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent; /* Полностью прозрачный фон трека */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1; /* Исходный мягкий серый цвет бегунка (gray-300) */
+    border-radius: 20px; /* Полностью скругленные края */
+    transition: background-color 0.2s ease;
+}
+
+/* При наведении на область скролла или сам бегунок, он плавно окрашивается в ваш бренд-цвет */
+.custom-scrollbar:hover::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-brand-blue);
+}
