@@ -75,7 +75,7 @@
 
                         <button
                             type="submit"
-                            class="w-auto h-11 px-6 bg-brand-blue hover:bg-brand-blue/90 text-white font-medium rounded-xl shadow-md sm:shadow-none hover:shadow-lg sm:hover:shadow-none active:scale-[0.98] sm:active:scale-95 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+                            class="w-auto h-11 px-6 border-green-first border-2 hover:bg-green-first/90   text-green-first! hover:text-white! font-medium rounded-xl shadow-md sm:shadow-none hover:shadow-lg sm:hover:shadow-none active:scale-[0.98] sm:active:scale-95 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
                         >
                             <span>Найти</span>
                             <!-- Иконка стрелочки для мобильных -->

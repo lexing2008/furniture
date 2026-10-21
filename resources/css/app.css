@@ -18,6 +18,8 @@
   /* Теперь ваша настройка цвета заработает именно здесь! */
   --color-brand-blue: #0073b8;
   --color-bord-blue: #c6d8e9;
+  --color-green-first: #67b52a;
+  --color-green-second: #599c25;
 }
 
 /*
