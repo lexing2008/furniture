@@ -63,7 +63,47 @@ class Category extends Model
     }
 
     /**
-     * All categories ordered as a tree (parent, then its children), each with a "depth" attribute.
+     * Display order of categories with one parent: by the "order" field, equal ones alphabetically.
+     *
+     * @param  Collection<int, Category>  $categories
+     * @return Collection<int, Category>
+     */
+    public static function sortForDisplay(Collection $categories): Collection
+    {
+        return $categories
+            ->sortBy([
+                fn (Category $a, Category $b) => $a->order <=> $b->order,
+                fn (Category $a, Category $b) => mb_strtolower($a->displayName()) <=> mb_strtolower($b->displayName()),
+                fn (Category $a, Category $b) => $a->id <=> $b->id,
+            ])
+            ->values();
+    }
+
+    /**
+     * Categories with the given parent in the display order.
+     *
+     * @return Collection<int, Category>
+     */
+    public static function orderedSiblings(?int $parentId): Collection
+    {
+        return self::sortForDisplay(
+            self::query()->with('translations')->where('parent_id', $parentId)->get(),
+        );
+    }
+
+    /**
+     * The "order" value that puts a category to the end of its siblings.
+     */
+    public static function nextOrder(?int $parentId): int
+    {
+        $max = self::query()->where('parent_id', $parentId)->max('order');
+
+        return $max === null ? 0 : (int) $max + 1;
+    }
+
+    /**
+     * All categories ordered as a tree (parent, then its children), each with a "depth" attribute
+     * and the "is_first" / "is_last" flags among the siblings.
      *
      * @return Collection<int, Category>
      */
@@ -76,11 +116,12 @@ class Category extends Model
         $result = new Collection;
 
         $walk = function (int $parentId, int $depth) use (&$walk, $byParent, $result): void {
-            $children = ($byParent[$parentId] ?? collect())
-                ->sortBy(fn (Category $category) => mb_strtolower($category->displayName()));
+            $children = self::sortForDisplay($byParent[$parentId] ?? new Collection);
 
-            foreach ($children as $category) {
+            foreach ($children as $index => $category) {
                 $category->setAttribute('depth', $depth);
+                $category->setAttribute('is_first', $index === 0);
+                $category->setAttribute('is_last', $index === $children->count() - 1);
                 $result->push($category);
                 $walk($category->id, $depth + 1);
             }

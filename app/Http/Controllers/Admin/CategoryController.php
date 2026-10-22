@@ -29,6 +29,8 @@ class CategoryController extends Controller
             'name' => $category->displayName(),
             'menu_name' => $category->menuName(),
             'depth' => $category->depth,
+            'is_first' => $category->is_first,
+            'is_last' => $category->is_last,
             'is_active' => $category->is_active,
             'filters_count' => $category->filters_count,
             'translations' => $category->translations
@@ -70,7 +72,10 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request) {
-            $category = Category::create($request->safe()->only(['parent_id', 'seo_template_id', 'is_active']));
+            $data = $request->safe()->only(['parent_id', 'seo_template_id', 'is_active']);
+
+            // A new category goes to the end of its parent
+            $category = Category::create([...$data, 'order' => Category::nextOrder($this->parentId($data))]);
 
             $category->translations()->createMany($request->filledTranslations());
         });
@@ -101,7 +106,14 @@ class CategoryController extends Controller
     public function update(CategoryRequest $request, Category $category): RedirectResponse
     {
         DB::transaction(function () use ($request, $category) {
-            $category->update($request->safe()->only(['parent_id', 'seo_template_id', 'is_active']));
+            $data = $request->safe()->only(['parent_id', 'seo_template_id', 'is_active']);
+
+            // Moved to another parent: goes to the end of the new one
+            if ($this->parentId($data) !== $category->parent_id) {
+                $data['order'] = Category::nextOrder($this->parentId($data));
+            }
+
+            $category->update($data);
 
             foreach ($request->filledTranslations() as $translation) {
                 $category->translations()->updateOrCreate(
@@ -116,6 +128,42 @@ class CategoryController extends Controller
         return redirect()
             ->route('admin.categories.index')
             ->with('success', 'Категория сохранена.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function parentId(array $data): ?int
+    {
+        return isset($data['parent_id']) ? (int) $data['parent_id'] : null;
+    }
+
+    /**
+     * Moves the category one position up or down among the categories of its parent.
+     */
+    public function move(Request $request, Category $category): RedirectResponse
+    {
+        $direction = $request->validate(['direction' => ['required', 'in:up,down']])['direction'];
+
+        DB::transaction(function () use ($category, $direction) {
+            $ids = Category::orderedSiblings($category->parent_id)->pluck('id')->all();
+
+            $position = array_search($category->id, $ids, true);
+            $target = $direction === 'up' ? $position - 1 : $position + 1;
+
+            if ($position === false || ! isset($ids[$target])) {
+                return;
+            }
+
+            [$ids[$position], $ids[$target]] = [$ids[$target], $ids[$position]];
+
+            // Orders are rewritten as 0..n, so equal or gappy values cannot break the swap
+            foreach ($ids as $order => $id) {
+                Category::query()->whereKey($id)->update(['order' => $order]);
+            }
+        });
+
+        return back();
     }
 
     /**

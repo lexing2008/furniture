@@ -46,6 +46,7 @@ Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employee
     });
 
     // Furniture categories
+    Route::patch('categories/{category}/move', [CategoryController::class, 'move'])->name('admin.categories.move');
     Route::resource('categories', CategoryController::class)
         ->except(['show', 'destroy'])
         ->names('admin.categories');

@@ -8,6 +8,9 @@ interface Category {
     name: string;
     menu_name: string;
     depth: number;
+    // First / last among the categories of the same parent
+    is_first: boolean;
+    is_last: boolean;
     is_active: boolean;
     filters_count: number;
     translations: { code: string; slug: string }[];
@@ -28,6 +31,10 @@ const props = defineProps<{
     showAll: boolean;
     languagesCount: number;
 }>();
+
+const move = (category: Category, direction: 'up' | 'down') => {
+    router.patch(route('admin.categories.move', category.id), { direction }, { preserveScroll: true });
+};
 
 const toggleShowAll = () => {
     router.get(
@@ -78,6 +85,7 @@ const toggleShowAll = () => {
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th class="px-4 py-3 text-left font-medium text-gray-500">Порядок</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Название</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Назв. в меню</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Slug</th>
@@ -89,6 +97,22 @@ const toggleShowAll = () => {
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr v-for="category in categories.data" :key="category.id">
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <button
+                                    type="button"
+                                    class="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-30"
+                                    :disabled="category.is_first"
+                                    title="Выше"
+                                    @click="move(category, 'up')"
+                                >↑</button>
+                                <button
+                                    type="button"
+                                    class="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-30"
+                                    :disabled="category.is_last"
+                                    title="Ниже"
+                                    @click="move(category, 'down')"
+                                >↓</button>
+                            </td>
                             <td class="px-4 py-3">
                                 <span :style="{ paddingLeft: `${category.depth * 1.5}rem` }">
                                     <span v-if="category.depth > 0" class="text-gray-400">└ </span>
