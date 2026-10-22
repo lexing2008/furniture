@@ -7,45 +7,24 @@
     @hasSection('description')
         <meta name="description" content="@yield('description')">
     @endif
-
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; /*background: #f9fafb;*/ }
-        .popup-backdrop { position: fixed; inset: 0; z-index: 10; display: none; background: rgba(17, 24, 39, .5); }
-        .popup-backdrop.is-open { display: block; }
-        /*.popup { position: absolute; top: 64px; left: 24px; z-index: 11; display: none; width: 360px; max-width: calc(100vw - 48px); max-height: 70vh; overflow-y: auto; padding: 16px; border-radius: 8px; background: #fff; box-shadow: 0 10px 30px rgba(0, 0, 0, .2); }*/
-        .popup { display: none; }
-        .popup.is-open { display: block; }
-        #region-popup-overlay{ display: none; }
-        #region-popup-overlay.is-open { display: block; }
-        .popup h2 { margin: 0 0 12px; font-size: 16px; }
-        .popup ul { margin: 0; padding: 0; list-style: none; }
-        .area-button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 4px; border: 0; border-bottom: 1px solid #f3f4f6; background: none; font: inherit; text-align: left; cursor: pointer; }
-        .area-button:hover { background: #f9fafb; }
-        .area-button .arrow { transition: transform .15s; color: #9ca3af; }
-        .area.is-open > .area-button .arrow { transform: rotate(90deg); }
-        .cities { display: none; padding: 4px 0 8px 16px; }
-        .area.is-open > .cities { display: block; }
-        .area-link { display: block; padding: 6px 4px; color: #4338ca; text-decoration: none; }
-        .content { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
-        .seo-block { margin-top: 24px; line-height: 1.6; }
-    </style>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    @vite(['resources/css/app.css'])
 </head>
 <body class="flex flex-col min-h-screen">
-    <header class="py-3">
-        <div class="container mx-auto py-3 px-4">
+    <header class="pb-2 pt-3">
+        <div class="container mx-auto py-2 px-4">
             <div class="w-full flex  gap-5 text-xs justify-between sm:justify-end mb-2 pr-0.5">
                 <a href="#" class="link">Каталог мебели</a>
                 <a href="#" class="link relative">Разместить мебель
-                    <span class="bg-red-500 text-white absolute right-0 -top-3.5 rounded-2xl px-1">бесплатно</span>
+                    <span class="bg-red-500 text-white absolute -right-2 -top-3 rounded-2xl px-1 text-[10px]">бесплатно</span>
                 </a>
                 <a href="#" class="link">О проекте</a>
                 <a href="{{route('login')}}" class="link">Вход</a>
             </div>
             <div class="flex flex-wrap gap-x-10 justify-between items-center">
-                <div>
+                <div class="lg:pl-1">
                     <div class="text-xs">Мебель в {{ $region->name_in }}</div>
                     <a href="{{ $country->url() }}" class="logo">{{ config('app.name') }}</a>
                 </div>
@@ -57,9 +36,9 @@
 
                 <div class="max-md:flex max-md:w-full max-md:mt-3  md:flex-1  mx-auto">
                     <!-- Search form -->
-                    <form action="#" method="GET" class="relative w-full flex justify-between items-center flex-row gap-0 bg-white p-1.5 border border-gray-200 rounded-2xl shadow-sm focus-within:border-brand-blue focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all duration-200">
+                    <form action="#" method="GET" class="relative w-full flex justify-between items-center flex-row gap-0 bg-white p-1.5 border border-gray-200 rounded-2xl shadow-sm focus-within:border-green-first focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all duration-200">
 
-                        <div class="absolute left-4 top-[18px] sm:top-1/2 sm:-translate-y-1/2 text-gray-400 pointer-events-none hidden sm:block">
+                        <div class="absolute left-4 top-[18px] sm:top-1/2 sm:-translate-y-1/2 text-gray-400 pointer-events-none hidden sm:block opacity-50">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.604 10.604Z" />
                             </svg>
@@ -69,7 +48,7 @@
                             type="text"
                             name="query"
                             placeholder="Поиск по мебели и услугам"
-                            class="flex-1 h-11 pl-3 sm:pl-11 pr-4 bg-gray-55/50 bg-transparent border border-gray-200 border-none rounded-xl sm:rounded-none text-gray-800 placeholder-gray-400 outline-none focus:border-brand-blue  focus:ring-brand-blue/10 focus:ring-0 transition-all duration-200"
+                            class="flex-1 h-11 pl-3 sm:pl-11 pr-4 bg-gray-55/50 bg-transparent border border-gray-200 border-none rounded-xl sm:rounded-none text-gray-800 placeholder-gray-300 outline-none focus:border-brand-blue  focus:ring-brand-blue/10 focus:ring-0 transition-all duration-200"
                             required
                         >
 
@@ -90,9 +69,9 @@
 
             </div>
 
-            <!-- 1. Задний фон (Overlay) — Фиксирован, центрирует окно -->
-            <div id="region-popup-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center justify-items-center p-4 sm:p-6">
-
+            <!-- Popup -->
+            <!-- 1. Popup`s Background -->
+            <div id="region-popup-overlay" class="fixed hidden inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center justify-items-center p-4 sm:p-6">
                 <!-- 2. Сам попап (Контентное окно) — УБРАН overflow-y-auto, добавлен относительный класс -->
                 <div id="region-popup" class="w-full relative max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100 p-6 max-h-[calc(100vh-4rem)] flex flex-col">
                     <!-- Cross -->
@@ -108,7 +87,7 @@
 
                     <!-- Заголовок окна (Не скроллится) -->
                     <div class="mb-5 pr-10 shrink-0">
-                        <h2>{{ $country->name }}</h2>
+                        <h2 class="text-base mb-3">{{ $country->name }}</h2>
                         <div class="my-1 text-xs">Выберите город. Будет показана мебель в вашем городе или с доставкой в ваш регион.</div>
                     </div>
 
@@ -116,16 +95,21 @@
                     <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar text-gray-600">
                         <ul>
                             @foreach ($areas as $item)
-                                <li class="area{{ $item['region']->id === $region->id || $item['cities']->contains('id', $region->id) ? ' is-open' : '' }}">
+                                <li @class([
+                                        'area',
+                                        'is-open' => $item['region']->id === $region->id || $item['cities']->contains('id', $region->id),
+                                    ])
+                                >
                                     @if ($item['cities']->isEmpty())
-                                        <a href="{{ $item['region']->url() }}" class="area-link">{{ $item['region']->name }}</a>
+                                        <a href="{{ $item['region']->url() }}" class="link">{{ $item['region']->name }}</a>
                                     @else
                                         <button type="button" class="area-button" data-area-toggle>
                                             <span>{{ $item['region']->name }}</span>
-                                            <span class="arrow" aria-hidden="true">▸</span>
+                                            <span class="arrow mr-1.5" aria-hidden="true">▸</span>
                                         </button>
 
-                                        <div class="cities">
+                                        <!-- Cities -->
+                                        <div class="cities hidden mt-1 mb-2 ml-4">
                                             <a href="{{ $item['region']->url() }}"
                                                 @class([
                                                      'link text-sm',
@@ -138,12 +122,13 @@
                                                     <a href="{{ $city->url() }}"
                                                         @class([
                                                              'link text-sm',
-                                                             'font-bold text-black' => $city->id === $region->id,
+                                                             'font-bold text-black border-b-transparent!' => $city->id === $region->id,
                                                         ])
                                                     >{{ $city->name }}</a>
                                                 </div>
                                             @endforeach
                                         </div>
+                                        <!-- end Cities -->
                                     @endif
                                 </li>
                             @endforeach
@@ -152,7 +137,24 @@
 
                 </div>
             </div>
+            <!-- - - - end Popup -->
 
+
+            <!-- Menu -->
+            <div class="mt-4 bg-linear-to-b from-green-first to-green-second text-white py-5 px-5 rounded-xl flex flex-wrap gap-x-5">
+                <a href="#" class="hover:text-black/80 border-b-gray-200/15 border-b hover:border-b-transparent">Гостиная</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Кухня</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Спальня</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Детская</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Гардеробная</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Прихожая</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Ванная и туалет</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Офис</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Текстиль</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Услуги</a>
+                <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Отдых</a>
+            </div>
+            <!-- end Menu -->
         </div>
     </header>
 
@@ -162,47 +164,147 @@
         </div>
     </main>
 
-    <footer>
-        <div class="container mx-auto py-3 px-4">
-            Footer
+    <footer class="bg-green-first">
+        <div class="container mx-auto py-3 px-4 pt-5">
+
+            <div class="flex flex-col md:flex-row justify-between gap-5">
+                <div>
+                    <div class="text-white font-bold mb-2">
+                        О нас
+                        <div class="h-0.5 w-7 bg-white/90"></div>
+                    </div>
+                    <div class="max-w-md text-white/80 text-xs">
+                        {{ $region->name }} {{ config('app.domain') }} - это мебельный торговый центр в интернете, где продавцы и
+                        производители могут разместить свою мебель и услуги.
+                    </div>
+
+                    <div class="flex flex-col my-2">
+                        <div>
+                            <a href="#" class="text-white/80 hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Регистрация</a>
+                        </div>
+                        <div>
+                            <a href="{{route('login')}}" class="text-white/80 hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Вход</a>
+                        </div>
+                        <div>
+                            <a href="#" class="text-xs text-white/80 hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Пользовательское соглашение</a>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-white font-bold mb-2">
+                        Каталог мебели
+                        <div class="h-0.5 w-7 bg-white/90"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 gap-x-6 text-white/80 text-xs">
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в гостиную в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Кухная мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель для спальни в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Детская мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Гардеробная мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в прихожую в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в ванную и туалет в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Офисная мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Текстиль в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Услуги в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель для отдыха в Бресте</a>
+                        </div>
+
+
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в гостиную в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Кухная мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель для спальни в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Детская мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Гардеробная мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в прихожую в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в ванную и туалет в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Офисная мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Текстиль в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Услуги в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель для отдыха в Бресте</a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="max-sm:mt-3">
+                    <div class="text-white font-bold mb-2">
+                        Другие города
+                        <div class="h-0.5 w-7 bg-white/90"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 gap-x-6 text-white/80 text-xs">
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в Бресте</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в Витебске</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в Гомеле</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в Гродно</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в Минске</a>
+                        </div>
+                        <div>
+                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Мебель в Могилеве</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-6 border-t border-white/15" />
+
+            <div class="mb-2 text-center text-white/70 text-sm">
+                &copy; 2026 Мебельный портал {{ $region->subdomain  }}.{{ config('app.domain') }}
+            </div>
         </div>
     </footer>
-    <script>
-        (function () {
-            // regions popup
-            var button = document.getElementById('region-button');
-            var buttonClose = document.getElementById('region-popup-close');
-            var popup = document.getElementById('region-popup');
-            var backdrop = document.getElementById('region-popup-overlay');
 
-            function setOpen(open) {
-                popup.classList.toggle('is-open', open);
-                backdrop.classList.toggle('is-open', open);
-                button.setAttribute('aria-expanded', open ? 'true' : 'false');
-            }
-
-            button.addEventListener('click', function () { setOpen(!popup.classList.contains('is-open')); });
-            buttonClose.addEventListener('click', function () { setOpen(false); });
-            backdrop.addEventListener('click', function(event) {
-                // Находим сам попап (белое окно)
-                const popup = document.getElementById('region-popup');
-
-                // Проверяем: если кликнули на подложку И клик пришелся НЕ внутрь белого окна
-                if (event.target === this && !popup.contains(event.target)) {
-                    // скрываем подложку со всем содержимым
-                    setOpen(false);
-
-                    // Либо, если вы скрываете через классы Tailwind, можно написать:
-                    // this.classList.add('hidden');
-                }
-            });
-            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
-
-            document.querySelectorAll('[data-area-toggle]').forEach(function (toggle) {
-                toggle.addEventListener('click', function () { toggle.parentElement.classList.toggle('is-open'); });
-            });
-            // - - - regions popup
-        })();
-    </script>
+    @vite(['resources/js/web.js'])
 </body>
 </html>

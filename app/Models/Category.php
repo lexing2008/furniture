@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['parent_id', 'seo_template_id', 'is_active'])]
+#[Fillable(['parent_id', 'seo_template_id', 'is_active', 'order'])]
 class Category extends Model
 {
     protected function casts(): array
@@ -52,6 +52,14 @@ class Category extends Model
             ?? $this->translations->first();
 
         return $translation?->name ?? "#{$this->id}";
+    }
+
+    public function menuName(): string
+    {
+        $translation = $this->translations->first(fn (CategoryTranslation $t) => $t->lang === app()->getLocale())
+            ?? $this->translations->first();
+
+        return $translation?->menu_name ?? '';
     }
 
     /**

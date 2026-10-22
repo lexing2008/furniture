@@ -28,11 +28,13 @@ class CategoryRequest extends FormRequest
             ->map(function ($translation) {
                 $translation = is_array($translation) ? $translation : [];
                 $name = trim((string) ($translation['name'] ?? ''));
+                $menuName = trim((string) ($translation['menu_name'] ?? ''));
                 $slug = trim((string) ($translation['slug'] ?? ''));
 
                 return [
                     ...$translation,
                     'name' => $name,
+                    'menu_name' => $menuName,
                     // Slug transliterates Cyrillic: "Мягкая мебель" -> "myagkaya-mebel"
                     'slug' => Slug::make($slug !== '' ? $slug : $name),
                     // The select sends "" for "no template"
@@ -71,6 +73,7 @@ class CategoryRequest extends FormRequest
             $filled = ($translation['name'] ?? '') !== '';
 
             $rules["translations.{$index}.name"] = $filled ? ['string', 'max:255'] : ['nullable'];
+            $rules["translations.{$index}.menu_name"] = ['nullable', 'string', 'max:255'];
 
             $rules["translations.{$index}.slug"] = $filled
                 ? [

@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['lang', 'name', 'slug', 'seo_template_id', 'seo_title', 'seo_description', 'seo_block'])]
+#[Fillable(['lang', 'name', 'menu_name', 'slug', 'seo_template_id',
+    'seo_title', 'seo_description', 'seo_block'])]
 class CategoryTranslation extends Model
 {
     public const SEO_FIELDS = ['seo_title', 'seo_description', 'seo_block'];

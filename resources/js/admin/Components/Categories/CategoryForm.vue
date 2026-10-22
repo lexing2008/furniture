@@ -120,6 +120,12 @@ const inputClass =
                     </div>
 
                     <div>
+                        <InputLabel :for="`menu_name_${index}`" value="Название в меню (Если заполнено, будет отображаться в меню)" />
+                        <TextInput :id="`menu_name_${index}`" type="text" class="mt-1 block w-full" v-model="translation.menu_name" />
+                        <InputError class="mt-2" :message="error(index, 'menu_name')" />
+                    </div>
+
+                    <div>
                         <InputLabel :for="`slug_${index}`" value="Slug" />
                         <TextInput
                             :id="`slug_${index}`"

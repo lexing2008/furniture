@@ -16,9 +16,6 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
-            ACCOUNT TEMPLATE
-            {{ request()->user()?->id }}
-            {{ request()->user()?->name }}
         @inertia
     </body>
 </html>

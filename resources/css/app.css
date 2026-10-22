@@ -39,15 +39,14 @@
     border-color: var(--color-gray-200, currentcolor);
   }
 }
+@layer components {
+    /* Создаем один класс .link из множества классов Tailwind */
+    .link {
+        @apply text-brand-blue border-b border-b-bord-blue/50 hover:border-b-transparent hover:opacity-70;
+    }
+}
 
 /* Ваши кастомные классы */
-.link {
-    border-bottom: 1px solid #c6d8e9;
-    color: var(--color-brand-blue); /* Можно использовать как переменную */
-}
-.link:hover {
-    border: none;
-}
 .current_region{
     font-size: 19px;
     border-bottom: 1px dashed ;
@@ -81,3 +80,9 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-brand-blue);
 }
+
+#region-popup .area-button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 4px; border: 0; border-bottom: 1px solid #f3f4f6; background: none; font: inherit; text-align: left; cursor: pointer; }
+#region-popup .area-button:hover { background: #f9fafb; }
+#region-popup .area-button .arrow { transition: transform .15s; color: #9ca3af; }
+#region-popup .area.is-open > .area-button .arrow { transform: rotate(90deg); }
+#region-popup .area.is-open > .cities { display: block; }

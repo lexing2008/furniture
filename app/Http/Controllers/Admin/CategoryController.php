@@ -27,6 +27,7 @@ class CategoryController extends Controller
         $tree = Category::tree()->map(fn (Category $category) => [
             'id' => $category->id,
             'name' => $category->displayName(),
+            'menu_name' => $category->menuName(),
             'depth' => $category->depth,
             'is_active' => $category->is_active,
             'filters_count' => $category->filters_count,

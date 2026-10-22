@@ -6,6 +6,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 interface Category {
     id: number;
     name: string;
+    menu_name: string;
     depth: number;
     is_active: boolean;
     filters_count: number;
@@ -78,6 +79,7 @@ const toggleShowAll = () => {
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Название</th>
+                            <th class="px-4 py-3 text-left font-medium text-gray-500">Назв. в меню</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Slug</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Языки</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Фильтры</th>
@@ -92,6 +94,9 @@ const toggleShowAll = () => {
                                     <span v-if="category.depth > 0" class="text-gray-400">└ </span>
                                     {{ category.name }}
                                 </span>
+                            </td>
+                            <td class="px-4 py-3 font-mono text-gray-600">
+                                {{ category.menu_name }}
                             </td>
                             <td class="px-4 py-3 font-mono text-gray-600">
                                 <div v-for="t in category.translations" :key="t.code">
