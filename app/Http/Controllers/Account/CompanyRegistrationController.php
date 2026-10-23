@@ -10,12 +10,12 @@ use App\Models\Company;
 use App\Models\Region;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Registration of a company: the company and the user it belongs to. Works on every region subdomain.
@@ -38,7 +38,7 @@ class CompanyRegistrationController extends Controller
         ]);
     }
 
-    public function store(CompanyRegistrationRequest $request): RedirectResponse
+    public function store(CompanyRegistrationRequest $request): SymfonyResponse
     {
         $user = DB::transaction(function () use ($request) {
             $user = User::create([
@@ -62,9 +62,12 @@ class CompanyRegistrationController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()
-            ->route('account.index')
-            ->with('success', "Регистрация завершена. Мы отправили письмо со ссылкой подтверждения на {$user->email}.");
+        // A full page load, otherwise the account would keep the "guest" Blade shell of the registration page
+        return Inertia::location(
+            redirect()
+                ->route('account.index')
+                ->with('success', "Регистрация завершена. Мы отправили письмо со ссылкой подтверждения на {$user->email}.")
+        );
     }
 
     /**

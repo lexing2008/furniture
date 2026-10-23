@@ -2,7 +2,8 @@
 import StarterKit from '@tiptap/starter-kit';
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
-import { ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { editorHeights } from './wysiwygHeight';
 
 /**
  * WYSIWYG editor (TipTap, MIT). It only produces the tags the server keeps (see config/purify.php):
@@ -14,8 +15,12 @@ const props = withDefaults(
         modelValue: string;
         profile?: 'seo' | 'company';
         invalid?: boolean;
+        // The editor gets a bottom edge that can be dragged to change its height
+        resizable?: boolean;
+        // The height is remembered between visits under this localStorage key
+        heightKey?: string;
     }>(),
-    { profile: 'seo', invalid: false },
+    { profile: 'seo', invalid: false, resizable: false, heightKey: 'wysiwyg-height' },
 );
 
 const emit = defineEmits<{
@@ -27,6 +32,92 @@ const htmlOf = (editor: { isEmpty: boolean; getHTML: () => string }) => (editor.
 
 // Bumped on every transaction: the toolbar reads it to refresh the active buttons
 const tick = ref(0);
+
+// Height of a resizable editor: 10rem by default, kept in localStorage.
+// Editors with the same heightKey share it, so all SEO blocks on a page resize together.
+const MIN_HEIGHT = 160;
+const MAX_HEIGHT = 900;
+const resizing = ref(false);
+
+let resizeStartY = 0;
+let resizeStartHeight = 0;
+
+const clampHeight = (value: number) => Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, Math.round(value)));
+
+const height = computed({
+    get: () => editorHeights[props.heightKey] ?? MIN_HEIGHT,
+    set: (value: number) => {
+        editorHeights[props.heightKey] = clampHeight(value);
+    },
+});
+
+const saveHeight = () => {
+    if (props.resizable) {
+        localStorage.setItem(props.heightKey, String(height.value));
+    }
+};
+
+onMounted(() => {
+    if (!props.resizable) {
+        return;
+    }
+
+    const stored = Number(localStorage.getItem(props.heightKey));
+
+    if (Number.isFinite(stored) && stored > 0) {
+        height.value = clampHeight(stored);
+    }
+});
+
+const resizeMove = (event: PointerEvent) => {
+    if (resizing.value) {
+        height.value = clampHeight(resizeStartHeight + event.clientY - resizeStartY);
+    }
+};
+
+const stopResize = () => {
+    if (!resizing.value) {
+        return;
+    }
+
+    resizing.value = false;
+    window.removeEventListener('pointermove', resizeMove);
+    window.removeEventListener('pointerup', stopResize);
+    window.removeEventListener('pointercancel', stopResize);
+    document.body.classList.remove('select-none');
+    saveHeight();
+};
+
+const startResize = (event: PointerEvent) => {
+    if (!props.resizable || event.button !== 0) {
+        return;
+    }
+
+    resizing.value = true;
+    resizeStartY = event.clientY;
+    resizeStartHeight = height.value;
+    window.addEventListener('pointermove', resizeMove);
+    window.addEventListener('pointerup', stopResize);
+    window.addEventListener('pointercancel', stopResize);
+    document.body.classList.add('select-none');
+};
+
+const nudgeHeight = (delta: number) => {
+    height.value = clampHeight(height.value + delta);
+    saveHeight();
+};
+
+const resetHeight = () => {
+    height.value = MIN_HEIGHT;
+    saveHeight();
+};
+
+onBeforeUnmount(() => {
+    window.removeEventListener('pointermove', resizeMove);
+    window.removeEventListener('pointerup', stopResize);
+    window.removeEventListener('pointercancel', stopResize);
+    document.body.classList.remove('select-none');
+});
 
 const editor = useEditor({
     content: props.modelValue,
@@ -144,6 +235,39 @@ const buttonClass = (isActive: boolean) =>
             <button type="button" :class="buttonClass(false)" title="Повторить" :disabled="!editor.can().redo()" @click="editor.chain().focus().redo().run()">↷</button>
         </div>
 
-        <EditorContent :editor="editor" />
+        <div
+            class="wysiwyg-content"
+            :class="{ resizable: resizable, 'overflow-y-auto': resizable }"
+            :style="resizable ? { height: `${height}px` } : undefined"
+        >
+            <EditorContent :editor="editor" />
+        </div>
+
+        <!-- Нижняя кромка: тянем вверх/вниз, чтобы изменить высоту -->
+        <div
+            v-if="resizable"
+            class="group relative flex h-5 cursor-ns-resize touch-none rounded-b-md select-none items-center justify-center border-t border-gray-200 bg-gray-50"
+            role="separator"
+            aria-orientation="horizontal"
+            aria-label="Высота редактора"
+            :aria-valuenow="height"
+            :aria-valuemin="MIN_HEIGHT"
+            :aria-valuemax="MAX_HEIGHT"
+            tabindex="0"
+            title="Потяните вверх или вниз, чтобы изменить высоту. Двойной щелчок — сбросить."
+            @pointerdown.prevent="startResize"
+            @dblclick="resetHeight"
+            @keydown.up.prevent="nudgeHeight(-20)"
+            @keydown.down.prevent="nudgeHeight(20)"
+        >
+            <span class="h-1 w-10 rounded-full bg-gray-300 transition-colors group-hover:bg-gray-400"></span>
+            <span class="absolute right-2 text-[10px] leading-none text-gray-400">Высота: {{ height }} px</span>
+        </div>
     </div>
 </template>
+
+<style scoped>
+.wysiwyg-content.resizable :deep(.ProseMirror) {
+    min-height: 100%;
+}
+</style>

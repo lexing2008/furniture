@@ -124,7 +124,7 @@ const inputClass =
 
         <div>
             <InputLabel for="seo_block" value="SEO block" />
-            <WysiwygEditor v-model="props.form.seo_block" :invalid="!!props.form.errors.seo_block" />
+            <WysiwygEditor v-model="props.form.seo_block" :invalid="!!props.form.errors.seo_block" resizable />
             <InputError class="mt-2" :message="props.form.errors.seo_block" />
         </div>
 

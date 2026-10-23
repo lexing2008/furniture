@@ -91,4 +91,11 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === Roles::CUSTOMER;
     }
+
+    public function isAdminPanelRole(): bool
+    {
+        return $this->isAdmin()
+            || $this->isManager()
+            || $this->isSeo();
+    }
 }

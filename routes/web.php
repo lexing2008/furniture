@@ -4,8 +4,11 @@ use App\Enums\Roles;
 use App\Http\Controllers\Account\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Account\Auth\NewPasswordController;
 use App\Http\Controllers\Account\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Account\CompanyContactsController;
 use App\Http\Controllers\Account\CompanyController;
 use App\Http\Controllers\Account\CompanyRegistrationController;
+use App\Http\Controllers\Account\CompanySocialsController;
+use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\RegionPageController;
 use App\Http\Middleware\HandleInertiaAccountRequests;
 use App\Http\Middleware\HandleInertiaAdminRequests;
@@ -46,8 +49,21 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
     });
 
     Route::prefix('account')->middleware(['auth', 'role:customer', HandleInertiaAccountRequests::class])->group(function () {
+        // About the company
         Route::get('/', [CompanyController::class, 'edit'])->name('account.index');
         Route::put('/', [CompanyController::class, 'update'])->name('account.update');
+
+        // Contacts of the company: email and phones
+        Route::get('contacts', [CompanyContactsController::class, 'edit'])->name('account.contacts.edit');
+        Route::put('contacts', [CompanyContactsController::class, 'update'])->name('account.contacts.update');
+
+        // Links to the social networks of the company
+        Route::get('socials', [CompanySocialsController::class, 'edit'])->name('account.socials.edit');
+        Route::put('socials', [CompanySocialsController::class, 'update'])->name('account.socials.update');
+
+        // Password of the logged in user
+        Route::get('password', [PasswordController::class, 'edit'])->name('account.password.edit');
+        Route::put('password', [PasswordController::class, 'update'])->name('account.password.update');
 
         Route::post('logout', [AuthenticatedSessionController::class, 'destroyFromAccount'])
             ->name('account.logout');

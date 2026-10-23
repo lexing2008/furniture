@@ -4,17 +4,37 @@ export interface PhoneData {
     description: string;
 }
 
-/** Fields of a company that the registration and the account have in common */
-export interface CompanyFormFields {
+/** The company itself: the "About company" page of the account */
+export interface CompanyInfoFields {
     region_id: number | null;
     legal_name: string;
     tax_id: string;
     display_name: string;
-    description: string;
-    is_online_store: boolean;
     website: string;
-    phones: PhoneData[];
+    is_online_store: boolean;
+}
+
+export interface CompanyDescriptionFields {
+    description: string;
+}
+
+/** The "About company" page of the account */
+export interface CompanyAboutFields extends CompanyInfoFields, CompanyDescriptionFields {
     categories: number[];
+}
+
+/** Fields of a company that the registration and the account have in common */
+export interface CompanyFormFields extends CompanyAboutFields {
+    phones: PhoneData[];
+}
+
+export interface CompanyContactsFields {
+    email: string;
+    phones: PhoneData[];
+}
+
+export interface CompanySocialsFields {
+    socials: Record<string, string>;
 }
 
 export interface CategoryNode {

@@ -37,12 +37,13 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
-        if($user->isAdmin() || $user->isManager() || $user->isSeo()){
+        if ($user->isAdmin() || $user->isManager() || $user->isSeo()) {
             return Inertia::location(route('admin.index'));
         }
 
-        if($user->isCustomer()){
-            return redirect()->intended(route('account.index', absolute: false));
+        if ($user->isCustomer()) {
+            // A full page load, otherwise the account would keep the "guest" Blade shell of the login page
+            return Inertia::location($request->session()->pull('url.intended', route('account.index')));
         }
 
         return Inertia::location(route('home'));

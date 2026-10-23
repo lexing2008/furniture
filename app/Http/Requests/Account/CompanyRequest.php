@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests\Account;
 
+use App\Http\Requests\Concerns\NormalizesCompanyInput;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Region;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 /**
@@ -17,6 +17,8 @@ use Illuminate\Validation\Validator;
  */
 abstract class CompanyRequest extends FormRequest
 {
+    use NormalizesCompanyInput;
+
     public function authorize(): bool
     {
         return true;
@@ -32,71 +34,65 @@ abstract class CompanyRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $phones = collect($this->input('phones', []))
-            ->map(function ($phone) {
-                $phone = is_array($phone) ? $phone : [];
-
-                $code = preg_replace('/\s+/', '', trim((string) ($phone['code'] ?? '')));
-
-                return [
-                    // "375" and "+375" are the same
-                    'code' => $code === '' ? '' : '+'.ltrim($code, '+'),
-                    'number' => trim((string) ($phone['number'] ?? '')),
-                    'description' => trim((string) ($phone['description'] ?? '')) ?: null,
-                ];
-            })
-            // A row that was left blank is not a phone
-            ->reject(fn (array $phone) => $phone['code'] === '' && $phone['number'] === '' && $phone['description'] === null)
-            ->values()
-            ->all();
-
         $this->merge([
             'legal_name' => trim((string) $this->input('legal_name', '')),
             'tax_id' => trim((string) $this->input('tax_id', '')),
             'display_name' => trim((string) $this->input('display_name', '')),
             'is_online_store' => $this->boolean('is_online_store'),
             'website' => $this->normalizeUrl($this->input('website')),
-            'phones' => $phones,
+            'phones' => $this->normalizePhones($this->input('phones', [])),
             'categories' => collect($this->input('categories', []))->map(fn ($id) => (int) $id)->unique()->values()->all(),
         ]);
     }
 
     /**
-     * "example.com" -> "https://example.com", an empty value is null.
-     */
-    protected function normalizeUrl(mixed $value): ?string
-    {
-        $value = trim((string) $value);
-
-        if ($value === '') {
-            return null;
-        }
-
-        return preg_match('~^[a-z][a-z0-9+.-]*://~i', $value) ? $value : 'https://'.$value;
-    }
-
-    /**
+     * All fields of a company: the registration form has them on a single page.
+     *
      * @return array<string, mixed>
      */
     protected function companyRules(): array
+    {
+        return [
+            ...$this->companyFieldsRules(),
+            ...$this->phonesRules(),
+        ];
+    }
+
+    /**
+     * The company itself: the "About" page of the account.
+     *
+     * @return array<string, mixed>
+     */
+    protected function companyFieldsRules(): array
     {
         $company = $this->company();
 
         return [
             'legal_name' => ['required', 'string', 'max:255'],
-            'tax_id' => ['required', 'string', 'max:50'/*, Rule::unique('companies', 'tax_id')->ignore($company?->id)*/],
+            'tax_id' => ['required', 'string', 'max:50'/* , Rule::unique('companies', 'tax_id')->ignore($company?->id) */],
             'display_name' => ['required', 'string', 'max:255'],
             'region_id' => ['required', 'integer', $this->regionRule($company)],
             // Cleaned on save: App\Casts\PurifiedHtml, profile "company"
             'description' => ['nullable', 'string', 'max:20000'],
             'is_online_store' => ['required', 'boolean'],
             'website' => ['nullable', 'url:http,https', 'max:255'],
+            'categories' => ['required', 'array', 'min:1'],
+            'categories.*' => ['integer'],
+        ];
+    }
+
+    /**
+     * The contacts page of the account.
+     *
+     * @return array<string, mixed>
+     */
+    protected function phonesRules(): array
+    {
+        return [
             'phones' => ['required', 'array', 'min:1', 'max:10'],
             'phones.*.code' => ['required', 'regex:/^\+\d{1,5}$/'],
             'phones.*.number' => ['required', 'regex:/^\d[\d\s\-()]{2,17}\d$/'],
             'phones.*.description' => ['nullable', 'string', 'max:255'],
-            'categories' => ['required', 'array', 'min:1'],
-            'categories.*' => ['integer'],
         ];
     }
 

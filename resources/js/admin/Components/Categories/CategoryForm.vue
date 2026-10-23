@@ -183,6 +183,7 @@ const inputClass =
                         <WysiwygEditor
                             v-model="translation.seo_block"
                             :invalid="!!error(index, 'seo_block')"
+                            resizable
                         />
                         <InputError class="mt-2" :message="error(index, 'seo_block')" />
                     </div>

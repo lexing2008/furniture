@@ -1,40 +1,46 @@
 <script setup lang="ts">
-import { Link, router, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import Sidebar from '@/account/Components/Sidebar/Sidebar.vue';
 import type { PageProps } from '@/account/types';
+import { router, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const page = usePage<PageProps>();
 
-const user = computed(() => page.props.auth.user);
+const verified = computed(() => !!page.props.auth.user.email_verified_at);
+const linkSent = computed(() => page.props.flash?.status === 'verification-link-sent');
 
-const logout = () => router.post(route('account.logout'));
+const resend = () => {
+    router.post(route('verification.send'), {}, { preserveScroll: true });
+};
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50">
-        <header class="border-b border-gray-200 bg-white">
-            <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-                <Link :href="route('account.index')" class="text-lg font-bold text-gray-900">
-                    {{ page.props.app_name }}
-                    <span class="ml-1 text-sm font-normal text-gray-500">Кабинет компании</span>
-                </Link>
+    <div class="flex min-h-screen bg-gray-100">
+        <!-- Боковая панель, как в /admin -->
+        <Sidebar />
 
-                <div class="flex items-center gap-4 text-sm text-gray-600">
-                    <span>{{ user.name }}</span>
-                    <button type="button" class="text-indigo-600 hover:text-indigo-900" @click="logout">Выйти</button>
+        <div class="flex-1 min-h-screen bg-gray-100">
+            <main>
+                <div class="mx-auto max-w-5xl space-y-4 px-4 pb-8 pt-16 md:px-8 md:pt-10">
+                    <!-- Почта ещё не подтверждена: напоминаем на всех страницах кабинета -->
+                    <div v-if="!verified" class="space-y-2 rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+                        <p>
+                            Почта <b>{{ page.props.auth.user.email }}</b> ещё не подтверждена. Письмо со ссылкой отправлено при регистрации.
+                        </p>
+                        <p v-if="linkSent" class="text-green-700">Новое письмо отправлено.</p>
+                        <button v-else type="button" class="font-medium underline" @click="resend">Отправить письмо ещё раз</button>
+                    </div>
+
+                    <div v-if="page.props.flash?.success" class="rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
+                        {{ page.props.flash.success }}
+                    </div>
+                    <div v-if="page.props.flash?.error" class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {{ page.props.flash.error }}
+                    </div>
+
+                    <slot />
                 </div>
-            </div>
-        </header>
-
-        <main class="mx-auto max-w-5xl space-y-4 px-4 py-8">
-            <div v-if="page.props.flash?.success" class="rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
-                {{ page.props.flash.success }}
-            </div>
-            <div v-if="page.props.flash?.error" class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
-                {{ page.props.flash.error }}
-            </div>
-
-            <slot />
-        </main>
+            </main>
+        </div>
     </div>
 </template>

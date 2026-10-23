@@ -61,9 +61,26 @@ class Company extends Model
      */
     public function syncRelations(array $phones, array $categoryIds): void
     {
+        $this->syncPhones($phones);
+        $this->syncCategories($categoryIds);
+    }
+
+    /**
+     * Replaces the phones of the company with the submitted ones.
+     *
+     * @param  array<int, array{code: string, number: string, description: ?string}>  $phones
+     */
+    public function syncPhones(array $phones): void
+    {
         $this->phones()->delete();
         $this->phones()->createMany($phones);
+    }
 
+    /**
+     * @param  array<int, int>  $categoryIds
+     */
+    public function syncCategories(array $categoryIds): void
+    {
         $this->categories()->sync($categoryIds);
     }
 
