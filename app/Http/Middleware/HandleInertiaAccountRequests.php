@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Region;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -32,8 +33,15 @@ class HandleInertiaAccountRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'app_name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+            ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                // "verification-link-sent" after the letter was sent again
+                'status' => fn () => $request->session()->get('status'),
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),

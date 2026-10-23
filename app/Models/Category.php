@@ -63,6 +63,52 @@ class Category extends Model
     }
 
     /**
+     * Name in the language, or in the app locale / the first available one when there is no such translation.
+     */
+    public function nameIn(?string $lang): string
+    {
+        return $this->translations->firstWhere('lang', $lang)?->name ?? $this->displayName();
+    }
+
+    /**
+     * Active categories as a nested tree for choosing: [{id, name, selectable, children}].
+     * Only categories without subcategories are selectable; a branch without such categories is left out.
+     *
+     * @return array<int, array{id: int, name: string, selectable: bool, children: array<int, mixed>}>
+     */
+    public static function selectableTree(?string $lang): array
+    {
+        $byParent = self::query()->with('translations')->get()
+            ->groupBy(fn (Category $category) => $category->parent_id ?? 0);
+
+        $build = function (int $parentId) use (&$build, $byParent, $lang): array {
+            $nodes = [];
+
+            foreach (self::sortForDisplay($byParent[$parentId] ?? new Collection) as $category) {
+                if (! $category->is_active) {
+                    continue;
+                }
+
+                $selectable = ! isset($byParent[$category->id]);
+                $children = $build($category->id);
+
+                if ($selectable || $children !== []) {
+                    $nodes[] = [
+                        'id' => $category->id,
+                        'name' => $category->nameIn($lang),
+                        'selectable' => $selectable,
+                        'children' => $children,
+                    ];
+                }
+            }
+
+            return $nodes;
+        };
+
+        return $build(0);
+    }
+
+    /**
      * Display order of categories with one parent: by the "order" field, equal ones alphabetically.
      *
      * @param  Collection<int, Category>  $categories

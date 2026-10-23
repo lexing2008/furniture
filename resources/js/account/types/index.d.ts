@@ -11,6 +11,7 @@ export interface User {
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
+    app_name: string;
     auth: {
         user: User;
     };
@@ -18,5 +19,7 @@ export type PageProps<
     flash?: {
         success?: string | null;
         error?: string | null;
+        // "verification-link-sent" after the letter was sent again
+        status?: string | null;
     };
 };

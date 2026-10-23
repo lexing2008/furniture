@@ -16,6 +16,7 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
+    ACCOUNT TEMPLATE
         @inertia
     </body>
 </html>

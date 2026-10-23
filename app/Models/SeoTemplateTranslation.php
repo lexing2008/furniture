@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\PurifiedHtml;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['lang', 'name', 'seo_title', 'seo_description', 'seo_block'])]
 class SeoTemplateTranslation extends Model
 {
+    protected function casts(): array
+    {
+        return [
+            'seo_block' => PurifiedHtml::class.':seo',
+        ];
+    }
+
     public function seoTemplate(): BelongsTo
     {
         return $this->belongsTo(SeoTemplate::class);

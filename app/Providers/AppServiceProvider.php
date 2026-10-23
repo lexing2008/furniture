@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -45,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
                 return $value;
             }
 
+            // подставляем значение в URL по умолчанию
+            URL::defaults(['region' => $value]);
+
             // 3. Если это действительно поддомен, ищем регион в базе данных
             return Region::query()
                 ->where('subdomain', $value)
@@ -54,10 +58,12 @@ class AppServiceProvider extends ServiceProvider
 
 
         // pass data to template
-        View::composer(['layouts.site', 'region.*'], function ($view) use($regionService) {
+        View::composer(['layouts.site', 'region.*', 'guest'], function ($view) use($regionService) {
             // Получаем модель Region из текущего маршрута
             $region = request()->route('region');
-            //if(!$region){}
+            if(!$region){
+                return;
+            }
             $country = $region->root();
             $language = $country->lang;
 

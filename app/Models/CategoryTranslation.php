@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\PurifiedHtml;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CategoryTranslation extends Model
 {
     public const SEO_FIELDS = ['seo_title', 'seo_description', 'seo_block'];
+
+    protected function casts(): array
+    {
+        return [
+            'seo_block' => PurifiedHtml::class.':seo',
+        ];
+    }
 
     public function category(): BelongsTo
     {

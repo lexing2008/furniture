@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Casts\PurifiedHtml;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * Country (parent_id = null) -> area -> city.
@@ -30,6 +32,7 @@ class Region extends Model
         return [
             'is_capital' => 'boolean',
             'is_active' => 'boolean',
+            'seo_block' => PurifiedHtml::class.':seo',
         ];
     }
 
@@ -41,6 +44,68 @@ class Region extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
+    }
+
+    /**
+     * The region of a host: "berlin.furniture.com" -> Berlin. Null for the main domain, an unknown or a disabled region.
+     */
+    public static function fromHost(string $host): ?self
+    {
+        $suffix = '.'.Str::before((string) config('app.domain'), ':');
+
+        if (! Str::endsWith($host, $suffix)) {
+            return null;
+        }
+
+        $region = self::query()->where('subdomain', Str::beforeLast($host, $suffix))->first();
+
+        return $region?->isAvailable() ? $region : null;
+    }
+
+    /**
+     * Whether the region is a city: the third level, country -> area -> city.
+     */
+    public function isCity(): bool
+    {
+        return $this->parent_id !== null && $this->parent?->parent_id !== null;
+    }
+
+    /**
+     * Cities a company can choose, grouped by area: [{label: "Беларусь — Минская область", cities: [{id, name}]}].
+     * Only the cities that are shown on the site: the city, its area and its country are active.
+     *
+     * @return array<int, array{label: string, cities: array<int, array{id: int, name: string}>}>
+     */
+    public static function cityOptions(): array
+    {
+        $tree = self::tree();
+        $byId = $tree->keyBy('id');
+
+        $available = function (self $region) use ($byId): bool {
+            for ($current = $region; $current !== null; $current = $byId[$current->parent_id] ?? null) {
+                if (! $current->is_active) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        $groups = [];
+
+        foreach ($tree as $region) {
+            if ($region->depth !== self::MAX_DEPTH || ! $available($region)) {
+                continue;
+            }
+
+            $area = $byId[$region->parent_id];
+            $country = $byId[$area->parent_id];
+
+            $groups[$area->id] ??= ['label' => "{$country->name} — {$area->name}", 'cities' => []];
+            $groups[$area->id]['cities'][] = ['id' => $region->id, 'name' => $region->name];
+        }
+
+        return array_values($groups);
     }
 
     /**

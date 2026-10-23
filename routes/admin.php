@@ -1,36 +1,49 @@
 <?php
 
 use App\Enums\Roles;
-use App\Http\Middleware\HandleInertiaAdminRequests;
-use App\Http\Controllers\Admin\MainController;
+use App\Http\Controllers\Admin\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Admin\Auth\NewPasswordController;
+use App\Http\Controllers\Admin\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\FilterController;
 use App\Http\Controllers\Admin\FilterTranslationController;
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\MainController;
 use App\Http\Controllers\Admin\RegionController;
 use App\Http\Controllers\Admin\SeoTemplateController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\NewPasswordController;
-use App\Http\Controllers\Auth\PasswordController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Middleware\HandleInertiaAdminRequests;
 use Illuminate\Support\Facades\Route;
 
 // GUEST
 Route::prefix('admin')->middleware(['guest', HandleInertiaAdminRequests::class])->group(function () {
     Route::get('/', [MainController::class, 'index'])->name('admin.index');
 
-    // todo should solve
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+    // Auth
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+        ->name('admin.login');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
+        ->name('admin.password.request');
+
+    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->name('admin.password.email');
+
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
+        ->name('admin.password.reset');
+
+    Route::post('reset-password', [NewPasswordController::class, 'store'])
+        ->name('admin.password.store');
+    // - - - end Auth
+
+    // todo should solve
+//    Route::get('register', [RegisteredUserController::class, 'create'])
+//        ->name('register');
+//
+//    Route::post('register', [RegisteredUserController::class, 'store']);
 });
 // - - - GUEST
 

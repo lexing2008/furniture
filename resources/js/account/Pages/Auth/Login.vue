@@ -19,7 +19,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('login'), {
+    form.post(route('account.login'), {
         onFinish: () => {
             form.reset('password');
         },
@@ -86,7 +86,7 @@ const submit = () => {
 
                 <Link
                     v-if="canResetPassword"
-                    :href="route('password.request')"
+                    :href="route('account.password.request')"
                     class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                     Forgot your password?
@@ -94,5 +94,11 @@ const submit = () => {
 
             </div>
         </form>
+        <div class="mt-4 border-t border-gray-100 pt-4 text-center text-sm text-gray-600">
+            Нет кабинета?
+            <Link :href="route('account.register')" class="text-indigo-600 underline hover:text-indigo-900">
+                Зарегистрировать компанию
+            </Link>
+        </div>
     </GuestLayout>
 </template>

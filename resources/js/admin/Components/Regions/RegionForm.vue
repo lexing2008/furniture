@@ -3,6 +3,7 @@ import InputError from '@/account/Components/InputError.vue';
 import InputLabel from '@/account/Components/InputLabel.vue';
 import PrimaryButton from '@/account/Components/PrimaryButton.vue';
 import TextInput from '@/account/Components/TextInput.vue';
+import WysiwygEditor from '@/common/Components/WysiwygEditor.vue';
 import { Link } from '@inertiajs/vue3';
 import type { InertiaForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -123,7 +124,7 @@ const inputClass =
 
         <div>
             <InputLabel for="seo_block" value="SEO block" />
-            <textarea id="seo_block" v-model="props.form.seo_block" rows="8" :class="inputClass" />
+            <WysiwygEditor v-model="props.form.seo_block" :invalid="!!props.form.errors.seo_block" />
             <InputError class="mt-2" :message="props.form.errors.seo_block" />
         </div>
 

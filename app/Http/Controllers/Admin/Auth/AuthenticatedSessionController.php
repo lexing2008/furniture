@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
@@ -18,8 +18,12 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): Response
     {
+        // Указываем Inertia использовать другой Blade-шаблон
+        //Inertia::setRootView('admin');
+
+
         return Inertia::render('Auth/Login', [
-            'canResetPassword' => Route::has('password.request'),
+            'canResetPassword' => Route::has('admin.password.request'),
             'status' => session('status'),
         ]);
     }
@@ -57,5 +61,19 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Destroy an authenticated session.
+     */
+    public function destroyFromAccount(Request $request)
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return Inertia::location(route('home'));
     }
 }

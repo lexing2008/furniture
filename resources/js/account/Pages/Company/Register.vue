@@ -1,0 +1,129 @@
+<script setup lang="ts">
+import InputError from '@/account/Components/InputError.vue';
+import InputLabel from '@/account/Components/InputLabel.vue';
+import PrimaryButton from '@/account/Components/PrimaryButton.vue';
+import TextInput from '@/account/Components/TextInput.vue';
+import CompanyFields from '@/account/Components/Company/CompanyFields.vue';
+import { emptyPhone } from '@/account/Components/Company/companyForm';
+import type { CategoryNode, CompanyFormFields, RegionGroup } from '@/account/Components/Company/companyForm';
+import type { PageProps } from '@/account/types';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+
+interface RegisterFormData extends CompanyFormFields {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    terms: boolean;
+}
+
+const props = defineProps<{
+    regions: RegionGroup[];
+    defaultRegionId: number | null;
+    categories: CategoryNode[];
+    terms: { rules: string; privacy: string };
+}>();
+
+const page = usePage<PageProps>();
+
+const form = useForm<RegisterFormData>({
+    region_id: props.defaultRegionId,
+    legal_name: '',
+    tax_id: '',
+    display_name: '',
+    description: '',
+    is_online_store: false,
+    website: '',
+    phones: [emptyPhone()],
+    categories: [],
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    terms: false,
+});
+
+const submit = () => {
+    form.post(route('account.register'), {
+        onFinish: () => form.reset('password', 'password_confirmation'),
+    });
+};
+
+const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
+</script>
+
+<template>
+    <Head title="Регистрация компании" />
+
+    <div class="min-h-screen bg-gray-50 py-8">
+        <div class="mx-auto max-w-4xl space-y-6 px-4">
+            <div>
+                <p class="text-sm text-gray-500">{{ page.props.app_name }}</p>
+                <h1 class="text-2xl font-bold text-gray-900">Регистрация компании</h1>
+            </div>
+
+            <form class="space-y-6" @submit.prevent="submit">
+                <CompanyFields :form="form" :regions="regions" :categories="categories" />
+
+                <section :class="section">
+                    <h2 class="text-lg font-semibold text-gray-900">Ваш аккаунт</h2>
+                    <p class="text-xs text-gray-500">Этим аккаунтом вы будете входить в кабинет. На почту придёт письмо со ссылкой подтверждения.</p>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <InputLabel for="name" value="Имя" />
+                            <TextInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" autocomplete="name" />
+                            <InputError class="mt-2" :message="form.errors.name" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="email" value="Email" />
+                            <TextInput id="email" type="email" class="mt-1 block w-full" v-model="form.email" autocomplete="username" />
+                            <InputError class="mt-2" :message="form.errors.email" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="password" value="Пароль" />
+                            <TextInput id="password" type="password" class="mt-1 block w-full" v-model="form.password" autocomplete="new-password" />
+                            <InputError class="mt-2" :message="form.errors.password" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="password_confirmation" value="Повторите пароль" />
+                            <TextInput
+                                id="password_confirmation"
+                                type="password"
+                                class="mt-1 block w-full"
+                                v-model="form.password_confirmation"
+                                autocomplete="new-password"
+                            />
+                            <InputError class="mt-2" :message="form.errors.password_confirmation" />
+                        </div>
+                    </div>
+                </section>
+
+                <div class="space-y-4">
+                    <label class="flex items-start gap-2">
+                        <input
+                            type="checkbox"
+                            v-model="form.terms"
+                            class="mt-0.5 rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
+                        />
+                        <span class="text-sm text-gray-700">
+                            Я согласен с
+                            <a :href="terms.rules" target="_blank" class="text-indigo-600 underline">Правилами использования веб-сайта</a>
+                            и
+                            <a :href="terms.privacy" target="_blank" class="text-indigo-600 underline">политикой обработки персональных данных</a>
+                        </span>
+                    </label>
+                    <InputError :message="form.errors.terms" />
+
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <PrimaryButton :disabled="form.processing">Зарегистрировать компанию</PrimaryButton>
+                        <Link :href="route('account.login')" class="text-sm text-gray-600 underline hover:text-gray-900">Уже есть кабинет? Войти</Link>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</template>

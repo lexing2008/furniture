@@ -84,6 +84,6 @@
 {{--    <h1 class="mt-10">{{ $seo['seo_title'] ?? $region->name }}</h1>--}}
 
 {{--    @if (filled($seo['seo_block']))--}}
-{{--        <div class="seo-block">{!! nl2br(e($seo['seo_block'])) !!}</div>--}}
+{{--        <div class="seo-block">{!! \App\Support\Html::seoBlock($seo['seo_block']) !!}</div>--}}
 {{--    @endif--}}
 @endsection

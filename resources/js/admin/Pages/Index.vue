@@ -14,26 +14,26 @@ import Content from "@/admin/Components/Common/Content.vue";
             <div
                 class="hidden space-x-8 sm:flex"
             >
-                <NavLink
-                    :href="route('dashboard')"
-                    :active="route().current('dashboard')"
-                >
-                    Dashboard
-                </NavLink>
+<!--                <NavLink-->
+<!--                    :href="route('dashboard')"-->
+<!--                    :active="route().current('dashboard')"-->
+<!--                >-->
+<!--                    Dashboard-->
+<!--                </NavLink>-->
 
-                <NavLink
-                    :href="route('dashboard')"
-                    :active="route().current('dashboard')"
-                >
-                    Dashboard
-                </NavLink>
+<!--                <NavLink-->
+<!--                    :href="route('dashboard')"-->
+<!--                    :active="route().current('dashboard')"-->
+<!--                >-->
+<!--                    Dashboard-->
+<!--                </NavLink>-->
 
-                <NavLink
-                    :href="route('dashboard')"
-                    :active="route().current('dashboard')"
-                >
-                    Dashboard
-                </NavLink>
+<!--                <NavLink-->
+<!--                    :href="route('dashboard')"-->
+<!--                    :active="route().current('dashboard')"-->
+<!--                >-->
+<!--                    Dashboard-->
+<!--                </NavLink>-->
             </div>
         </template>
 
