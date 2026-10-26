@@ -60,6 +60,11 @@ class Company extends Model
         return $this->hasMany(CompanyPhone::class)->orderBy('id');
     }
 
+    public function ads(): HasMany
+    {
+        return $this->hasMany(Ad::class);
+    }
+
     public function schedules(): HasMany
     {
         return $this->hasMany(CompanySchedule::class)->orderBy('day_of_week');

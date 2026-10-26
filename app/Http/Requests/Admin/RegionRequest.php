@@ -27,6 +27,7 @@ class RegionRequest extends FormRequest
             'subdomain' => mb_strtolower(trim((string) $this->input('subdomain', ''))),
             // Areas and cities use the language of their country
             'lang' => $parentId === null ? ($this->input('lang') ?: null) : null,
+            'fallback_lang' => $parentId === null ? ($this->input('fallback_lang') ?: null) : null,
             'timezone' => trim((string) $this->input('timezone', '')) ?: null,
             'is_capital' => $this->boolean('is_active', false),
             'is_active' => $this->boolean('is_active', true),
@@ -69,6 +70,11 @@ class RegionRequest extends FormRequest
             ],
             'lang' => [
                 Rule::requiredIf($isCountry),
+                'nullable',
+                'string',
+                Rule::exists('languages', 'code'),
+            ],
+            'fallback_lang' => [
                 'nullable',
                 'string',
                 Rule::exists('languages', 'code'),

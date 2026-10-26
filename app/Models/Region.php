@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  * Country (parent_id = null) -> area -> city.
  */
 #[Fillable([
-    'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'timezone', 'is_capital',
+    'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'fallback_lang', 'timezone', 'is_capital',
     'seo_title', 'seo_description', 'seo_block', 'is_active',
 ])]
 class Region extends Model
@@ -123,7 +123,7 @@ class Region extends Model
      *
      * @return array<int, array{id: int, name: string, selectable: bool, children: array<int, mixed>}>
      */
-    public static function cityTree(): array
+    public static function cityTree(?int $countryId = null): array
     {
         $tree = self::tree();
         $byId = $tree->keyBy('id');
@@ -140,10 +140,14 @@ class Region extends Model
 
         $byParent = $tree->groupBy(fn (self $region) => $region->parent_id ?? 0);
 
-        $build = function (int $parentId) use (&$build, $byParent, $available): array {
+        $build = function (int $parentId) use (&$build, $byParent, $available, $countryId): array {
             $nodes = [];
 
             foreach ($byParent[$parentId] ?? [] as $region) {
+                if ($parentId === 0 && $countryId !== null && $region->id !== $countryId) {
+                    continue;
+                }
+
                 if ($region->depth === self::MAX_DEPTH) {
                     if ($available($region)) {
                         $nodes[] = [
@@ -215,6 +219,14 @@ class Region extends Model
     public function language(): ?string
     {
         return $this->root()->lang;
+    }
+
+    /**
+     * Optional fallback language of the country.
+     */
+    public function fallbackLanguage(): ?string
+    {
+        return $this->root()->fallback_lang;
     }
 
     /**

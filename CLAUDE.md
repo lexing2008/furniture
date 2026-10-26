@@ -1,47 +1,56 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# CLAUDE.md
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+> **Единый источник контекста проекта — `AGENTS.md`.**
+> Перед любой задачей прочитай:
+>
+> 1. `AGENTS.md`;
+> 2. `docs/ARCHITECTURE.md`;
+> 3. последние записи в `docs/WORKLOG.md`.
 
-## Prerequisites
+## Кратко о проекте
 
-Verify that PHP and Composer are available:
+Мебельный интернет-торговый центр:
 
-```sh
-php -v
-composer -V
+- публичный сайт на `{region}.furniture.lex`;
+- кабинет компании `/account`;
+- админка `/admin`;
+- товары/услуги, изображения, фильтры, регионы.
+
+Стек: Laravel 13, PHP 8.4, Inertia 2, Vue 3 + TypeScript, Tailwind 4, Vite 8, MySQL.
+
+## Критично для запуска
+
+PHP 8.4 находится **только внутри Docker-контейнера** `lamp-apachephp-1`.
+Host PHP 8.3 для artisan не использовать.
+
+```bash
+docker exec -w /var/www/html lamp-apachephp-1 php artisan test
+docker exec -w /var/www/html lamp-apachephp-1 php artisan migrate
+docker exec -w /var/www/html lamp-apachephp-1 php artisan view:clear
+docker exec -w /var/www/html lamp-apachephp-1 ./vendor/bin/pint <files>
+
+npx vue-tsc --noEmit
+npm run build
 ```
 
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
+После новых файлов:
 
-macOS:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
+```bash
+git ls-files --others --exclude-standard -z | xargs -0 chmod 664
 ```
 
-Windows PowerShell:
+## Главные правила
 
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
+- Не откатывать незакоммиченные изменения.
+- Не изменять реальные данные пользователя без необходимости.
+- Новые пользовательские фразы добавлять в `lang/ru.json` **и** `lang/en.json`.
+- Язык сайта/кабинета — из страны текущего региона; админка остаётся русской.
+- HTML очищается через `PurifiedHtml`; WYSIWYG не является границей безопасности.
+- После Blade-правок — `php artisan view:clear`.
+- Тесты, `vue-tsc` и `npm run build` должны проходить.
 
-Linux:
+## Где смотреть детали
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+- `AGENTS.md` — правила, команды, домены, текущий baseline;
+- `docs/ARCHITECTURE.md` — устройство backend/frontend и потоков данных;
+- `docs/WORKLOG.md` — что уже сделано и чем проверялось.

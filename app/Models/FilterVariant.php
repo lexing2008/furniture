@@ -27,4 +27,16 @@ class FilterVariant extends Model
     {
         return $this->belongsTo(SeoTemplate::class);
     }
+
+    /**
+     * Name in the language of the site, falling back to the base language.
+     */
+    public function nameIn(?string $lang): string
+    {
+        $translation = $this->translations->firstWhere('lang', $lang)
+            ?? $this->translations->firstWhere('lang', Filter::BASE_LANG)
+            ?? $this->translations->first();
+
+        return $translation?->name_in_filter ?? "#{$this->id}";
+    }
 }

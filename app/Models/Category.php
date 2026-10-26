@@ -71,6 +71,18 @@ class Category extends Model
     }
 
     /**
+     * Slug in the language, falling back to the base language.
+     */
+    public function slugIn(?string $lang): string
+    {
+        $translation = $this->translations->firstWhere('lang', $lang)
+            ?? $this->translations->firstWhere('lang', 'ru')
+            ?? $this->translations->first();
+
+        return $translation?->slug ?? '';
+    }
+
+    /**
      * Active categories as a nested tree for choosing: [{id, name, selectable, children}].
      * Only categories without subcategories are selectable; a branch without such categories is left out.
      *

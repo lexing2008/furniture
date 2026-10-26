@@ -23,6 +23,7 @@ export interface RegionFormData {
     name_in: string;
     subdomain: string;
     lang: string;
+    fallback_lang: string;
     timezone: string;
     is_capital: boolean;
     seo_title: string;
@@ -40,6 +41,7 @@ export const makeRegionForm = (region: ExistingRegion = {}): RegionFormData => (
     name_in: String(region.name_in ?? ''),
     subdomain: String(region.subdomain ?? ''),
     lang: String(region.lang ?? ''),
+    fallback_lang: String(region.fallback_lang ?? ''),
     timezone: String(region.timezone ?? ''),
     is_capital: region.is_capital === undefined ? false : Boolean(region.is_capital),
     seo_title: String(region.seo_title ?? ''),

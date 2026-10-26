@@ -99,6 +99,23 @@ const inputClass =
             <InputError class="mt-2" :message="props.form.errors.lang" />
         </div>
 
+        <div v-if="isCountry">
+            <InputLabel for="fallback_lang" value="Резервный язык (необязательно)" />
+
+            <select id="fallback_lang" v-model="props.form.fallback_lang" :class="inputClass">
+                <option value="">— Не указан —</option>
+                <option v-for="language in languages" :key="language.code" :value="language.code">
+                    {{ language.name }} ({{ language.code }})
+                </option>
+            </select>
+
+            <p class="mt-1 text-xs text-gray-500">
+                Используется, если основной язык страны не поддерживается сайтом. Для областей и городов не задаётся.
+            </p>
+
+            <InputError class="mt-2" :message="props.form.errors.fallback_lang" />
+        </div>
+
         <div>
             <InputLabel for="timezone" value="Часовой пояс" />
 

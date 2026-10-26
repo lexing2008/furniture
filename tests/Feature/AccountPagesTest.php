@@ -151,12 +151,19 @@ class AccountPagesTest extends TestCase
             ->assertSee('О нас');
 
         Language::create(['code' => 'en', 'name' => 'English', 'name_en' => 'English']);
+        Language::create(['code' => 'de', 'name' => 'Deutsch', 'name_en' => 'German']);
         $this->country->update(['lang' => 'en']);
 
         $this->get('http://minsk.furniture.test/')
             ->assertOk()
             ->assertSee('Furniture in Minsk')
             ->assertSee('About us');
+
+        // The country language is not supported: its fallback language wins
+        $this->country->update(['lang' => 'de', 'fallback_lang' => 'en']);
+        $this->get('http://minsk.furniture.test/')
+            ->assertOk()
+            ->assertSee('Furniture in Minsk');
 
         $this->post($this->url('/login'), [
             'email' => 'ivan@example.com',

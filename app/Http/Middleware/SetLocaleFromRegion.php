@@ -17,15 +17,20 @@ class SetLocaleFromRegion
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->is('admin', 'admin/*')) {
-            $locale = Region::fromHost($request->getHost())?->language();
+            $region = Region::fromHost($request->getHost());
+            $locale = $region?->language() ?? $region?->fallbackLanguage();
+            $supported = config('app.supported_locales', ['ru', 'en']);
 
             if ($locale !== null) {
-                // An unsupported country language falls back to the application fallback locale
-                App::setLocale(
-                    in_array($locale, config('app.supported_locales', ['ru', 'en']), true)
-                        ? $locale
-                        : config('app.fallback_locale', 'en')
-                );
+                if (! in_array($locale, $supported, true)) {
+                    $locale = $region?->fallbackLanguage();
+                }
+
+                if (! in_array($locale, $supported, true)) {
+                    $locale = config('app.fallback_locale', 'en');
+                }
+
+                App::setLocale($locale);
             }
         }
 

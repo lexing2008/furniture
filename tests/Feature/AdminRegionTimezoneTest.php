@@ -84,6 +84,46 @@ class AdminRegionTimezoneTest extends TestCase
         ]);
     }
 
+    public function test_country_fallback_language_is_optional_and_saved(): void
+    {
+        Language::create(['code' => 'en', 'name' => 'English', 'name_en' => 'English']);
+
+        $this->actingAs($this->admin)
+            ->post('/admin/regions', $this->countryData(['fallback_lang' => 'en']))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('admin.regions.index'));
+
+        $this->assertDatabaseHas('regions', [
+            'subdomain' => 'belarus',
+            'fallback_lang' => 'en',
+        ]);
+    }
+
+    public function test_fallback_language_is_ignored_for_an_area(): void
+    {
+        Language::create(['code' => 'en', 'name' => 'English', 'name_en' => 'English']);
+        $country = Region::create($this->countryData());
+
+        $this->actingAs($this->admin)
+            ->post('/admin/regions', [
+                'parent_id' => $country->id,
+                'name' => 'Минская область',
+                'name_en' => 'Minsk region',
+                'name_in' => 'Минской области',
+                'subdomain' => 'minsk-region',
+                'fallback_lang' => 'en',
+                'timezone' => '',
+                'is_active' => true,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('admin.regions.index'));
+
+        $this->assertDatabaseHas('regions', [
+            'subdomain' => 'minsk-region',
+            'fallback_lang' => null,
+        ]);
+    }
+
     public function test_timezone_is_optional_for_an_area(): void
     {
         $country = Region::create($this->countryData());

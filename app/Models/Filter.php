@@ -50,4 +50,25 @@ class Filter extends Model
     {
         return $this->baseTranslation?->name ?? "#{$this->id}";
     }
+
+    /**
+     * Name in the language of the site, falling back to the base language.
+     */
+    public function nameIn(?string $lang): string
+    {
+        $translation = $this->translations->firstWhere('lang', $lang)
+            ?? $this->translations->firstWhere('lang', self::BASE_LANG)
+            ?? $this->baseTranslation;
+
+        return $translation?->name ?? $this->displayName();
+    }
+
+    public function unitIn(?string $lang): ?string
+    {
+        $translation = $this->translations->firstWhere('lang', $lang)
+            ?? $this->translations->firstWhere('lang', self::BASE_LANG)
+            ?? $this->baseTranslation;
+
+        return $translation?->unit;
+    }
 }

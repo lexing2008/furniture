@@ -10,6 +10,14 @@
 ## About project
 Сайт представляет собой торговый центр мебели в интернете, где разные компании могут разместить свою мебель
 
+## Документация проекта
+
+- [AGENTS.md](AGENTS.md) — главный контекст для разработчика/агента: стек, команды, правила, домены, текущий baseline.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — устройство backend/frontend, потоков данных и товаров/услуг.
+- [docs/WORKLOG.md](docs/WORKLOG.md) — журнал крупных изменений и проверок.
+
+Перед началом работы с проектом прочитайте эти файлы. При изменении архитектуры или правил обновляйте их.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

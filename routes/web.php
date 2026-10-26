@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\Roles;
+use App\Http\Controllers\Account\AdController;
+use App\Http\Controllers\Account\AdImageController;
 use App\Http\Controllers\Account\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Account\Auth\NewPasswordController;
 use App\Http\Controllers\Account\Auth\PasswordResetLinkController;
@@ -55,6 +57,16 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
     Route::prefix('account')->middleware(['auth', 'role:customer', HandleInertiaAccountRequests::class])->group(function () {
         // Main page of the account (empty for now)
         Route::get('/', [CompanyController::class, 'index'])->name('account.index');
+
+        // Products and services
+        Route::get('ads', [AdController::class, 'index'])->name('account.ads.index');
+        Route::get('ads/create', [AdController::class, 'create'])->name('account.ads.create');
+        Route::post('ads', [AdController::class, 'store'])->name('account.ads.store');
+        Route::get('ads/filters', [AdController::class, 'filters'])->name('account.ads.filters');
+        Route::post('ads/images', [AdImageController::class, 'store'])->name('account.ads.images.store');
+        Route::delete('ads/images/{tmpFile}', [AdImageController::class, 'destroy'])->name('account.ads.images.destroy');
+        Route::get('ads/{ad}/edit', [AdController::class, 'edit'])->name('account.ads.edit');
+        Route::put('ads/{ad}', [AdController::class, 'update'])->name('account.ads.update');
 
         // General information about the company
         Route::get('general', [CompanyGeneralController::class, 'edit'])->name('account.general');

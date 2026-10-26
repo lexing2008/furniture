@@ -30,6 +30,7 @@ class RegionController extends Controller
             'url' => $region->url(),
             'depth' => $region->depth,
             'lang' => $region->parent_id === null ? $region->lang : null,
+            'fallback_lang' => $region->parent_id === null ? $region->fallback_lang : null,
             'timezone' => $region->timezone,
             'is_capital' => $region->is_capital,
             'is_active' => $region->is_active,
@@ -64,7 +65,7 @@ class RegionController extends Controller
     {
         return Inertia::render('regions/EditRegion', [
             'region' => $region->only([
-                'id', 'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'timezone', 'is_capital',
+                'id', 'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'fallback_lang', 'timezone', 'is_capital',
                 'seo_title', 'seo_description', 'seo_block', 'is_active',
             ]),
             'languages' => $this->languages(),

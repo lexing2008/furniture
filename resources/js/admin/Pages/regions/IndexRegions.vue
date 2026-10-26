@@ -11,6 +11,7 @@ interface Region {
     url: string;
     depth: number;
     lang: string | null;
+    fallback_lang: string | null;
     timezone: string | null;
     is_capital: boolean;
     is_active: boolean;
@@ -82,7 +83,7 @@ const toggle = (region: Region) => {
                                     {{ region.subdomain }}
                                 </a>
                             </td>
-                            <td class="px-4 py-3 uppercase">{{ region.lang ?? '' }}</td>
+                            <td class="px-4 py-3 uppercase">{{ region.lang ?? '' }}<span v-if="region.fallback_lang" class="text-gray-400"> / {{ region.fallback_lang }}</span></td>
                             <td class="px-4 py-3 font-mono">{{ region.timezone ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <button
