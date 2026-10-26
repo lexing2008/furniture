@@ -43,16 +43,16 @@ class CompanyContactsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Заполните поле «:attribute».',
-            'string' => 'Поле «:attribute» должно быть текстом.',
-            'max.string' => 'Поле «:attribute» не должно быть длиннее :max символов.',
-            'email' => 'Укажите корректный email.',
-            'min.array' => 'Добавьте хотя бы один элемент: «:attribute».',
-            'max.array' => 'В поле «:attribute» не больше :max элементов.',
-            'phones.*.code.regex' => 'Код — это цифры, например +375.',
-            'phones.*.number.regex' => 'Номер — это цифры, пробелы, дефисы и скобки.',
-            'phones.min' => 'Добавьте хотя бы один телефон.',
-            'phones.required' => 'Добавьте хотя бы один телефон.',
+            'required' => __('Заполните поле «:attribute».'),
+            'string' => __('Поле «:attribute» должно быть текстом.'),
+            'max.string' => __('Поле «:attribute» не должно быть длиннее :max символов.'),
+            'email' => __('Укажите корректный email.'),
+            'min.array' => __('Добавьте хотя бы один элемент: «:attribute».'),
+            'max.array' => __('В поле «:attribute» не больше :max элементов.'),
+            'phones.*.code.regex' => __('Код — это цифры, например +375.'),
+            'phones.*.number.regex' => __('Номер — это цифры, пробелы, дефисы и скобки.'),
+            'phones.min' => __('Добавьте хотя бы один телефон.'),
+            'phones.required' => __('Добавьте хотя бы один телефон.'),
         ];
     }
 
@@ -60,10 +60,10 @@ class CompanyContactsRequest extends FormRequest
     {
         return [
             'email' => 'email',
-            'phones' => 'телефоны',
-            'phones.*.code' => 'код',
-            'phones.*.number' => 'номер',
-            'phones.*.description' => 'пояснение к телефону',
+            'phones' => __('телефоны'),
+            'phones.*.code' => __('код'),
+            'phones.*.number' => __('номер'),
+            'phones.*.description' => __('пояснение к телефону'),
         ];
     }
 }

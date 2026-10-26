@@ -4,13 +4,11 @@ namespace App\Providers;
 
 use App\Http\Services\RegionService;
 use App\Models\Region;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Vite;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
-
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -42,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
 
             // Если это не поддомен (а, например, часть обычного пути),
             // возвращаем значение как обычную строку, не превращая в модель
-            if (!$isSubdomain) {
+            if (! $isSubdomain) {
                 return $value;
             }
 
@@ -56,26 +54,21 @@ class AppServiceProvider extends ServiceProvider
                 ->firstOrFail();
         });
 
-
         // pass data to template
-        View::composer(['layouts.site', 'region.*', 'guest'], function ($view) use($regionService) {
+        View::composer(['layouts.site', 'region.*', 'guest'], function ($view) use ($regionService) {
             // Получаем модель Region из текущего маршрута
             $region = request()->route('region');
-            if(!$region){
+            if (! $region) {
                 return;
             }
             $country = $region->root();
-            $language = $country->lang;
-
-            if ($language !== null) {
-                App::setLocale($language);
-            }
 
             $view->with([
-                'region'    => $region,
-                'country'   => $country,
-                'areas'     => $regionService->getRegionsTreeForPopup($country),
-                'language'  => $language ?? config('app.locale'),
+                'region' => $region,
+                'country' => $country,
+                'areas' => $regionService->getRegionsTreeForPopup($country),
+                // The locale is set by App\Http\Middleware\SetLocaleFromRegion
+                'language' => app()->getLocale(),
             ]);
         });
     }

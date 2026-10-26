@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 /**
  * Country (parent_id = null) -> area -> city.
  */
 #[Fillable([
-    'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'is_capital',
+    'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'timezone', 'is_capital',
     'seo_title', 'seo_description', 'seo_block', 'is_active',
 ])]
 class Region extends Model
@@ -44,6 +45,14 @@ class Region extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
+    }
+
+    /**
+     * Phone code, currency and other data of a country region.
+     */
+    public function countryData(): HasOne
+    {
+        return $this->hasOne(RegionCountry::class);
     }
 
     /**
@@ -109,6 +118,66 @@ class Region extends Model
     }
 
     /**
+     * Cities a company can choose as a nested tree: country -> area -> city.
+     * Only the branches that contain an available city are kept; cities are selectable.
+     *
+     * @return array<int, array{id: int, name: string, selectable: bool, children: array<int, mixed>}>
+     */
+    public static function cityTree(): array
+    {
+        $tree = self::tree();
+        $byId = $tree->keyBy('id');
+
+        $available = function (self $region) use ($byId): bool {
+            for ($current = $region; $current !== null; $current = $byId[$current->parent_id] ?? null) {
+                if (! $current->is_active) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        $byParent = $tree->groupBy(fn (self $region) => $region->parent_id ?? 0);
+
+        $build = function (int $parentId) use (&$build, $byParent, $available): array {
+            $nodes = [];
+
+            foreach ($byParent[$parentId] ?? [] as $region) {
+                if ($region->depth === self::MAX_DEPTH) {
+                    if ($available($region)) {
+                        $nodes[] = [
+                            'id' => $region->id,
+                            'name' => $region->name,
+                            'name_en' => $region->name_en,
+                            'selectable' => true,
+                            'children' => [],
+                        ];
+                    }
+
+                    continue;
+                }
+
+                $children = $build($region->id);
+
+                if ($children !== []) {
+                    $nodes[] = [
+                        'id' => $region->id,
+                        'name' => $region->name,
+                        'name_en' => $region->name_en,
+                        'selectable' => false,
+                        'children' => $children,
+                    ];
+                }
+            }
+
+            return $nodes;
+        };
+
+        return $build(0);
+    }
+
+    /**
      * The country of the region (the region itself for a country).
      */
     public function root(): self
@@ -120,6 +189,24 @@ class Region extends Model
         }
 
         return $region;
+    }
+
+    public function getTimezone(): ?string
+    {
+        $region = $this;
+
+        if ($this->timezone) {
+            return $this->timezone;
+        }
+
+        while ($region !== null) {
+            $region = $region->parent;
+            if ($region?->timezone) {
+                return $region->timezone;
+            }
+        }
+
+        return null;
     }
 
     /**

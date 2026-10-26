@@ -6,7 +6,11 @@ use App\Http\Controllers\Account\Auth\NewPasswordController;
 use App\Http\Controllers\Account\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Account\CompanyContactsController;
 use App\Http\Controllers\Account\CompanyController;
+use App\Http\Controllers\Account\CompanyDeliveryController;
+use App\Http\Controllers\Account\CompanyGeneralController;
+use App\Http\Controllers\Account\CompanyPaymentController;
 use App\Http\Controllers\Account\CompanyRegistrationController;
+use App\Http\Controllers\Account\CompanyScheduleController;
 use App\Http\Controllers\Account\CompanySocialsController;
 use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\RegionPageController;
@@ -49,9 +53,23 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
     });
 
     Route::prefix('account')->middleware(['auth', 'role:customer', HandleInertiaAccountRequests::class])->group(function () {
-        // About the company
-        Route::get('/', [CompanyController::class, 'edit'])->name('account.index');
-        Route::put('/', [CompanyController::class, 'update'])->name('account.update');
+        // Main page of the account (empty for now)
+        Route::get('/', [CompanyController::class, 'index'])->name('account.index');
+
+        // General information about the company
+        Route::get('general', [CompanyGeneralController::class, 'edit'])->name('account.general');
+        Route::put('general', [CompanyGeneralController::class, 'update'])->name('account.general.update');
+
+        // Working hours of the company and its non-working days
+        Route::get('schedule', [CompanyScheduleController::class, 'edit'])->name('account.schedule');
+        Route::put('schedule', [CompanyScheduleController::class, 'update'])->name('account.schedule.update');
+
+        // Delivery and payment descriptions of the company
+        Route::get('delivery', [CompanyDeliveryController::class, 'edit'])->name('account.delivery');
+        Route::put('delivery', [CompanyDeliveryController::class, 'update'])->name('account.delivery.update');
+
+        Route::get('payment', [CompanyPaymentController::class, 'edit'])->name('account.payment');
+        Route::put('payment', [CompanyPaymentController::class, 'update'])->name('account.payment.update');
 
         // Contacts of the company: email and phones
         Route::get('contacts', [CompanyContactsController::class, 'edit'])->name('account.contacts.edit');

@@ -29,18 +29,18 @@ class UpdatePasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Заполните поле «:attribute».',
-            'confirmed' => 'Пароли не совпадают.',
-            'current_password.current_password' => 'Текущий пароль указан неверно.',
-            'password.min' => 'Пароль должен быть не короче :min символов.',
+            'required' => __('Заполните поле «:attribute».'),
+            'confirmed' => __('Пароли не совпадают.'),
+            'current_password.current_password' => __('Текущий пароль указан неверно.'),
+            'password.min' => __('Пароль должен быть не короче :min символов.'),
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'current_password' => 'текущий пароль',
-            'password' => 'новый пароль',
+            'current_password' => __('текущий пароль'),
+            'password' => __('новый пароль'),
         ];
     }
 }

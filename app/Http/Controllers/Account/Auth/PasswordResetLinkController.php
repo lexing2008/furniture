@@ -41,11 +41,11 @@ class PasswordResetLinkController extends Controller
         );
 
         if ($status == Password::RESET_LINK_SENT) {
-            return back()->with('status', __($status));
+            return back()->with('status', __('Ссылка для сброса пароля отправлена на :email.', ['email' => $request->email]));
         }
 
         throw ValidationException::withMessages([
-            'email' => [trans($status)],
+            'email' => [__('Не удалось отправить ссылку для сброса пароля.')],
         ]);
     }
 }

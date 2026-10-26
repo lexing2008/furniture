@@ -40,18 +40,18 @@ const hint = 'mt-1 text-xs text-gray-500';
 </script>
 
 <template>
-    <Head title="Изменить пароль" />
+    <Head :title="$t('Изменить пароль')" />
 
     <AccountLayout>
-        <h1 class="text-2xl font-bold text-gray-900">Изменить пароль</h1>
+        <h1 class="text-2xl font-bold text-gray-900">{{ $t('Изменить пароль') }}</h1>
 
         <form class="space-y-6" @submit.prevent="submit">
             <section :class="section">
-                <h2 class="text-lg font-semibold text-gray-900">Пароль для входа</h2>
-                <p :class="hint">Используйте длинный пароль, который не применяется на других сайтах.</p>
+                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Пароль для входа') }}</h2>
+                <p :class="hint">{{ $t('Используйте длинный пароль, который не применяется на других сайтах.') }}</p>
 
                 <div>
-                    <InputLabel for="current_password" value="Текущий пароль" />
+                    <InputLabel for="current_password" :value="$t('Текущий пароль')" />
                     <TextInput
                         id="current_password"
                         ref="currentPasswordInput"
@@ -64,7 +64,7 @@ const hint = 'mt-1 text-xs text-gray-500';
                 </div>
 
                 <div>
-                    <InputLabel for="password" value="Новый пароль" />
+                    <InputLabel for="password" :value="$t('Новый пароль')" />
                     <TextInput
                         id="password"
                         ref="passwordInput"
@@ -77,7 +77,7 @@ const hint = 'mt-1 text-xs text-gray-500';
                 </div>
 
                 <div>
-                    <InputLabel for="password_confirmation" value="Повторите новый пароль" />
+                    <InputLabel for="password_confirmation" :value="$t('Повторите новый пароль')" />
                     <TextInput
                         id="password_confirmation"
                         v-model="form.password_confirmation"
@@ -90,8 +90,8 @@ const hint = 'mt-1 text-xs text-gray-500';
             </section>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Изменить пароль</PrimaryButton>
-                <span v-if="form.recentlySuccessful" class="text-sm text-green-700">Пароль изменён</span>
+                <PrimaryButton :disabled="form.processing">{{ $t('Изменить пароль') }}</PrimaryButton>
+                <span v-if="form.recentlySuccessful" class="text-sm text-green-700">{{ $t('Пароль изменён') }}</span>
             </div>
         </form>
     </AccountLayout>

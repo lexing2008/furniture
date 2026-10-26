@@ -43,15 +43,15 @@ class CompanySocialsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'max.string' => 'Поле «:attribute» не должно быть длиннее :max символов.',
-            'url' => 'Укажите корректный адрес, например https://example.com.',
+            'max.string' => __('Поле «:attribute» не должно быть длиннее :max символов.'),
+            'url' => __('Укажите корректный адрес, например https://example.com.'),
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'socials.*' => 'ссылка',
+            'socials.*' => __('ссылка'),
         ];
     }
 

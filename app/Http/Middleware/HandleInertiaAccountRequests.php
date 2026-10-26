@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Region;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -34,6 +33,15 @@ class HandleInertiaAccountRequests extends Middleware
         return [
             ...parent::share($request),
             'app_name' => config('app.name'),
+            'locale' => app()->getLocale(),
+            'company_region' => function () use ($request) {
+                $region = $request->user()?->company()->with('region')->first()?->region;
+
+                return $region === null ? null : [
+                    'url' => $region->url(),
+                    'name' => app()->getLocale() === 'en' ? $region->name_en : $region->name,
+                ];
+            },
             'auth' => [
                 'user' => $request->user(),
             ],

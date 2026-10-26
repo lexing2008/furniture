@@ -12,6 +12,12 @@ export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
     app_name: string;
+    locale: string;
+    // Region of the company: the site the "site name" link in the sidebar points to
+    company_region?: {
+        url: string;
+        name: string;
+    } | null;
     auth: {
         user: User;
     };

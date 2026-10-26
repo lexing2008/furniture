@@ -36,6 +36,6 @@ class CompanySocialsController extends Controller
             'socials' => $request->socialsData(),
         ]);
 
-        return back()->with('success', 'Ссылки на соцсети сохранены.');
+        return back()->with('success', __('Ссылки на соцсети сохранены.'));
     }
 }

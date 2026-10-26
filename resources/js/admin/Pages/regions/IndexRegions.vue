@@ -11,6 +11,7 @@ interface Region {
     url: string;
     depth: number;
     lang: string | null;
+    timezone: string | null;
     is_capital: boolean;
     is_active: boolean;
 }
@@ -58,6 +59,7 @@ const toggle = (region: Region) => {
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Уровень</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Поддомен</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Язык</th>
+                            <th class="px-4 py-3 text-left font-medium text-gray-500">Часовой пояс</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Статус</th>
                             <th class="px-4 py-3" />
                         </tr>
@@ -81,6 +83,7 @@ const toggle = (region: Region) => {
                                 </a>
                             </td>
                             <td class="px-4 py-3 uppercase">{{ region.lang ?? '' }}</td>
+                            <td class="px-4 py-3 font-mono">{{ region.timezone ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <button
                                     type="button"

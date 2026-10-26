@@ -21,14 +21,17 @@ const resend = () => {
 
         <div class="flex-1 min-h-screen bg-gray-100">
             <main>
-                <div class="mx-auto max-w-5xl space-y-4 px-4 pb-8 pt-16 md:px-8 md:pt-10">
+                <div class="mx-auto max-w-6xl space-y-4 px-4 pb-8 pt-16 md:px-8 md:pt-10">
                     <!-- Почта ещё не подтверждена: напоминаем на всех страницах кабинета -->
                     <div v-if="!verified" class="space-y-2 rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
                         <p>
-                            Почта <b>{{ page.props.auth.user.email }}</b> ещё не подтверждена. Письмо со ссылкой отправлено при регистрации.
+                            {{ $t('Почта') }} <b>{{ page.props.auth.user.email }}</b>
+                            {{ $t('ещё не подтверждена. Письмо со ссылкой отправлено при регистрации.') }}
                         </p>
-                        <p v-if="linkSent" class="text-green-700">Новое письмо отправлено.</p>
-                        <button v-else type="button" class="font-medium underline" @click="resend">Отправить письмо ещё раз</button>
+                        <p v-if="linkSent" class="text-green-700">{{ $t('Новое письмо отправлено.') }}</p>
+                        <button v-else type="button" class="font-medium underline" @click="resend">
+                            {{ $t('Отправить письмо ещё раз') }}
+                        </button>
                     </div>
 
                     <div v-if="page.props.flash?.success" class="rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">

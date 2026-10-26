@@ -1,33 +1,38 @@
+@php
+    $regionLabel = app()->getLocale() === 'en' ? $region->name_en : $region->name;
+    $countryLabel = app()->getLocale() === 'en' ? $country->name_en : $country->name;
+@endphp
+
 <header class="pb-2 pt-3">
     <div class="container mx-auto py-2 px-4">
         <div class="w-full flex  gap-5 text-xs justify-between sm:justify-end mb-2 pr-0.5">
-            <a href="#" class="link">Каталог мебели</a>
+            <a href="#" class="link">{{ __('Каталог мебели') }}</a>
             @if(!request()->user())
-                <a href="{{route('account.register')}}" class="link relative">Разместить мебель
+                <a href="{{route('account.register')}}" class="link relative">{{ __('Разместить мебель') }}
                     <span
-                        class="bg-red-500 text-white absolute -right-2 -top-3 rounded-2xl px-1 text-[10px]">бесплатно</span>
+                        class="bg-red-500 text-white absolute -right-2 -top-3 rounded-2xl px-1 text-[10px]">{{ __('бесплатно') }}</span>
                 </a>
             @endif
-            <a href="#" class="link">О проекте</a>
+            <a href="#" class="link">{{ __('О проекте') }}</a>
                 @if(request()->user()?->isCustomer())
-                    <a href="{{route('account.index')}}" class="link">Личный кабинет</a>
+                    <a href="{{route('account.index')}}" class="link">{{ __('Личный кабинет') }}</a>
                 @elseif(request()->user()?->isAdminPanelRole())
-                    <a href="{{route('admin.index')}}" class="link">Панель админа</a>
+                    <a href="{{route('admin.index')}}" class="link">{{ __('Панель админа') }}</a>
                 @else
-                    <a href="{{route('account.login')}}" class="link">Вход</a>
+                    <a href="{{route('account.login')}}" class="link">{{ __('Вход') }}</a>
                 @endif
 
         </div>
         <div class="flex flex-wrap gap-x-10 justify-between items-center">
             <div class="lg:pl-1">
-                <div class="text-xs">Мебель в {{ $region->name_in }}</div>
+                <div class="text-xs">{{ __('Мебель в :region', ['region' => app()->getLocale() === 'en' ? $region->name_en : $region->name_in]) }}</div>
                 <a href="{{ $country->url() }}" class="logo">{{ config('app.name') }}</a>
             </div>
 
             <div>
-                <div class="text-xs opacity-70">Показаны товары в регионе</div>
+                <div class="text-xs opacity-70">{{ __('Показаны товары в регионе') }}</div>
                 <span id="region-button"
-                      class="border-b border-dashed border-bord-blue  text-[19px] font-semibold text-brand-blue cursor-pointer hover:border-transparent hover:opacity-60">{{ $region->name }}</span>
+                      class="border-b border-dashed border-bord-blue  text-[19px] font-semibold text-brand-blue cursor-pointer hover:border-transparent hover:opacity-60">{{ $regionLabel }}</span>
             </div>
 
             <div class="max-md:flex max-md:w-full max-md:mt-3  md:flex-1  mx-auto">
@@ -47,7 +52,7 @@
                     <input
                         type="text"
                         name="query"
-                        placeholder="Поиск по мебели и услугам"
+                        placeholder="{{ __('Поиск по мебели и услугам') }}"
                         class="flex-1 h-11 pl-3 sm:pl-11 pr-4 bg-gray-55/50 bg-transparent border border-gray-200 border-none rounded-xl sm:rounded-none text-gray-800 placeholder-gray-300 outline-none focus:border-brand-blue  focus:ring-brand-blue/10 focus:ring-0 transition-all duration-200"
                         required
                     >
@@ -56,7 +61,7 @@
                         type="submit"
                         class="w-auto h-11 px-6 border-green-first border-2 hover:bg-green-first/90   text-green-first! hover:text-white! font-medium rounded-xl shadow-md sm:shadow-none hover:shadow-lg sm:hover:shadow-none active:scale-[0.98] sm:active:scale-95 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
                     >
-                        <span>Найти</span>
+                        <span>{{ __('Найти') }}</span>
                         <!-- Иконка стрелочки для мобильных -->
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                              stroke="currentColor" class="w-4 h-4 sm:hidden">
@@ -82,7 +87,7 @@
                 <button
                     id="region-popup-close"
                     class="group absolute right-4 top-4 p-2 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-blue/20 cursor-pointer z-10"
-                    aria-label="Закрыть модальное окно"
+                    aria-label="{{ __('Закрыть модальное окно') }}"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
                          stroke="currentColor"
@@ -93,10 +98,8 @@
 
                 <!-- Заголовок окна (Не скроллится) -->
                 <div class="mb-5 pr-10 shrink-0">
-                    <h2 class="text-base mb-3">{{ $country->name }}</h2>
-                    <div class="my-1 text-xs">Выберите город. Будет показана мебель в вашем городе или с доставкой в ваш
-                        регион.
-                    </div>
+                    <h2 class="text-base mb-3">{{ $countryLabel }}</h2>
+                    <div class="my-1 text-xs">{{ __('Выберите город. Будет показана мебель в вашем городе или с доставкой в ваш регион.') }}</div>
                 </div>
 
                 <!-- 3. ВНУТРЕННИЙ БЛОК КОНТЕНТА: Скроллбар перенесен исключительно сюда -->
@@ -109,10 +112,10 @@
                                 ])
                             >
                                 @if ($item['cities']->isEmpty())
-                                    <a href="{{ $item['region']->url() }}" class="link">{{ $item['region']->name }}</a>
+                                    <a href="{{ $item['region']->url() }}" class="link">{{ app()->getLocale() === 'en' ? $item['region']->name_en : $item['region']->name }}</a>
                                 @else
                                     <button type="button" class="area-button" data-area-toggle>
-                                        <span>{{ $item['region']->name }}</span>
+                                        <span>{{ app()->getLocale() === 'en' ? $item['region']->name_en : $item['region']->name }}</span>
                                         <span class="arrow mr-1.5" aria-hidden="true">▸</span>
                                     </button>
 
@@ -123,7 +126,7 @@
                                                  'link text-sm',
                                                  'font-bold' => $item['region']->id === $region->id,
                                             ])
-                                        >{{ $item['region']->name }}</a>
+                                        >{{ app()->getLocale() === 'en' ? $item['region']->name_en : $item['region']->name }}</a>
 
                                         @foreach ($item['cities'] as $city)
                                             <div class="py-1">
@@ -132,7 +135,7 @@
                                                          'link text-sm',
                                                          'font-bold text-black border-b-transparent!' => $city->id === $region->id,
                                                     ])
-                                                >{{ $city->name }}</a>
+                                                >{{ app()->getLocale() === 'en' ? $city->name_en : $city->name }}</a>
                                             </div>
                                         @endforeach
                                     </div>
@@ -152,21 +155,20 @@
         <div
             class="mt-4 bg-linear-to-b from-green-first to-green-second text-white py-5 px-5 rounded-xl flex flex-wrap gap-x-5">
             <a href="#"
-               class="hover:text-black/80 border-b-gray-200/15 border-b hover:border-b-transparent">Гостиная</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Кухня</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Спальня</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Детская</a>
+               class="hover:text-black/80 border-b-gray-200/15 border-b hover:border-b-transparent">{{ __('Гостиная') }}</a>
+            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Кухня') }}</a>
+            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Спальня') }}</a>
+            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Детская') }}</a>
             <a href="#"
-               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Гардеробная</a>
+               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Гардеробная') }}</a>
             <a href="#"
-               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Прихожая</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Ванная и
-                туалет</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Офис</a>
+               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Прихожая') }}</a>
+            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Ванная и туалет') }}</a>
+            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Офис') }}</a>
             <a href="#"
-               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Текстиль</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Услуги</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">Отдых</a>
+               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Текстиль') }}</a>
+            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Услуги') }}</a>
+            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Отдых') }}</a>
         </div>
         <!-- end Menu -->
     </div>

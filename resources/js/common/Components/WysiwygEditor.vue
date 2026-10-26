@@ -178,16 +178,16 @@ const buttonClass = (isActive: boolean) =>
         :class="invalid ? 'border-red-400' : 'border-gray-300'"
     >
         <div v-if="editor" class="flex flex-wrap gap-1 border-b border-gray-200 bg-gray-50 p-2">
-            <button type="button" :class="buttonClass(active('bold'))" title="Жирный" @click="editor.chain().focus().toggleBold().run()">
+            <button type="button" :class="buttonClass(active('bold'))" :title="$t('Жирный')" @click="editor.chain().focus().toggleBold().run()">
                 <b>B</b>
             </button>
-            <button type="button" :class="buttonClass(active('italic'))" title="Курсив" @click="editor.chain().focus().toggleItalic().run()">
+            <button type="button" :class="buttonClass(active('italic'))" :title="$t('Курсив')" @click="editor.chain().focus().toggleItalic().run()">
                 <i>I</i>
             </button>
 
             <span class="mx-1 w-px bg-gray-300" />
 
-            <button type="button" :class="buttonClass(active('paragraph'))" title="Обычный текст" @click="editor.chain().focus().setParagraph().run()">
+            <button type="button" :class="buttonClass(active('paragraph'))" :title="$t('Обычный текст')" @click="editor.chain().focus().setParagraph().run()">
                 ¶
             </button>
             <button
@@ -195,7 +195,7 @@ const buttonClass = (isActive: boolean) =>
                 :key="level"
                 type="button"
                 :class="buttonClass(active('heading', { level }))"
-                :title="`Заголовок ${level}`"
+                :title="$t('Заголовок :level', { level })"
                 @click="editor.chain().focus().toggleHeading({ level }).run()"
             >
                 H{{ level }}
@@ -203,11 +203,11 @@ const buttonClass = (isActive: boolean) =>
 
             <span class="mx-1 w-px bg-gray-300" />
 
-            <button type="button" :class="buttonClass(active('bulletList'))" title="Маркированный список" @click="editor.chain().focus().toggleBulletList().run()">
-                • Список
+            <button type="button" :class="buttonClass(active('bulletList'))" :title="$t('Маркированный список')" @click="editor.chain().focus().toggleBulletList().run()">
+                {{ $t('• Список') }}
             </button>
-            <button type="button" :class="buttonClass(active('orderedList'))" title="Нумерованный список" @click="editor.chain().focus().toggleOrderedList().run()">
-                1. Список
+            <button type="button" :class="buttonClass(active('orderedList'))" :title="$t('Нумерованный список')" @click="editor.chain().focus().toggleOrderedList().run()">
+                {{ $t('1. Список') }}
             </button>
 
             <span class="mx-1 w-px bg-gray-300" />
@@ -215,24 +215,24 @@ const buttonClass = (isActive: boolean) =>
             <button
                 type="button"
                 :class="buttonClass(inTable())"
-                title="Вставить таблицу"
+                :title="$t('Вставить таблицу')"
                 :disabled="inTable()"
                 @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()"
             >
-                Таблица
+                {{ $t('Таблица') }}
             </button>
             <template v-if="inTable()">
-                <button type="button" :class="buttonClass(false)" title="Добавить столбец справа" @click="editor.chain().focus().addColumnAfter().run()">+ столбец</button>
-                <button type="button" :class="buttonClass(false)" title="Удалить столбец" @click="editor.chain().focus().deleteColumn().run()">− столбец</button>
-                <button type="button" :class="buttonClass(false)" title="Добавить строку снизу" @click="editor.chain().focus().addRowAfter().run()">+ строка</button>
-                <button type="button" :class="buttonClass(false)" title="Удалить строку" @click="editor.chain().focus().deleteRow().run()">− строка</button>
-                <button type="button" :class="[buttonClass(false), 'text-red-600']" title="Удалить таблицу" @click="editor.chain().focus().deleteTable().run()">× таблица</button>
+                <button type="button" :class="buttonClass(false)" :title="$t('Добавить столбец справа')" @click="editor.chain().focus().addColumnAfter().run()">{{ $t('+ столбец') }}</button>
+                <button type="button" :class="buttonClass(false)" :title="$t('Удалить столбец')" @click="editor.chain().focus().deleteColumn().run()">{{ $t('− столбец') }}</button>
+                <button type="button" :class="buttonClass(false)" :title="$t('Добавить строку снизу')" @click="editor.chain().focus().addRowAfter().run()">{{ $t('+ строка') }}</button>
+                <button type="button" :class="buttonClass(false)" :title="$t('Удалить строку')" @click="editor.chain().focus().deleteRow().run()">{{ $t('− строка') }}</button>
+                <button type="button" :class="[buttonClass(false), 'text-red-600']" :title="$t('Удалить таблицу')" @click="editor.chain().focus().deleteTable().run()">{{ $t('× таблица') }}</button>
             </template>
 
             <span class="mx-1 w-px bg-gray-300" />
 
-            <button type="button" :class="buttonClass(false)" title="Отменить" :disabled="!editor.can().undo()" @click="editor.chain().focus().undo().run()">↶</button>
-            <button type="button" :class="buttonClass(false)" title="Повторить" :disabled="!editor.can().redo()" @click="editor.chain().focus().redo().run()">↷</button>
+            <button type="button" :class="buttonClass(false)" :title="$t('Отменить')" :disabled="!editor.can().undo()" @click="editor.chain().focus().undo().run()">↶</button>
+            <button type="button" :class="buttonClass(false)" :title="$t('Повторить')" :disabled="!editor.can().redo()" @click="editor.chain().focus().redo().run()">↷</button>
         </div>
 
         <div
@@ -249,19 +249,19 @@ const buttonClass = (isActive: boolean) =>
             class="group relative flex h-5 cursor-ns-resize touch-none rounded-b-md select-none items-center justify-center border-t border-gray-200 bg-gray-50"
             role="separator"
             aria-orientation="horizontal"
-            aria-label="Высота редактора"
+            :aria-label="$t('Высота редактора')"
             :aria-valuenow="height"
             :aria-valuemin="MIN_HEIGHT"
             :aria-valuemax="MAX_HEIGHT"
             tabindex="0"
-            title="Потяните вверх или вниз, чтобы изменить высоту. Двойной щелчок — сбросить."
+            :title="$t('Потяните вверх или вниз, чтобы изменить высоту. Двойной щелчок — сбросить.')"
             @pointerdown.prevent="startResize"
             @dblclick="resetHeight"
             @keydown.up.prevent="nudgeHeight(-20)"
             @keydown.down.prevent="nudgeHeight(20)"
         >
             <span class="h-1 w-10 rounded-full bg-gray-300 transition-colors group-hover:bg-gray-400"></span>
-            <span class="absolute right-2 text-[10px] leading-none text-gray-400">Высота: {{ height }} px</span>
+            <span class="absolute right-2 text-[10px] leading-none text-gray-400">Высота: {{ $t('Высота: :height px', { height }) }}</span>
         </div>
     </div>
 </template>

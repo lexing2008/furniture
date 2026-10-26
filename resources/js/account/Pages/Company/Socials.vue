@@ -29,15 +29,15 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 </script>
 
 <template>
-    <Head title="Соцсети" />
+    <Head :title="$t('Соцсети')" />
 
     <AccountLayout>
-        <h1 class="text-2xl font-bold text-gray-900">Соцсети</h1>
+        <h1 class="text-2xl font-bold text-gray-900">{{ $t('Соцсети') }}</h1>
 
         <form class="space-y-6" @submit.prevent="submit">
             <section :class="section">
-                <h2 class="text-lg font-semibold text-gray-900">Ссылки на соцсети</h2>
-                <p class="text-xs text-gray-500">Укажите полные адреса страниц компании. Пустые поля не сохраняются.</p>
+                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Ссылки на соцсети') }}</h2>
+                <p class="text-xs text-gray-500">{{ $t('Укажите полные адреса страниц компании. Пустые поля не сохраняются.') }}</p>
 
                 <div class="grid gap-4 md:grid-cols-2">
                     <div v-for="(title, key) in socials" :key="key">
@@ -55,8 +55,8 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
             </section>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Сохранить</PrimaryButton>
-                <span v-if="form.recentlySuccessful" class="text-sm text-green-700">Сохранено</span>
+                <PrimaryButton :disabled="form.processing">{{ $t('Сохранить') }}</PrimaryButton>
+                <span v-if="form.recentlySuccessful" class="text-sm text-green-700">{{ $t('Сохранено') }}</span>
             </div>
         </form>
     </AccountLayout>

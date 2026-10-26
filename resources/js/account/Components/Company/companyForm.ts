@@ -45,9 +45,13 @@ export interface CategoryNode {
     children: CategoryNode[];
 }
 
-export interface RegionGroup {
-    label: string;
-    cities: { id: number; name: string }[];
+export interface RegionNode {
+    id: number;
+    name: string;
+    name_en: string;
+    // Only a city (a leaf) can be chosen
+    selectable: boolean;
+    children: RegionNode[];
 }
 
 export const emptyPhone = (): PhoneData => ({ code: '', number: '', description: '' });

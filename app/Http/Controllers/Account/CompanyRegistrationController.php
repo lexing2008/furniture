@@ -28,10 +28,12 @@ class CompanyRegistrationController extends Controller
         Inertia::setRootView('guest');
 
         $region = Region::fromHost($request->getHost());
+        $country = $region?->root();
 
         return Inertia::render('Company/Register', [
-            'regions' => Region::cityOptions(),
+            'regions' => Region::cityTree(),
             'defaultRegionId' => $region?->isCity() ? $region->id : null,
+            'phoneCode' => $country?->countryData?->phone_code,
             // Category names are in the language of the country of the region
             'categories' => Category::selectableTree($region?->language()),
             'terms' => $this->termsLinks(),
@@ -48,7 +50,11 @@ class CompanyRegistrationController extends Controller
                 'role' => Roles::CUSTOMER,
             ]);
 
+            $region = Region::findOrFail($request->validated('region_id'));
+
             $company = new Company($request->companyData());
+            // The country is the root region: country -> area -> city
+            $company->country_id = $region->root()->id;
             $company->user()->associate($user)->save();
 
             $company->syncRelations($request->validated('phones'), $request->validated('categories'));
@@ -66,7 +72,7 @@ class CompanyRegistrationController extends Controller
         return Inertia::location(
             redirect()
                 ->route('account.index')
-                ->with('success', "Регистрация завершена. Мы отправили письмо со ссылкой подтверждения на {$user->email}.")
+                ->with('success', __('Регистрация завершена. Мы отправили письмо со ссылкой подтверждения на :email.', ['email' => $user->email]))
         );
     }
 

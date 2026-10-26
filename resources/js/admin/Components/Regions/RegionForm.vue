@@ -7,12 +7,13 @@ import WysiwygEditor from '@/common/Components/WysiwygEditor.vue';
 import { Link } from '@inertiajs/vue3';
 import type { InertiaForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import type { Language, ParentOption, RegionFormData } from './regionForm';
+import type { Language, ParentOption, RegionFormData, TimezoneOption } from './regionForm';
 
 const props = defineProps<{
     form: InertiaForm<RegionFormData>;
     languages: Language[];
     parents: ParentOption[];
+    timezones: TimezoneOption[];
     domain: string;
 }>();
 
@@ -96,6 +97,24 @@ const inputClass =
             <p class="mt-1 text-xs text-gray-500">Языком страны будут пользоваться все её области и города.</p>
 
             <InputError class="mt-2" :message="props.form.errors.lang" />
+        </div>
+
+        <div>
+            <InputLabel for="timezone" value="Часовой пояс" />
+
+            <select id="timezone" v-model="props.form.timezone" :class="inputClass">
+                <option value="">— Не указан —</option>
+                <option v-for="timezone in timezones" :key="timezone.value" :value="timezone.value">
+                    {{ timezone.label }}
+                </option>
+            </select>
+
+            <p class="mt-1 text-xs text-gray-500">
+                <template v-if="isCountry">Обязательно для страны.</template>
+                <template v-else>Необязательно для области и города.</template>
+            </p>
+
+            <InputError class="mt-2" :message="props.form.errors.timezone" />
         </div>
 
         <p class="text-xs text-gray-500">

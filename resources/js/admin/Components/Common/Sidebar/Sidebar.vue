@@ -110,7 +110,7 @@ watch(isSidebarOpen, (newValue) => {
             </NavGroup>
 
             <!-- Регионы -->
-            <NavGroup title="Регионы" routes="admin.regions.*">
+            <NavGroup title="Регионы" :routes="['admin.regions.*', 'admin.countries.*']">
                 <template #icon>
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -121,6 +121,7 @@ watch(isSidebarOpen, (newValue) => {
                 <template #links>
                     <SubNavLink name="Добавить" routeName="admin.regions.create" />
                     <SubNavLink name="Все регионы" routeName="admin.regions.index" />
+                    <SubNavLink name="Все страны" routeName="admin.countries.index" />
                 </template>
             </NavGroup>
 

@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'user_id', 'region_id', 'legal_name', 'tax_id', 'display_name', 'description',
-    'is_online_store', 'website', 'email', 'socials',
+    'user_id', 'region_id', 'country_id', 'legal_name', 'tax_id', 'display_name', 'description',
+    'delivery', 'payment', 'is_online_store', 'website', 'email', 'socials',
 ])]
 class Company extends Model
 {
@@ -33,6 +33,8 @@ class Company extends Model
     {
         return [
             'description' => PurifiedHtml::class.':company',
+            'delivery' => PurifiedHtml::class.':company',
+            'payment' => PurifiedHtml::class.':company',
             'is_online_store' => 'boolean',
             'socials' => 'array',
         ];
@@ -48,9 +50,24 @@ class Company extends Model
         return $this->belongsTo(Region::class);
     }
 
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'country_id');
+    }
+
     public function phones(): HasMany
     {
         return $this->hasMany(CompanyPhone::class)->orderBy('id');
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(CompanySchedule::class)->orderBy('day_of_week');
+    }
+
+    public function scheduleExceptions(): HasMany
+    {
+        return $this->hasMany(CompanyScheduleException::class)->orderBy('date');
     }
 
     /**

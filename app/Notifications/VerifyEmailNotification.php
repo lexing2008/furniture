@@ -16,7 +16,7 @@ class VerifyEmailNotification extends VerifyEmail
         $appName = config('app.name');
 
         return (new MailMessage)
-            ->subject("Подтвердите регистрацию на {$appName}")
+            ->subject(__('Подтвердите регистрацию на :app', ['app' => $appName]))
             ->view(['emails.verify-email', 'emails.verify-email-text'], [
                 'url' => $this->verificationUrl($notifiable),
                 'name' => $notifiable->name,

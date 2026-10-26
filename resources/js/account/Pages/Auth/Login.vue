@@ -29,7 +29,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Log in" />
+        <Head :title="$t('Log in')" />
 
         <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
             {{ status }}
@@ -37,7 +37,7 @@ const submit = () => {
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" :value="$t('Email')" />
 
                 <TextInput
                     id="email"
@@ -53,7 +53,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+                <InputLabel for="password" :value="$t('Password')" />
 
                 <TextInput
                     id="password"
@@ -71,7 +71,7 @@ const submit = () => {
                 <label class="flex items-center">
                     <Checkbox name="remember" v-model:checked="form.remember" />
                     <span class="ms-2 text-sm text-gray-600"
-                        >Remember me</span
+                        >{{ $t('Remember me') }}</span
                     >
                 </label>
             </div>
@@ -81,7 +81,7 @@ const submit = () => {
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Log in
+                    {{ $t('Log in') }}
                 </PrimaryButton>
 
                 <Link
@@ -89,15 +89,15 @@ const submit = () => {
                     :href="route('account.password.request')"
                     class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
-                    Forgot your password?
+                    {{ $t('Forgot your password?') }}
                 </Link>
 
             </div>
         </form>
         <div class="mt-4 border-t border-gray-100 pt-4 text-center text-sm text-gray-600">
-            Нет кабинета?
+            {{ $t('Нет кабинета?') }}
             <Link :href="route('account.register')" class="text-indigo-600 underline hover:text-indigo-900">
-                Зарегистрировать компанию
+                {{ $t('Зарегистрировать компанию') }}
             </Link>
         </div>
     </GuestLayout>

@@ -88,12 +88,12 @@ const button = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 h
 <template>
     <div>
         <div class="mb-3 flex flex-wrap items-center gap-2">
-            <button type="button" :class="button" @click="expandAll">Развернуть все</button>
-            <button type="button" :class="button" @click="collapseAll">Свернуть все</button>
-            <span class="text-sm text-gray-500">Выбрано: {{ selected.length }}</span>
+            <button type="button" :class="button" @click="expandAll">{{ $t('Развернуть все') }}</button>
+            <button type="button" :class="button" @click="collapseAll">{{ $t('Свернуть все') }}</button>
+            <span class="text-sm text-gray-500">{{ $t('Выбрано: :count', { count: selected.length }) }}</span>
         </div>
 
-        <p v-if="nodes.length === 0" class="text-sm text-gray-500">Категорий пока нет.</p>
+        <p v-if="nodes.length === 0" class="text-sm text-gray-500">{{ $t('Категорий пока нет.') }}</p>
 
         <ul v-else class="space-y-1 rounded-md border border-gray-200 p-3">
             <CategoryTreeNode v-for="node in nodes" :key="node.id" :node="node" />

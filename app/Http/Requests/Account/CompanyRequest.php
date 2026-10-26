@@ -110,7 +110,7 @@ abstract class CompanyRequest extends FormRequest
             $isCity = collect(Region::cityOptions())->pluck('cities')->flatten(1)->contains('id', (int) $value);
 
             if (! $isCity) {
-                $fail('Выберите город из списка.');
+                $fail(__('Выберите город из списка.'));
             }
         };
     }
@@ -133,7 +133,7 @@ abstract class CompanyRequest extends FormRequest
                     ->count();
 
                 if ($valid !== count($ids)) {
-                    $validator->errors()->add('categories', 'Можно выбрать только категории без подкатегорий.');
+                    $validator->errors()->add('categories', __('Можно выбрать только категории без подкатегорий.'));
                 }
             },
         ];
@@ -142,43 +142,43 @@ abstract class CompanyRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Заполните поле «:attribute».',
-            'string' => 'Поле «:attribute» должно быть текстом.',
-            'max.string' => 'Поле «:attribute» не должно быть длиннее :max символов.',
-            'email' => 'Укажите корректный email.',
-            'unique' => 'Значение поля «:attribute» уже занято.',
-            'url' => 'Укажите корректный адрес, например https://example.com.',
-            'confirmed' => 'Пароли не совпадают.',
-            'accepted' => 'Необходимо согласие с правилами и политикой.',
-            'min.array' => 'Выберите или добавьте хотя бы один элемент: «:attribute».',
-            'max.array' => 'В поле «:attribute» не больше :max элементов.',
-            'phones.*.code.regex' => 'Код — это цифры, например +375.',
-            'phones.*.number.regex' => 'Номер — это цифры, пробелы, дефисы и скобки.',
-            'phones.min' => 'Добавьте хотя бы один телефон.',
-            'phones.required' => 'Добавьте хотя бы один телефон.',
-            'categories.required' => 'Выберите хотя бы одну категорию.',
-            'categories.min' => 'Выберите хотя бы одну категорию.',
+            'required' => __('Заполните поле «:attribute».'),
+            'string' => __('Поле «:attribute» должно быть текстом.'),
+            'max.string' => __('Поле «:attribute» не должно быть длиннее :max символов.'),
+            'email' => __('Укажите корректный email.'),
+            'unique' => __('Значение поля «:attribute» уже занято.'),
+            'url' => __('Укажите корректный адрес, например https://example.com.'),
+            'confirmed' => __('Пароли не совпадают.'),
+            'accepted' => __('Необходимо согласие с правилами и политикой.'),
+            'min.array' => __('Выберите или добавьте хотя бы один элемент: «:attribute».'),
+            'max.array' => __('В поле «:attribute» не больше :max элементов.'),
+            'phones.*.code.regex' => __('Код — это цифры, например +375.'),
+            'phones.*.number.regex' => __('Номер — это цифры, пробелы, дефисы и скобки.'),
+            'phones.min' => __('Добавьте хотя бы один телефон.'),
+            'phones.required' => __('Добавьте хотя бы один телефон.'),
+            'categories.required' => __('Выберите хотя бы одну категорию.'),
+            'categories.min' => __('Выберите хотя бы одну категорию.'),
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'legal_name' => 'официальное название',
+            'legal_name' => __('официальное название'),
             'tax_id' => 'Tax ID',
-            'display_name' => 'отображаемое название',
-            'region_id' => 'регион',
-            'description' => 'описание',
-            'website' => 'сайт',
-            'phones' => 'телефоны',
-            'phones.*.code' => 'код',
-            'phones.*.number' => 'номер',
-            'phones.*.description' => 'пояснение к телефону',
-            'categories' => 'категории',
-            'name' => 'имя',
+            'display_name' => __('отображаемое название'),
+            'region_id' => __('регион'),
+            'description' => __('описание'),
+            'website' => __('сайт'),
+            'phones' => __('телефоны'),
+            'phones.*.code' => __('код'),
+            'phones.*.number' => __('номер'),
+            'phones.*.description' => __('пояснение к телефону'),
+            'categories' => __('категории'),
+            'name' => __('имя'),
             'email' => 'email',
-            'password' => 'пароль',
-            'terms' => 'согласие',
+            'password' => __('пароль'),
+            'terms' => __('согласие'),
         ];
     }
 

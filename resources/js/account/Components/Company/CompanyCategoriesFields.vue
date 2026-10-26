@@ -17,8 +17,8 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 
 <template>
     <section :class="section">
-        <h2 class="text-lg font-semibold text-gray-900">Категории</h2>
-        <p class="text-xs text-gray-500">Компания будет показана в выбранных категориях. Можно выбрать только категории без подкатегорий.</p>
+        <h2 class="text-lg font-semibold text-gray-900">{{ $t('Категории') }}</h2>
+        <p class="text-xs text-gray-500">{{ $t('Компания будет показана в выбранных категориях. Можно выбрать только категории без подкатегорий.') }}</p>
 
         <CategoryTree :nodes="categories" v-model="form.categories" />
         <InputError :message="errors.categories" />

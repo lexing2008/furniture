@@ -8,6 +8,7 @@ import type {
     Language,
     ParentOption,
     RegionFormData,
+    TimezoneOption,
 } from '@/admin/Components/Regions/regionForm';
 import { Head, useForm } from '@inertiajs/vue3';
 
@@ -15,6 +16,7 @@ const props = defineProps<{
     region: ExistingRegion & { id: number };
     languages: Language[];
     parents: ParentOption[];
+    timezones: TimezoneOption[];
     domain: string;
 }>();
 
@@ -34,7 +36,14 @@ const submit = () => {
         </template>
 
         <Content>
-            <RegionForm :form="form" :languages="languages" :parents="parents" :domain="domain" @submit="submit" />
+            <RegionForm
+                :form="form"
+                :languages="languages"
+                :parents="parents"
+                :timezones="timezones"
+                :domain="domain"
+                @submit="submit"
+            />
         </Content>
     </AuthenticatedLayout>
 </template>

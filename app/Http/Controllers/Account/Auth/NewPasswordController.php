@@ -59,11 +59,11 @@ class NewPasswordController extends Controller
         // the application's home authenticated view. If there is an error we can
         // redirect them back to where they came from with their error message.
         if ($status == Password::PASSWORD_RESET) {
-            return redirect()->route('account.login')->with('status', __($status));
+            return redirect()->route('account.login')->with('status', __('Пароль сброшен. Войдите с новым паролем.'));
         }
 
         throw ValidationException::withMessages([
-            'email' => [trans($status)],
+            'email' => [__('Не удалось сбросить пароль. Проверьте ссылку или запросите новую.')],
         ]);
     }
 }

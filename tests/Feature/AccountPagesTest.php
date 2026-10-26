@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Enums\Roles;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Language;
 use App\Models\Region;
+use App\Models\RegionCountry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -20,6 +22,8 @@ class AccountPagesTest extends TestCase
 
     private Company $company;
 
+    private Region $country;
+
     private Region $city;
 
     private Category $category;
@@ -30,19 +34,27 @@ class AccountPagesTest extends TestCase
 
         $this->withoutVite();
 
-        $country = Region::create([
+        $this->country = Region::create([
             'name' => 'Беларусь',
             'name_en' => 'Belarus',
             'name_in' => 'Беларуси',
             'subdomain' => 'belarus',
+            'timezone' => 'Europe/Minsk',
             'is_active' => true,
         ]);
+        RegionCountry::create([
+            'region_id' => $this->country->id,
+            'phone_code' => '375',
+            'currency' => 'BYN',
+            'currency_decimals' => 2,
+        ]);
+
         $area = Region::create([
             'name' => 'Минская область',
             'name_en' => 'Minsk region',
             'name_in' => 'Минской области',
             'subdomain' => 'minsk-region',
-            'parent_id' => $country->id,
+            'parent_id' => $this->country->id,
             'is_active' => true,
         ]);
         $this->city = Region::create([
@@ -51,6 +63,7 @@ class AccountPagesTest extends TestCase
             'name_in' => 'Минске',
             'subdomain' => 'minsk',
             'parent_id' => $area->id,
+            'timezone' => 'Europe/Minsk',
             'is_active' => true,
         ]);
 
@@ -67,10 +80,13 @@ class AccountPagesTest extends TestCase
         $this->company = Company::create([
             'user_id' => $this->user->id,
             'region_id' => $this->city->id,
+            'country_id' => $this->country->id,
             'legal_name' => 'ООО Ромашка',
             'tax_id' => '100000001',
             'display_name' => 'Ромашка',
             'description' => '<p>Описание</p>',
+            'delivery' => '<p>Доставка по Минску</p>',
+            'payment' => '<p>Наличные и карта</p>',
             'is_online_store' => false,
             'website' => 'https://romashka.example.com',
             'email' => 'shop@example.com',
@@ -122,7 +138,50 @@ class AccountPagesTest extends TestCase
         $this->assertStringEndsWith('/account', $response->headers->get('X-Inertia-Location'));
         $this->assertAuthenticated();
         $this->assertSame('new-owner@example.com', auth()->user()->email);
+        $this->assertSame($this->country->id, auth()->user()->company->country_id);
         $response->assertSessionHas('success');
+    }
+
+    public function test_language_comes_from_the_country_of_the_region(): void
+    {
+        // No country language: the default locale is Russian
+        $this->get('http://minsk.furniture.test/')
+            ->assertOk()
+            ->assertSee('Мебель в Минске')
+            ->assertSee('О нас');
+
+        Language::create(['code' => 'en', 'name' => 'English', 'name_en' => 'English']);
+        $this->country->update(['lang' => 'en']);
+
+        $this->get('http://minsk.furniture.test/')
+            ->assertOk()
+            ->assertSee('Furniture in Minsk')
+            ->assertSee('About us');
+
+        $this->post($this->url('/login'), [
+            'email' => 'ivan@example.com',
+            'password' => 'wrong-password',
+        ])->assertSessionHasErrors('email');
+        $this->assertSame(
+            'These credentials do not match our records.',
+            session('errors')->first('email'),
+        );
+
+        $this->actingAs($this->user)
+            ->get($this->url(''))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Index', false)
+                ->where('locale', 'en'));
+    }
+
+    public function test_region_timezone_is_stored(): void
+    {
+        $this->assertSame('Europe/Minsk', $this->city->fresh()->timezone);
+
+        $this->city->update(['timezone' => 'Asia/Bangkok']);
+
+        $this->assertSame('Asia/Bangkok', $this->city->fresh()->timezone);
     }
 
     public function test_account_pages_are_available(): void
@@ -132,17 +191,42 @@ class AccountPagesTest extends TestCase
         $this->get($this->url(''))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
+                ->component('Index', false)
+                ->where('locale', 'ru')
+                ->where('company_region.name', 'Минск')
+                ->where('company_region.url', 'http://minsk.furniture.test'));
+
+        $this->get($this->url('/general'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
                 ->component('Company/Edit', false)
                 ->where('company.display_name', 'Ромашка')
-                ->has('regions')
+                ->where('regions.0.name', 'Беларусь')
+                ->where('regions.0.selectable', false)
+                ->where('regions.0.children.0.name', 'Минская область')
+                ->where('regions.0.children.0.children.0.name', 'Минск')
+                ->where('regions.0.children.0.children.0.selectable', true)
                 ->has('categories'));
+
+        $this->get($this->url('/delivery'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Company/Delivery', false)
+                ->where('company.delivery', '<p>Доставка по Минску</p>'));
+
+        $this->get($this->url('/payment'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Company/Payment', false)
+                ->where('company.payment', '<p>Наличные и карта</p>'));
 
         $this->get($this->url('/contacts'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Company/Contacts', false)
                 ->where('company.email', 'shop@example.com')
-                ->has('company.phones', 1));
+                ->has('company.phones', 1)
+                ->where('phoneCode', '375'));
 
         $this->get($this->url('/socials'))
             ->assertOk()
@@ -155,9 +239,37 @@ class AccountPagesTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->component('Password/Edit', false));
     }
 
+    public function test_registration_page_uses_the_country_phone_code(): void
+    {
+        $this->get($this->url('/register'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Company/Register', false)
+                ->where('phoneCode', '375'));
+    }
+
+    public function test_delivery_and_payment_are_saved_independently(): void
+    {
+        $this->actingAs($this->user)
+            ->put($this->url('/delivery'), ['delivery' => '<p>Новая доставка</p>'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertSame('<p>Новая доставка</p>', $this->company->fresh()->delivery);
+        $this->assertSame('<p>Наличные и карта</p>', $this->company->fresh()->payment);
+
+        $this->actingAs($this->user)
+            ->put($this->url('/payment'), ['payment' => '<p>Оплата переводом</p>'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertSame('<p>Оплата переводом</p>', $this->company->fresh()->payment);
+        $this->assertSame('<p>Новая доставка</p>', $this->company->fresh()->delivery);
+    }
+
     public function test_about_page_does_not_touch_contacts_and_socials(): void
     {
-        $this->actingAs($this->user)->put($this->url(''), [
+        $this->actingAs($this->user)->put($this->url('/general'), [
             'legal_name' => 'ООО Новое имя',
             'tax_id' => '200000002',
             'display_name' => 'Новое имя',

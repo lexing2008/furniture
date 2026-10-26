@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Admin\Auth\NewPasswordController;
 use App\Http\Controllers\Admin\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\FilterController;
 use App\Http\Controllers\Admin\FilterTranslationController;
 use App\Http\Controllers\Admin\LanguageController;
@@ -40,10 +41,10 @@ Route::prefix('admin')->middleware(['guest', HandleInertiaAdminRequests::class])
     // - - - end Auth
 
     // todo should solve
-//    Route::get('register', [RegisteredUserController::class, 'create'])
-//        ->name('register');
-//
-//    Route::post('register', [RegisteredUserController::class, 'store']);
+    //    Route::get('register', [RegisteredUserController::class, 'create'])
+    //        ->name('register');
+    //
+    //    Route::post('register', [RegisteredUserController::class, 'store']);
 });
 // - - - GUEST
 
@@ -85,6 +86,11 @@ Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employee
     Route::patch('regions/{region}/toggle', [RegionController::class, 'toggle'])
         ->name('admin.regions.toggle');
 
+    // Countries: phone code and currency of regions with parent_id = null
+    Route::get('countries', [CountryController::class, 'index'])->name('admin.countries.index');
+    Route::get('countries/{country}/edit', [CountryController::class, 'edit'])->name('admin.countries.edit');
+    Route::put('countries/{country}', [CountryController::class, 'update'])->name('admin.countries.update');
+
     // SEO templates
     Route::resource('seo-templates', SeoTemplateController::class)
         ->except(['show', 'destroy'])
@@ -107,7 +113,6 @@ Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employee
         Route::patch('/', [ProfileController::class, 'update'])->name('admin.profile.update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('admin.profile.destroy');
     });
-
 
     // todo should solve
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])

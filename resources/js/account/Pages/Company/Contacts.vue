@@ -12,6 +12,7 @@ import { Head, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps<{
     company: CompanyContactsFields;
+    phoneCode: string | null;
 }>();
 
 const page = usePage<PageProps>();
@@ -29,30 +30,30 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 </script>
 
 <template>
-    <Head title="Контактная информация" />
+    <Head :title="$t('Контактная информация')" />
 
     <AccountLayout>
-        <h1 class="text-2xl font-bold text-gray-900">Контактная информация</h1>
+        <h1 class="text-2xl font-bold text-gray-900">{{ $t('Контактная информация') }}</h1>
 
         <form class="space-y-6" @submit.prevent="submit">
             <section :class="section">
-                <h2 class="text-lg font-semibold text-gray-900">Email</h2>
+                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Email') }}</h2>
 
                 <div>
-                    <InputLabel for="email" value="Контактный email компании" />
+                    <InputLabel for="email" :value="$t('Контактный email компании')" />
                     <TextInput id="email" type="email" class="mt-1 block w-full md:w-1/2" v-model="form.email" />
                     <p class="mt-1 text-xs text-gray-500">
-                        Виден посетителям. Email для входа ({{ page.props.auth.user.email }}) не меняется.
+                        {{ $t('Виден посетителям. Email для входа (:email) не меняется.', { email: page.props.auth.user.email }) }}
                     </p>
                     <InputError class="mt-2" :message="form.errors.email" />
                 </div>
             </section>
 
-            <CompanyPhonesFields :form="form" />
+            <CompanyPhonesFields :form="form" :phone-code="phoneCode" />
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Сохранить</PrimaryButton>
-                <span v-if="form.recentlySuccessful" class="text-sm text-green-700">Сохранено</span>
+                <PrimaryButton :disabled="form.processing">{{ $t('Сохранить') }}</PrimaryButton>
+                <span v-if="form.recentlySuccessful" class="text-sm text-green-700">{{ $t('Сохранено') }}</span>
             </div>
         </form>
     </AccountLayout>

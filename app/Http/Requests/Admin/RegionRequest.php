@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Region;
 use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,6 +27,7 @@ class RegionRequest extends FormRequest
             'subdomain' => mb_strtolower(trim((string) $this->input('subdomain', ''))),
             // Areas and cities use the language of their country
             'lang' => $parentId === null ? ($this->input('lang') ?: null) : null,
+            'timezone' => trim((string) $this->input('timezone', '')) ?: null,
             'is_capital' => $this->boolean('is_active', false),
             'is_active' => $this->boolean('is_active', true),
         ];
@@ -43,7 +45,7 @@ class RegionRequest extends FormRequest
     }
 
     /**
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -71,6 +73,7 @@ class RegionRequest extends FormRequest
                 'string',
                 Rule::exists('languages', 'code'),
             ],
+            'timezone' => [Rule::requiredIf($isCountry), 'nullable', 'string', 'timezone'],
             'seo_title' => [Rule::requiredIf($isCountry), 'nullable', 'string', 'max:255'],
             'seo_description' => [Rule::requiredIf($isCountry), 'nullable', 'string', 'max:500'],
             'seo_block' => [Rule::requiredIf($isCountry), 'nullable', 'string', 'max:65000'],
@@ -86,6 +89,8 @@ class RegionRequest extends FormRequest
             'subdomain.unique' => 'Такой поддомен уже занят.',
             'subdomain.not_in' => 'Этот поддомен зарезервирован.',
             'lang.required' => 'Укажите язык страны.',
+            'timezone.required' => 'Укажите часовой пояс страны.',
+            'timezone.timezone' => 'Выберите часовой пояс из списка.',
             'seo_title.required' => 'Для страны SEO-поля обязательны: из неё их наследуют области и города.',
             'seo_description.required' => 'Для страны SEO-поля обязательны: из неё их наследуют области и города.',
             'seo_block.required' => 'Для страны SEO-поля обязательны: из неё их наследуют области и города.',

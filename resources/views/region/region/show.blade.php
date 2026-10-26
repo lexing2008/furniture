@@ -8,7 +8,7 @@
 @section('description', $seo['seo_description'])
 
 @section('content')
-    <h1>{{ $region->name }}</h1>
+    <h1>{{ app()->getLocale() === 'en' ? $region->name_en : $region->name }}</h1>
 
 
     <div class="flex flex-wrap gap-y-5 gap-x-10 justify-left">
@@ -22,7 +22,7 @@
                     @foreach($area['cities'] as $city)
 
                         <a href="{{ route('region.show', ['region' =>  $city['subdomain']]) }}" class="link text-xs">
-                            Мебель в {{$city['name_in']}}
+                            {{ __('Мебель в :city', ['city' => app()->getLocale() === 'en' ? $city['name_en'] : $city['name_in']]) }}
                         </a>
 
                     @endforeach
