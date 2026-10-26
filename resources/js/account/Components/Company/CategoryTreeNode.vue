@@ -28,7 +28,7 @@ const tree = inject(categoryTreeKey)!;
             <input
                 type="checkbox"
                 :checked="tree.isSelected(node.id)"
-                class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
+                class="rounded-sm border-gray-300 text-green-first shadow-xs focus:ring-green-first"
                 @change="tree.toggleSelected(node.id)"
             />
             {{ node.name }}

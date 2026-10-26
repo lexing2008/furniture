@@ -16,7 +16,7 @@ const errors = computed(() => props.form.errors as Record<string, string | undef
 
 const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
 const selectClass =
-    'mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500';
+    'mt-1 block w-full rounded-full border-gray-300 shadow-xs focus:border-green-first focus:ring-green-first';
 </script>
 
 <template>
@@ -64,7 +64,7 @@ const selectClass =
             <input
                 type="checkbox"
                 v-model="form.is_online_store"
-                class="rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
+                class="rounded-sm border-gray-300 text-green-first shadow-xs focus:ring-green-first"
             />
             <span class="text-sm text-gray-700">Является интернет-магазином</span>
         </label>
