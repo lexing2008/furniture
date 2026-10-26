@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const tree = inject(adRegionTreeKey)!;
 const name = computed(() => (isEnglish() ? props.node.name_en : props.node.name));
-const button = 'rounded border border-gray-300 px-1.5 py-0.5 text-[11px] text-gray-600 hover:bg-gray-50';
+const button = 'cursor-pointer rounded border border-gray-300 px-1.5 py-0.5 text-[11px] text-gray-600 hover:bg-gray-50';
 </script>
 
 <template>
@@ -18,7 +18,7 @@ const button = 'rounded border border-gray-300 px-1.5 py-0.5 text-[11px] text-gr
         <div v-if="node.children.length > 0" class="flex items-center gap-2 rounded px-1 py-1 hover:bg-gray-50">
             <button
                 type="button"
-                class="flex min-w-0 flex-1 items-center gap-2 text-left text-sm font-medium text-gray-800"
+                class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left text-sm font-medium text-gray-800"
                 :aria-expanded="tree.isExpanded(node.id)"
                 @click="tree.toggleExpanded(node.id)"
             >

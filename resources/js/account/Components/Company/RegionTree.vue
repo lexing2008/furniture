@@ -116,7 +116,7 @@ provide(regionTreeKey, {
     select,
 });
 
-const button = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
+const button = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
 </script>
 
 <template>

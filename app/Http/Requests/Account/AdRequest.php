@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Filter;
 use App\Models\Region;
 use App\Models\TmpFile;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -89,7 +90,17 @@ class AdRequest extends FormRequest
             ],
             'article' => ['nullable', 'string', 'max:255'],
             'category_id' => ['required', 'integer'],
-            'description' => ['nullable', 'string', 'max:15000'],
+            'description' => [
+                'nullable',
+                'string',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    $text = html_entity_decode(strip_tags((string) $value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+                    if (mb_strlen($text) > 15000) {
+                        $fail(__('Описание не должно быть длиннее :max символов без учёта HTML-тегов.', ['max' => 15000]));
+                    }
+                },
+            ],
             'price' => ['required', 'numeric', 'min:0', 'max:99999999999.9999'],
             'warranty_value' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'warranty_unit' => ['required_with:warranty_value', Rule::in(Ad::WARRANTY_UNITS)],

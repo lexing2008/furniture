@@ -18,7 +18,7 @@ const name = computed(() => (isEnglish() ? props.node.name_en : props.node.name)
         <button
             v-if="node.children.length > 0"
             type="button"
-            class="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-sm font-medium text-gray-800 hover:bg-gray-50"
+            class="flex w-full cursor-pointer items-center gap-2 rounded px-1 py-1 text-left text-sm font-medium text-gray-800 hover:bg-gray-50"
             :aria-expanded="tree.isExpanded(node.id)"
             @click="tree.toggleExpanded(node.id)"
         >

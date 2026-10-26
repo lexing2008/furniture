@@ -25,7 +25,7 @@ const removePhone = (index: number) => props.form.phones.splice(index, 1);
 const codePlaceholder = computed(() => (props.phoneCode ? `+${props.phoneCode}` : '+'));
 
 const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
-const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
+const smallButton = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
 </script>
 
 <template>

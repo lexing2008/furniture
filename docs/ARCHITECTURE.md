@@ -242,6 +242,7 @@ Laravel
 
 - `AdController@create/store/edit/update`;
 - `AdRequest` — валидация;
+- `CategoryTreeSelect` — дерево категорий с radio и поиском (как выбор региона);
 - `AdFilterService` — фильтры категории и значения товара;
 - `AdImageService` — загрузка, WebP, миниатюры, переименование;
 - `AdImageController` — upload/delete temp.
@@ -253,7 +254,7 @@ Laravel
 - `number` — nullable, unique в рамках компании;
 - `article` — nullable;
 - `video`;
-- `description` — PurifiedHtml;
+- `description` — PurifiedHtml, не более 15000 символов без учёта HTML-тегов;
 - `price` decimal, `currency`;
 - `warranty_value`, `warranty_unit`;
 - `is_moderated` (default `false`);

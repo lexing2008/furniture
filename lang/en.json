@@ -383,5 +383,10 @@
     "Отображать на сайте": "Show on the site",
     "Не отображать на сайте": "Do not show on the site",
     "артикул": "article",
-    "отображение на сайте": "site visibility"
+    "отображение на сайте": "site visibility",
+    "Поиск категории": "Search category",
+    "Ничего не найдено": "Nothing found",
+    "Показаны первые 50 категорий. Уточните поиск.": "Showing the first 50 categories. Refine your search.",
+    "Сбросить": "Reset",
+    "Описание не должно быть длиннее :max символов без учёта HTML-тегов.": "The description must not be longer than :max characters excluding HTML tags."
 }

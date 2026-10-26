@@ -4,6 +4,7 @@ import InputLabel from '@/account/Components/InputLabel.vue';
 import PrimaryButton from '@/account/Components/PrimaryButton.vue';
 import TextInput from '@/account/Components/TextInput.vue';
 import AdRegionTree from '@/account/Components/Ads/AdRegionTree.vue';
+import CategoryTreeSelect from '@/account/Components/Ads/CategoryTreeSelect.vue';
 import type { CategoryNode, RegionNode } from '@/account/Components/Company/companyForm';
 import WysiwygEditor from '@/common/Components/WysiwygEditor.vue';
 import { translate } from '@/common/i18n';
@@ -106,6 +107,19 @@ const filtersError = ref<string | null>(null);
 const isUploading = computed(() => images.value.some((image) => image.uploading));
 const errors = computed(() => form.errors as Record<string, string | undefined>);
 
+const descriptionLength = computed(() => {
+    const html = form.description ?? '';
+
+    if (typeof document === 'undefined') {
+        return [...html.replace(/<[^>]*>/g, '')].length;
+    }
+
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    return [...(container.textContent ?? '')].length;
+});
+
 const priceStep = computed(() => {
     const decimals = Math.max(0, Math.min(4, props.currencyDecimals));
 
@@ -117,27 +131,6 @@ const warrantyUnits = computed<Array<{ value: WarrantyUnit; label: string }>>(()
     { value: 'months', label: translate('Месяцы') },
     { value: 'years', label: translate('Годы') },
 ]);
-
-const categoryOptions = computed(() => {
-    const result: Array<{ id: number; label: string }> = [];
-
-    const walk = (nodes: CategoryNode[], depth: number) => {
-        for (const node of nodes) {
-            if (node.selectable) {
-                result.push({
-                    id: node.id,
-                    label: `${'— '.repeat(depth)}${node.name}`,
-                });
-            }
-
-            walk(node.children, depth + 1);
-        }
-    };
-
-    walk(props.categories, 0);
-
-    return result;
-});
 
 function filterState(source: AdFilter[]): Record<string, FilterValue> {
     const values: Record<string, FilterValue> = {};
@@ -155,10 +148,10 @@ function filterState(source: AdFilter[]): Record<string, FilterValue> {
     return values;
 }
 
-const loadFilters = async () => {
+const loadFilters = async (categoryId: number | null = form.category_id) => {
     filtersError.value = null;
 
-    if (!form.category_id) {
+    if (!categoryId) {
         filters.value = [];
         form.filters = {};
 
@@ -170,7 +163,7 @@ const loadFilters = async () => {
     filtersLoading.value = true;
 
     try {
-        const response = await fetch(`${route('account.ads.filters')}?category_id=${form.category_id}`, {
+        const response = await fetch(`${route('account.ads.filters')}?category_id=${categoryId}`, {
             headers: { Accept: 'application/json' },
         });
 
@@ -433,11 +426,17 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
         <section :class="section">
             <h2 class="text-lg font-semibold text-gray-900">{{ $t('Основная информация') }}</h2>
 
+            <div>
+                <InputLabel for="title" :value="$t('Название')" />
+                <TextInput id="title" v-model="form.title" type="text" class="mt-1 block w-full" :placeholder="$t('Например, диван «Осло»')" />
+                <InputError class="mt-2" :message="form.errors.title" />
+            </div>
+
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
-                    <InputLabel for="title" :value="$t('Название')" />
-                    <TextInput id="title" v-model="form.title" type="text" class="mt-1 block w-full" :placeholder="$t('Например, диван «Осло»')" />
-                    <InputError class="mt-2" :message="form.errors.title" />
+                    <InputLabel for="article" :value="$t('Артикул')" />
+                    <TextInput id="article" v-model="form.article" type="text" class="mt-1 block w-full" :placeholder="$t('Например, ART-12345')" />
+                    <InputError class="mt-2" :message="form.errors.article" />
                 </div>
 
                 <div>
@@ -446,31 +445,20 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                     <p :class="hint">{{ $t('Уникальный номер товара или услуги в вашей системе.') }}</p>
                     <InputError class="mt-2" :message="form.errors.number" />
                 </div>
-
-                <div>
-                    <InputLabel for="article" :value="$t('Артикул')" />
-                    <TextInput id="article" v-model="form.article" type="text" class="mt-1 block w-full" :placeholder="$t('Например, ART-12345')" />
-                    <InputError class="mt-2" :message="form.errors.article" />
-                </div>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-2">
-                <div>
-                    <InputLabel for="category_id" :value="$t('Категория')" />
-                    <select
-                        id="category_id"
-                        v-model="form.category_id"
-                        class="mt-1 block w-full rounded-full border-gray-300 shadow-xs focus:border-green-first focus:ring-green-first"
-                        @change="loadFilters"
-                    >
-                        <option :value="null">{{ $t('Выберите категорию') }}</option>
-                        <option v-for="category in categoryOptions" :key="category.id" :value="category.id">
-                            {{ category.label }}
-                        </option>
-                    </select>
-                    <InputError class="mt-2" :message="form.errors.category_id" />
-                </div>
+            <div>
+                <InputLabel :value="$t('Категория')" />
+                <CategoryTreeSelect v-model="form.category_id" :nodes="categories" @change="loadFilters" />
+                <InputError class="mt-2" :message="form.errors.category_id" />
+            </div>
 
+            <div v-if="!currency" class="rounded-md bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
+                {{ $t('Для страны текущего региона не настроена валюта.') }}
+            </div>
+            <InputError :message="errors.currency" />
+
+            <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <InputLabel for="price" :value="$t('Цена')" />
                     <div class="mt-1 flex items-center gap-2">
@@ -480,14 +468,7 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                     <p :class="hint">{{ $t('Цена отображается в валюте текущего региона.') }}</p>
                     <InputError class="mt-2" :message="form.errors.price" />
                 </div>
-            </div>
 
-            <div v-if="!currency" class="rounded-md bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
-                {{ $t('Для страны текущего региона не настроена валюта.') }}
-            </div>
-            <InputError :message="errors.currency" />
-
-            <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <InputLabel for="warranty_value" :value="$t('Срок гарантии')" />
                     <div class="mt-1 flex gap-2">
@@ -501,13 +482,9 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                     </div>
                     <InputError class="mt-2" :message="form.errors.warranty_value ?? form.errors.warranty_unit" />
                 </div>
-
-                <div>
-                    <InputLabel for="video" :value="$t('Ссылка на YouTube')" />
-                    <TextInput id="video" v-model="form.video" type="url" class="mt-1 block w-full" :placeholder="$t('Например, https://youtube.com/watch?v=...')" />
-                    <InputError class="mt-2" :message="form.errors.video" />
-                </div>
             </div>
+
+
 
             <div>
                 <InputLabel for="description" :value="$t('Описание')" />
@@ -518,7 +495,7 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                     :invalid="!!errors.description"
                     resizable
                 />
-                <p :class="hint">{{ form.description.length }} / 15000</p>
+                <p :class="hint">{{ descriptionLength }} / 15000</p>
                 <InputError class="mt-2" :message="form.errors.description" />
             </div>
         </section>
@@ -585,6 +562,19 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section :class="section">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Видео') }}</h2>
+                <p :class="hint">{{ $t('Ссылка на YouTube') }}</p>
+            </div>
+
+            <div>
+                <InputLabel for="video" :value="$t('Ссылка на YouTube')" />
+                <TextInput id="video" v-model="form.video" type="url" class="mt-1 block w-full" :placeholder="$t('Например, https://youtube.com/watch?v=...')" />
+                <InputError class="mt-2" :message="form.errors.video" />
             </div>
         </section>
 

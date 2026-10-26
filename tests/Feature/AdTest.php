@@ -217,6 +217,41 @@ class AdTest extends TestCase
                 ->has('filters', 3));
     }
 
+    public function test_description_length_ignores_html_tags(): void
+    {
+        $payload = [
+            'title' => 'Описание',
+            'category_id' => $this->category->id,
+            'description' => '<p>'.str_repeat('a', 15000).'</p>',
+            'price' => '1',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'video' => null,
+            'regions' => [$this->city->id],
+            'filters' => [],
+            'existing_images' => [],
+            'new_images' => [],
+            'deleted_image_ids' => [],
+        ];
+
+        $this->actingAs($this->user)
+            ->post($this->url('/ads'), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('ads', 1);
+
+        $this->actingAs($this->user)
+            ->post($this->url('/ads'), [
+                ...$payload,
+                'title' => 'Слишком длинное описание',
+                'description' => '<p>'.str_repeat('a', 15001).'</p>',
+            ])
+            ->assertSessionHasErrors('description');
+
+        $this->assertDatabaseCount('ads', 1);
+    }
+
     public function test_number_is_optional_and_new_ads_are_not_moderated(): void
     {
         $this->actingAs($this->user)->post($this->url('/ads'), [

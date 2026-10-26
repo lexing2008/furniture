@@ -40,7 +40,7 @@ const submit = () => {
 
 const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
 const checkbox = 'rounded-sm border-gray-300 text-green-first shadow-xs focus:ring-green-first';
-const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
+const smallButton = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
 const hint = 'text-xs text-gray-500';
 </script>
 
