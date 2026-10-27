@@ -17,6 +17,7 @@ use App\Support\AdImagePath;
 use App\Support\Slug;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -486,6 +487,51 @@ class AdTest extends TestCase
             ->assertJsonStructure(['published_at']);
 
         $this->assertTrue($ad->fresh()?->published_at?->greaterThan($afterPrice) ?? false);
+    }
+
+    public function test_published_at_uses_company_region_timezone_with_parent_fallback(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-27 12:00:00', 'UTC'));
+        $this->city->update(['timezone' => 'Asia/Tokyo']);
+
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Товар',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_moderated' => true,
+            'published_at' => Carbon::parse('2026-10-26 00:00:00', 'UTC'),
+        ]);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/actualize"))
+            ->assertOk()
+            ->assertJsonPath('published_at', '27.10.2026 21:00');
+
+        $this->assertSame(
+            '2026-10-27 12:00:00',
+            $ad->fresh()->published_at?->utc()->format('Y-m-d H:i:s'),
+        );
+
+        $this->city->update(['timezone' => null]);
+        Region::findOrFail($this->city->parent_id)->update(['timezone' => 'Asia/Tokyo']);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/actualize"))
+            ->assertOk()
+            ->assertJsonPath('published_at', '27.10.2026 21:00');
+
+        $area = Region::findOrFail($this->city->parent_id);
+        $area->update(['timezone' => null]);
+        $this->country->update(['timezone' => 'Asia/Tokyo']);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/actualize"))
+            ->assertOk()
+            ->assertJsonPath('published_at', '27.10.2026 21:00');
     }
 
     public function test_price_can_be_updated_from_the_list(): void

@@ -20,7 +20,7 @@ class Company extends Model
         'facebook' => 'Facebook',
         'instagram' => 'Instagram',
         'youtube' => 'YouTube',
-        'vk' => 'ВКонтакте',
+        'vk' => 'Vk',
         'telegram' => 'Telegram',
         'tiktok' => 'TikTok',
         'linkedin' => 'LinkedIn',
@@ -53,6 +53,14 @@ class Company extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'country_id');
+    }
+
+    /**
+     * Timezone of the company region: the city first, then its area, then the country.
+     */
+    public function timezone(): string
+    {
+        return $this->region?->getTimezone() ?? (string) config('app.timezone');
     }
 
     public function phones(): HasMany

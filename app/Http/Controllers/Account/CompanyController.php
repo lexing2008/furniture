@@ -37,7 +37,7 @@ class CompanyController extends Controller
                 'price' => (float) $ad->price,
                 'currency' => $ad->currency,
                 'thumb_url' => $ad->images->first()?->thumbnailUrl(100),
-                'published_at' => $ad->published_at?->format('d.m.Y'),
+                'published_at' => $ad->published_at?->copy()->timezone($company->timezone())->format('d.m.Y'),
                 'is_active' => $ad->is_active,
                 'is_moderated' => $ad->is_moderated,
                 'is_banned' => $ad->is_banned,

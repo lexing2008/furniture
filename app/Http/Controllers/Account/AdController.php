@@ -14,6 +14,7 @@ use App\Services\AdImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -151,7 +152,7 @@ class AdController extends Controller
                 'thumb_url' => $ad->images->first()?->thumbnailUrl(100),
                 'images_count' => $ad->images->count(),
                 'filter_count' => $ad->filledFiltersCount(),
-                'published_at' => $ad->published_at?->format('d.m.Y H:i'),
+                'published_at' => $this->publicationLabel($company, $ad->published_at),
                 'is_active' => $ad->is_active,
                 'is_moderated' => $ad->is_moderated,
                 'is_banned' => $ad->is_banned,
@@ -213,7 +214,7 @@ class AdController extends Controller
 
     public function store(AdRequest $request, AdImageService $imageService): RedirectResponse
     {
-        $company = $this->company($request);
+        $company = $this->company($request, ['region']);
 
         $ad = DB::transaction(function () use ($request, $company, $imageService) {
             $ad = new Ad($request->adData());
@@ -221,7 +222,7 @@ class AdController extends Controller
             $ad->currency = (string) $request->currency();
             $ad->is_moderated = false;
             $ad->is_banned = false;
-            $ad->published_at = now();
+            $ad->published_at = $this->publicationNow($company);
             $ad->save();
 
             $ad->regions()->sync($request->validated('regions'));
@@ -296,12 +297,12 @@ class AdController extends Controller
             'price.min' => __('Цена не может быть отрицательной.'),
         ]);
 
-        $company = $this->company($request);
+        $company = $this->company($request, ['region']);
         $ad = $this->ad($request, $company);
 
         $ad->update([
             'price' => $data['price'],
-            'published_at' => now(),
+            'published_at' => $this->publicationNow($company),
         ]);
 
         return response()->json([
@@ -311,22 +312,22 @@ class AdController extends Controller
 
     public function actualize(Request $request): JsonResponse
     {
-        $company = $this->company($request);
+        $company = $this->company($request, ['region']);
         $ad = $this->ad($request, $company);
 
-        $ad->update(['published_at' => now()]);
+        $ad->update(['published_at' => $this->publicationNow($company)]);
 
         return response()->json([
-            'published_at' => $ad->published_at?->format('d.m.Y H:i'),
+            'published_at' => $this->publicationLabel($company, $ad->published_at),
         ]);
     }
 
     public function update(AdRequest $request, AdImageService $imageService): SymfonyResponse
     {
-        $company = $this->company($request);
+        $company = $this->company($request, ['region']);
         $ad = $this->ad($request, $company);
 
-        $pathsToDelete = DB::transaction(function () use ($request, $ad, $imageService) {
+        $pathsToDelete = DB::transaction(function () use ($request, $company, $ad, $imageService) {
             $images = $request->imageData();
             $descriptionChanged = (string) ($ad->description ?? '') !== (string) ($request->input('description') ?? '');
             $videoAdded = filled($request->input('video')) && $request->input('video') !== $ad->video;
@@ -339,7 +340,7 @@ class AdController extends Controller
                 ...$request->adData(),
                 'currency' => (string) $request->currency(),
                 'is_moderated' => $ad->is_moderated && ! $resetModeration,
-                'published_at' => now(),
+                'published_at' => $this->publicationNow($company),
             ]);
             $ad->regions()->sync($request->validated('regions'));
             $ad->syncFilters($request->filterValues());
@@ -385,6 +386,16 @@ class AdController extends Controller
         return response()->json([
             'filters' => $filterService->forCategory($category->id, null, app()->getLocale()),
         ]);
+    }
+
+    private function publicationNow(Company $company): Carbon
+    {
+        return now($company->timezone())->utc();
+    }
+
+    private function publicationLabel(Company $company, ?Carbon $publishedAt): ?string
+    {
+        return $publishedAt?->copy()->timezone($company->timezone())->format('d.m.Y H:i');
     }
 
     private function ad(Request $request, Company $company): Ad
