@@ -505,5 +505,8 @@
     "Без параметров фильтра": "Without filter parameters",
     "С видео": "With video",
     "Без видео": "Without video",
-    "Изображений: :count": "Images: :count"
+    "Изображений: :count": "Images: :count",
+    "Мои товары/услуги": "My products/services",
+    "Скрыть меню": "Hide menu",
+    "Показать меню": "Show menu"
 }

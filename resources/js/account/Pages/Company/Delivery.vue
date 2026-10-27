@@ -53,7 +53,7 @@ const submit = () => {
                 <InputError :message="errors.delivery" />
             </section>
 
-            <AccountFormActions :processing="form.processing" :success="form.recentlySuccessful" />
+            <AccountFormActions :processing="form.processing" :success="form.recentlySuccessful" :hint="''" />
         </form>
     </AccountLayout>
 </template>

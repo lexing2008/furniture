@@ -250,7 +250,7 @@ const resetFilters = () => {
                     </button>
                     <button
                         type="submit"
-                        class="inline-flex h-9 items-center justify-center rounded-full bg-green-first px-4 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-green-first/70"
+                        class="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-green-first px-4 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-green-first/70"
                     >
                         {{ $t('Найти') }}
                     </button>
@@ -335,10 +335,10 @@ const resetFilters = () => {
             </div>
 
             <div class="mt-4 flex justify-end gap-2 border-t border-gray-100 pt-4">
-                    <button type="button" class="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50" @click="resetFilters">
+                    <button type="button" class="cursor-pointer rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50" @click="resetFilters">
                         {{ $t('Сбросить') }}
                     </button>
-                    <button type="submit" class="rounded-full bg-green-first px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-first/70">
+                    <button type="submit" class="cursor-pointer rounded-full bg-green-first px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-first/70">
                         {{ $t('Применить') }}
                     </button>
             </div>

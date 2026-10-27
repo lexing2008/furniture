@@ -23,7 +23,7 @@ withDefaults(
                 </span>
                 {{ successMessage ?? $t('Сохранено') }}
             </span>
-            <span v-else class="text-gray-500">{{ hint ?? $t('Поля со звёздочкой обязательны.') }}</span>
+            <span v-else-if="hint !== ''" class="text-gray-500">{{ hint ?? $t('Поля со звёздочкой обязательны.') }}</span>
         </div>
 
         <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">

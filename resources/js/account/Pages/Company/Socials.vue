@@ -60,7 +60,7 @@ const submit = () => {
                 </div>
             </section>
 
-            <AccountFormActions :processing="form.processing" :success="form.recentlySuccessful" />
+            <AccountFormActions :processing="form.processing" :success="form.recentlySuccessful" :hint="''" />
         </form>
     </AccountLayout>
 </template>

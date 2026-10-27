@@ -6,6 +6,17 @@ import type { PageProps } from '@/account/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed, onUnmounted, ref, watch } from 'vue';
 
+withDefaults(
+    defineProps<{
+        collapsed?: boolean;
+    }>(),
+    { collapsed: false },
+);
+
+defineEmits<{
+    toggle: [];
+}>();
+
 // Внутреннее реактивное состояние для мобильного отображения
 const isSidebarOpen = ref<boolean>(false);
 
@@ -69,12 +80,17 @@ onUnmounted(() => {
 
     <!-- Боковая панель -->
     <aside
-        class="fixed inset-y-0 left-0 z-50 flex w-80 md:w-72 flex-col bg-green-first text-green-950 transition-transform duration-300 ease-in-out md:translate-x-0 md:relative"
-        :class="{ 'translate-x-0': isSidebarOpen, '-translate-x-full': !isSidebarOpen }"
+        class="fixed inset-y-0 left-0 z-50 flex w-80 shrink-0 flex-col overflow-hidden bg-green-first text-green-950 transition-all duration-300 ease-in-out md:relative md:translate-x-0"
+        :class="{
+            'translate-x-0': isSidebarOpen,
+            '-translate-x-full': !isSidebarOpen,
+            'md:w-0': collapsed,
+            'md:w-72': !collapsed,
+        }"
     >
         <!-- Брендинг / Логотип -->
         <div class="flex h-16 items-center justify-between px-6 border-b border-green-950/15">
-            <div class="overflow-hidden">
+            <div class="min-w-0 flex-1 overflow-hidden">
                 <a
                     v-if="$page.props.company_region?.url"
                     :href="$page.props.company_region.url"
@@ -94,6 +110,19 @@ onUnmounted(() => {
             >
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- Свернуть sidebar на десктопе -->
+            <button
+                type="button"
+                class="hidden h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-green-950/60 transition hover:bg-white/20 hover:text-green-950 md:flex"
+                :title="$t('Скрыть меню')"
+                :aria-label="$t('Скрыть меню')"
+                @click="$emit('toggle')"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 19.5-7.5-7.5 7.5-7.5" />
                 </svg>
             </button>
         </div>

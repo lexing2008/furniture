@@ -2,7 +2,7 @@
 import Sidebar from '@/account/Components/Sidebar/Sidebar.vue';
 import type { PageProps } from '@/account/types';
 import { router, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 const page = usePage<PageProps>();
 
@@ -12,12 +12,36 @@ const linkSent = computed(() => page.props.flash?.status === 'verification-link-
 const resend = () => {
     router.post(route('verification.send'), {}, { preserveScroll: true });
 };
+
+const sidebarCollapsed = ref(false);
+
+onMounted(() => {
+    sidebarCollapsed.value = localStorage.getItem('account-sidebar-collapsed') === '1';
+});
+
+const toggleSidebar = () => {
+    sidebarCollapsed.value = !sidebarCollapsed.value;
+    localStorage.setItem('account-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0');
+};
 </script>
 
 <template>
     <div class="flex min-h-screen bg-gray-50">
         <!-- Боковая панель, как в /admin -->
-        <Sidebar />
+        <Sidebar :collapsed="sidebarCollapsed" @toggle="toggleSidebar" />
+
+        <button
+            v-if="sidebarCollapsed"
+            type="button"
+            class="fixed left-0 top-1/2 z-40 hidden -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-2xl bg-green-first px-1.5 py-4 text-white shadow-lg shadow-green-950/20 transition hover:bg-green-second md:flex"
+            :title="$t('Показать меню')"
+            :aria-label="$t('Показать меню')"
+            @click="toggleSidebar"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+        </button>
 
         <div class="min-w-0 flex-1 min-h-screen bg-gray-50">
             <main>
