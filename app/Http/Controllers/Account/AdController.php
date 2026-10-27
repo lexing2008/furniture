@@ -29,10 +29,25 @@ class AdController extends Controller
         $company = $this->company($request, ['region', 'country.countryData']);
         $country = $this->currentCountry($request, $company);
 
-        $ads = $company->ads()
+        $status = $request->string('status')->toString();
+
+        if (! in_array($status, Ad::STATUSES, true)) {
+            $status = 'all';
+        }
+
+        $adsQuery = $company->ads()
             ->with('category.translations')
-            ->orderByDesc('id')
-            ->get()
+            ->orderByDesc('id');
+
+        match ($status) {
+            'active' => $adsQuery->active(),
+            'disabled' => $adsQuery->disabled(),
+            'moderation' => $adsQuery->moderation(),
+            'banned' => $adsQuery->banned(),
+            default => null,
+        };
+
+        $ads = $adsQuery->get()
             ->map(fn (Ad $ad) => [
                 'id' => $ad->id,
                 'title' => $ad->title,
@@ -45,6 +60,7 @@ class AdController extends Controller
 
         return Inertia::render('Ads/Index', [
             'ads' => $ads,
+            'status' => $status,
             'currencyDecimals' => (int) ($country?->countryData?->currency_decimals ?? 2),
         ]);
     }

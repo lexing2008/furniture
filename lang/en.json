@@ -425,5 +425,14 @@
     "Не менее 8 символов.": "At least 8 characters.",
     "Не используйте тот же пароль на других сайтах.": "Do not reuse this password on other sites.",
     "Смените пароль, если считаете, что он мог быть скомпрометирован.": "Change it if you think it may have been compromised.",
-    "Согласие": "Consent"
+    "Согласие": "Consent",
+    "Все товары/услуги": "All products/services",
+    "Активные": "Active",
+    "Отключенные": "Disabled",
+    "На модерации": "Under moderation",
+    "Забаненные": "Banned",
+    "Активные товары/услуги": "Active products/services",
+    "Отключенные товары/услуги": "Disabled products/services",
+    "Товары/услуги на модерации": "Products/services under moderation",
+    "Забаненные товары/услуги": "Banned products/services"
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AccountLayout from '@/account/Layouts/AccountLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 interface AdRow {
     id: number;
@@ -12,20 +13,33 @@ interface AdRow {
     created_at: string | null;
 }
 
-defineProps<{
+type AdStatus = 'all' | 'active' | 'disabled' | 'moderation' | 'banned';
+
+const props = defineProps<{
     ads: AdRow[];
     currencyDecimals: number;
+    status: AdStatus;
 }>();
+
+const statusTitles: Record<AdStatus, string> = {
+    all: 'Мои товары/услуги',
+    active: 'Активные товары/услуги',
+    disabled: 'Отключенные товары/услуги',
+    moderation: 'Товары/услуги на модерации',
+    banned: 'Забаненные товары/услуги',
+};
+
+const pageTitle = computed(() => statusTitles[props.status] ?? statusTitles.all);
 
 const formatPrice = (ad: AdRow, decimals: number): string => `${ad.price.toFixed(decimals)} ${ad.currency}`;
 </script>
 
 <template>
-    <Head :title="$t('Мои товары и услуги')" />
+    <Head :title="$t(pageTitle)" />
 
     <AccountLayout>
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 class="text-2xl font-bold text-gray-900">{{ $t('Мои товары и услуги') }}</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ $t(pageTitle) }}</h1>
             <Link
                 :href="route('account.ads.create')"
                 class="rounded-full bg-green-first px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-green-first/70"

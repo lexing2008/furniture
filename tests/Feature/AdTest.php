@@ -320,6 +320,44 @@ class AdTest extends TestCase
         $this->assertFalse($ad->fresh()?->is_moderated);
     }
 
+    public function test_ads_are_filtered_by_status_and_counts_are_shared(): void
+    {
+        $base = [
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+        ];
+
+        Ad::create([...$base, 'title' => 'Активный', 'is_active' => true, 'is_moderated' => true, 'is_banned' => false]);
+        Ad::create([...$base, 'title' => 'Отключённый', 'is_active' => false, 'is_moderated' => true, 'is_banned' => false]);
+        Ad::create([...$base, 'title' => 'На модерации', 'is_active' => true, 'is_moderated' => false, 'is_banned' => false]);
+        Ad::create([...$base, 'title' => 'Забаненный', 'is_active' => true, 'is_moderated' => true, 'is_banned' => true]);
+
+        $this->actingAs($this->user)
+            ->get($this->url('/ads?status=active'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Ads/Index', false)
+                ->where('status', 'active')
+                ->has('ads', 2)
+                ->where('ad_counts.all', 4)
+                ->where('ad_counts.active', 2)
+                ->where('ad_counts.disabled', 1)
+                ->where('ad_counts.moderation', 1)
+                ->where('ad_counts.banned', 1));
+
+        $this->actingAs($this->user)
+            ->get($this->url('/ads?status=banned'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('status', 'banned')
+                ->has('ads', 1)
+                ->where('ads.0.title', 'Забаненный'));
+    }
+
     public function test_temporary_image_can_be_deleted_from_the_server(): void
     {
         $upload = $this->actingAs($this->user)

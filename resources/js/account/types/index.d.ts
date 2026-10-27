@@ -21,6 +21,13 @@ export type PageProps<
     auth: {
         user: User;
     };
+    ad_counts: {
+        all: number;
+        active: number;
+        disabled: number;
+        moderation: number;
+        banned: number;
+    };
     ziggy: Config & { location: string };
     flash?: {
         success?: string | null;
