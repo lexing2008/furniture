@@ -14,6 +14,7 @@ use App\Models\RegionCountry;
 use App\Models\TmpFile;
 use App\Models\User;
 use App\Support\AdImagePath;
+use App\Support\Slug;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -183,8 +184,19 @@ class AdTest extends TestCase
 
         $image = $ad->images()->firstOrFail();
         $this->assertNotNull($image->uuid);
-        $this->assertStringStartsWith('divany-', basename($image->path));
+        $this->assertSame(
+            'furniture/manual/divany/divan-oslo.'.$image->uuid.'.webp',
+            $image->path,
+        );
         Storage::disk('public')->assertExists($image->path);
+        $this->assertSame(
+            'furniture/manual/divany/630/divan-oslo.'.$image->uuid.'.webp',
+            AdImagePath::medium($image->path),
+        );
+        $this->assertSame(
+            'furniture/manual/divany/100/divan-oslo.'.$image->uuid.'.webp',
+            AdImagePath::small($image->path),
+        );
         Storage::disk('public')->assertExists(AdImagePath::medium($image->path));
         Storage::disk('public')->assertExists(AdImagePath::small($image->path));
 
@@ -215,6 +227,12 @@ class AdTest extends TestCase
                 ->where('source.regions', [$this->city->id])
                 ->where('filters.0.value', [$colorVariant->id])
                 ->has('filters', 3));
+    }
+
+    public function test_ad_name_slug_is_transliterated_and_limited(): void
+    {
+        $this->assertSame('divan-oslo', Slug::makeLimited('Диван Осло', 150));
+        $this->assertSame(150, strlen(Slug::makeLimited(str_repeat('a', 200), 150)));
     }
 
     public function test_description_length_ignores_html_tags(): void
@@ -466,7 +484,7 @@ class AdTest extends TestCase
         $this->assertDatabaseMissing('ad_images', ['id' => $first->id]);
         Storage::disk('public')->assertMissing('furniture/manual/first.webp');
         $this->assertSame(0, $second->fresh()?->order);
-        $this->assertStringStartsWith('divany-', basename((string) $second->fresh()?->path));
+        $this->assertSame('furniture/manual/divany/stol.second.webp', $second->fresh()?->path);
         $this->assertSame(2, $ad->images()->count());
         $this->assertDatabaseMissing('tmp_files', ['id' => $tmp->id]);
     }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Ad;
 use App\Models\TmpFile;
 use App\Support\AdImagePath;
+use App\Support\Slug;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -75,6 +76,7 @@ class AdImageService
     public function sync(Ad $ad, int $userId, string $slug, array $existing, array $new, array $deleted): array
     {
         $images = $ad->images()->get()->keyBy('id');
+        $nameSlug = Slug::makeLimited((string) $ad->title, 150);
         $pathsToDelete = [];
 
         $disk = Storage::disk('public');
@@ -100,7 +102,7 @@ class AdImageService
             }
 
             $uuid = $image->uuid ?: $this->uuidFromPath($image->path);
-            $target = AdImagePath::main($slug.'-'.$uuid);
+            $target = AdImagePath::forAd($slug, $nameSlug, $uuid);
             $this->moveVariants($image->path, $target);
             $image->update([
                 'path' => $target,
@@ -119,7 +121,7 @@ class AdImageService
                 ->firstOrFail();
 
             $uuid = $tmp->uuid ?: $this->uuidFromPath($tmp->path);
-            $target = AdImagePath::main($slug.'-'.$uuid);
+            $target = AdImagePath::forAd($slug, $nameSlug, $uuid);
             $this->moveVariants($tmp->path, $target);
 
             $ad->images()->create([
@@ -168,6 +170,7 @@ class AdImageService
             }
 
             $toPath = $toPaths[$index];
+            $disk->makeDirectory(dirname($toPath));
 
             if ($disk->exists($toPath)) {
                 $disk->delete($fromPath);

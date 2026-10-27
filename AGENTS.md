@@ -256,9 +256,9 @@ DELETE /account/ads/images/{tmpFile}
 Основная папка:
 
 ```text
-storage/app/public/furniture/manual
-storage/app/public/furniture/manual/630
-storage/app/public/furniture/manual/100
+storage/app/public/furniture/manual/{category_slug}
+storage/app/public/furniture/manual/{category_slug}/630
+storage/app/public/furniture/manual/{category_slug}/100
 ```
 
 Правила:
@@ -273,7 +273,9 @@ storage/app/public/furniture/manual/100
 - после сохранения товара `tmp_files` удаляется;
 - при удалении временного изображения на фронте вызывается `DELETE /account/ads/images/{tmpFile}` и удаляются все три файла;
 - при удалении изображения товара физическое удаление происходит после успешного сохранения;
-- имена файлов: `{category-slug}-{uuid}.webp`;
+- имя файла: `{name_slug}.{uuid}.webp`, где `name_slug` — транслитерированный slug названия до 150 символов;
+- путь: `furniture/manual/{category_slug}/{name_slug}.{uuid}.webp`;
+- превью: `furniture/manual/{category_slug}/630/...` и `.../{category_slug}/100/...`;
 - UUID хранится отдельно: `ad_images.uuid`, `tmp_files.uuid`;
 - превью лежат в `630/` и `100/` с тем же базовым именем.
 
@@ -349,6 +351,6 @@ php artisan tmp-files:clean
 
 ## 16. Текущий baseline
 
-- Тесты: **39 passed, 463 assertions**.
+- Тесты: **40 passed, 467 assertions**.
 - `vue-tsc` и `npm run build` проходят.
 - Последние крупные изменения: локализация сайта/кабинета, разделы компании, часовые пояса, расписание, доставка/оплата, страны и валюты, товары/услуги, изображения и миниатюры, копирование товара, WYSIWYG-описание, выбор всех регионов, модерация.

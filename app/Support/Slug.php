@@ -14,4 +14,14 @@ class Slug
     {
         return Str::slug($value, '-', 'ru');
     }
+
+    /**
+     * Slug limited to the given length, with a safe fallback for untranslatable names.
+     */
+    public static function makeLimited(string $value, int $max): string
+    {
+        $slug = rtrim(mb_substr(self::make($value), 0, $max), '-');
+
+        return $slug !== '' ? $slug : 'ad';
+    }
 }

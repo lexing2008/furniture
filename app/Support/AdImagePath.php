@@ -18,6 +18,14 @@ final class AdImagePath
         return self::DIRECTORY.'/'.$name.'.webp';
     }
 
+    /**
+     * Final path of an ad image: furniture/manual/{category}/{name}.{uuid}.webp.
+     */
+    public static function forAd(string $categorySlug, string $nameSlug, string $uuid): string
+    {
+        return self::DIRECTORY.'/'.$categorySlug.'/'.$nameSlug.'.'.$uuid.'.webp';
+    }
+
     public static function medium(string $mainPath): string
     {
         return self::thumbnail($mainPath, self::MEDIUM_SIZE);
@@ -40,6 +48,6 @@ final class AdImagePath
 
     public static function thumbnail(string $mainPath, int $size): string
     {
-        return self::DIRECTORY.'/'.$size.'/'.basename($mainPath);
+        return dirname($mainPath).'/'.$size.'/'.basename($mainPath);
     }
 }
