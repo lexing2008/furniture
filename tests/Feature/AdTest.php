@@ -233,6 +233,64 @@ class AdTest extends TestCase
                 ->has('filters', 3));
     }
 
+    public function test_ads_can_be_filtered_by_list_parameters(): void
+    {
+        $otherCategory = Category::create(['is_active' => true]);
+        $otherCategory->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Столы',
+            'menu_name' => 'Столы',
+            'slug' => 'stoly',
+        ]);
+
+        $base = [
+            'company_id' => $this->company->id,
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+        ];
+
+        $matching = Ad::create([
+            ...$base,
+            'category_id' => $this->category->id,
+            'title' => 'Подходящий',
+            'price' => 50,
+            'video' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
+        $matching->regions()->attach($this->city->id);
+        $matching->images()->create(['path' => 'furniture/manual/filtered.webp', 'order' => 0]);
+        $filter = $this->intFilter('Высота', 'см');
+        $matching->filterInts()->create(['filter_id' => $filter->id, 'value' => 90]);
+
+        $other = Ad::create([
+            ...$base,
+            'category_id' => $otherCategory->id,
+            'title' => 'Другой',
+            'price' => 500,
+            'video' => null,
+        ]);
+
+        $queries = [
+            'category_id='.$this->category->id => $matching,
+            'region_id='.$this->city->id => $matching,
+            'price_from=10&price_to=100' => $matching,
+            'has_filters=1' => $matching,
+            'photo=with' => $matching,
+            'photo=without' => $other,
+            'has_video=1' => $matching,
+        ];
+
+        foreach ($queries as $query => $expected) {
+            $this->actingAs($this->user)
+                ->get($this->url('/ads?'.$query))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->has('ads', 1)
+                    ->where('ads.0.id', $expected->id));
+        }
+    }
+
     public function test_ads_can_be_searched_by_title_article_and_number(): void
     {
         $base = [

@@ -463,5 +463,21 @@
     "Поиск по названию, артикулу или номеру": "Search by name, article or internal number",
     "Очистить поиск": "Clear search",
     "Найдено: :count": "Found: :count",
-    "Параметры": "Parameters"
+    "Параметры": "Parameters",
+    "Фильтры": "Filters",
+    "Все категории": "All categories",
+    "Все регионы": "All regions",
+    "От": "From",
+    "До": "To",
+    "Фото": "Photo",
+    "Все": "All",
+    "С фото": "With photo",
+    "Без фото": "Without photo",
+    "Есть параметры фильтров": "Has filter parameters",
+    "Есть видео": "Has video",
+    "Применить": "Apply",
+    "Статус": "Status",
+    "Активен": "Active",
+    "Отключён": "Disabled",
+    "Забанен": "Banned"
 }

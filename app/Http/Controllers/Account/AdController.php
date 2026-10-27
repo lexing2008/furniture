@@ -28,9 +28,24 @@ class AdController extends Controller
     {
         $company = $this->company($request, ['region', 'country.countryData']);
         $country = $this->currentCountry($request, $company);
+        $countryId = $company->country_id ?? $company->region?->root()->id;
 
         $status = $request->string('status')->toString();
         $search = trim((string) $request->input('search', ''));
+        $language = $this->language($request, $company);
+        $categoryId = $request->integer('category_id') ?: null;
+        $regionId = $request->integer('region_id') ?: null;
+        $priceFrom = $request->filled('price_from') && is_numeric($request->input('price_from'))
+            ? (float) $request->input('price_from')
+            : null;
+        $priceTo = $request->filled('price_to') && is_numeric($request->input('price_to'))
+            ? (float) $request->input('price_to')
+            : null;
+        $hasFilters = $request->boolean('has_filters');
+        $photo = in_array($request->input('photo'), ['with', 'without'], true)
+            ? (string) $request->input('photo')
+            : null;
+        $hasVideo = $request->boolean('has_video');
 
         if (! in_array($status, Ad::STATUSES, true)) {
             $status = 'all';
@@ -56,6 +71,40 @@ class AdController extends Controller
             });
         }
 
+        if ($categoryId !== null) {
+            $adsQuery->where('category_id', $categoryId);
+        }
+
+        if ($regionId !== null) {
+            $adsQuery->whereHas('regions', fn ($query) => $query->where('regions.id', $regionId));
+        }
+
+        if ($priceFrom !== null) {
+            $adsQuery->where('price', '>=', $priceFrom);
+        }
+
+        if ($priceTo !== null) {
+            $adsQuery->where('price', '<=', $priceTo);
+        }
+
+        if ($hasFilters) {
+            $adsQuery->where(function ($query) {
+                $query->whereHas('filterInts')
+                    ->orWhereHas('filterFloats')
+                    ->orWhereHas('filterVariants');
+            });
+        }
+
+        if ($photo === 'with') {
+            $adsQuery->has('images');
+        } elseif ($photo === 'without') {
+            $adsQuery->whereDoesntHave('images');
+        }
+
+        if ($hasVideo) {
+            $adsQuery->whereNotNull('video')->where('video', '!=', '');
+        }
+
         match ($status) {
             'active' => $adsQuery->active(),
             'disabled' => $adsQuery->disabled(),
@@ -75,6 +124,9 @@ class AdController extends Controller
                 'currency' => $ad->currency,
                 'thumb_url' => $ad->images->first()?->thumbnailUrl(100),
                 'filter_count' => $ad->filledFiltersCount(),
+                'is_active' => $ad->is_active,
+                'is_moderated' => $ad->is_moderated,
+                'is_banned' => $ad->is_banned,
                 'created_at' => $ad->created_at?->format('d.m.Y'),
             ]);
 
@@ -83,6 +135,17 @@ class AdController extends Controller
             'status' => $status,
             'search' => $search,
             'currencyDecimals' => (int) ($country?->countryData?->currency_decimals ?? 2),
+            'adFilters' => [
+                'category_id' => $categoryId,
+                'region_id' => $regionId,
+                'price_from' => $priceFrom,
+                'price_to' => $priceTo,
+                'has_filters' => $hasFilters,
+                'photo' => $photo,
+                'has_video' => $hasVideo,
+            ],
+            'categoryOptions' => $this->categoryOptions($language),
+            'regionOptions' => $this->regionOptions($countryId, $language),
         ]);
     }
 
@@ -268,6 +331,56 @@ class AdController extends Controller
         abort_unless($ad->company_id === $company->id, 404);
 
         return $ad->load(['images', 'regions', 'filterInts', 'filterFloats', 'filterVariants']);
+    }
+
+    /**
+     * @return array<int, array{id: int, label: string}>
+     */
+    private function categoryOptions(?string $language): array
+    {
+        $options = [];
+
+        $walk = function (array $nodes, array $path) use (&$walk, &$options): void {
+            foreach ($nodes as $node) {
+                $next = [...$path, $node['name']];
+
+                if ($node['selectable']) {
+                    $options[] = ['id' => $node['id'], 'label' => implode(' / ', $next)];
+                } else {
+                    $walk($node['children'], $next);
+                }
+            }
+        };
+
+        $walk(Category::selectableTree($language), []);
+
+        return $options;
+    }
+
+    /**
+     * @return array<int, array{id: int, label: string}>
+     */
+    private function regionOptions(?int $countryId, ?string $language): array
+    {
+        $options = [];
+        $isEnglish = $language === 'en';
+
+        $walk = function (array $nodes, array $path) use (&$walk, &$options, $isEnglish): void {
+            foreach ($nodes as $node) {
+                $name = $isEnglish ? ($node['name_en'] ?? $node['name']) : $node['name'];
+                $next = [...$path, $name];
+
+                if ($node['selectable']) {
+                    $options[] = ['id' => $node['id'], 'label' => implode(' / ', array_slice($next, -2))];
+                } else {
+                    $walk($node['children'], $next);
+                }
+            }
+        };
+
+        $walk(Region::cityTree($countryId), []);
+
+        return $options;
     }
 
     private function currentCountry(Request $request, Company $company): ?Region
