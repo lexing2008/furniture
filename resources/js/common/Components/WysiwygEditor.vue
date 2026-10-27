@@ -157,6 +157,16 @@ watch(
     },
 );
 
+const focusEditorFromEmptySpace = (event: MouseEvent) => {
+    const target = event.target;
+
+    if (target instanceof Element && target.closest('.ProseMirror')) {
+        return;
+    }
+
+    editor.value?.commands.focus();
+};
+
 const active = (name: string, attributes?: Record<string, unknown>) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     tick.value;
@@ -239,6 +249,7 @@ const buttonClass = (isActive: boolean) =>
             class="wysiwyg-content"
             :class="{ resizable: resizable, 'overflow-y-auto': resizable }"
             :style="resizable ? { height: `${height}px` } : undefined"
+            @click="focusEditorFromEmptySpace"
         >
             <EditorContent :editor="editor" />
         </div>

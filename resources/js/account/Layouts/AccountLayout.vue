@@ -21,7 +21,7 @@ const resend = () => {
 
         <div class="min-w-0 flex-1 min-h-screen bg-gray-50">
             <main>
-                <div class="mx-auto max-w-6xl space-y-6 px-4 pb-24 pt-16 md:px-8 md:pt-10">
+                <div class="mx-auto max-w-[1600px] space-y-6 px-4 pb-24 pt-16 md:px-8 md:pt-10">
                     <!-- Почта ещё не подтверждена: напоминаем на всех страницах кабинета -->
                     <div v-if="!verified" class="space-y-2 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
                         <p>
