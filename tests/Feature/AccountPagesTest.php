@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Roles;
+use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Language;
@@ -244,6 +245,41 @@ class AccountPagesTest extends TestCase
         $this->get($this->url('/password'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Password/Edit', false));
+    }
+
+    public function test_dashboard_shows_ad_counts_and_profile_tasks(): void
+    {
+        $this->actingAs($this->user);
+
+        $base = [
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Товар',
+            'price' => 10,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+        ];
+
+        Ad::create($base + ['is_active' => true, 'is_moderated' => true, 'is_banned' => false]);
+        Ad::create($base + ['is_active' => false, 'is_moderated' => true, 'is_banned' => false]);
+        Ad::create($base + ['is_active' => true, 'is_moderated' => false, 'is_banned' => false]);
+        Ad::create($base + ['is_active' => true, 'is_moderated' => true, 'is_banned' => true]);
+
+        $this->get($this->url(''))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Index', false)
+                ->where('company.name', 'Ромашка')
+                ->where('counts.all', 4)
+                ->where('counts.active', 2)
+                ->where('counts.disabled', 1)
+                ->where('counts.moderation', 1)
+                ->where('counts.banned', 1)
+                ->has('tasks', 7)
+                ->where('completed_tasks', 5)
+                ->where('progress', 71)
+                ->has('recent_ads', 3));
     }
 
     public function test_registration_page_uses_the_country_phone_code(): void

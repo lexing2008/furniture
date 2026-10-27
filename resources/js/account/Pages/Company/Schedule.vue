@@ -161,7 +161,7 @@ const hint = 'text-sm leading-6 text-gray-500';
                 </div>
             </section>
 
-            <section :class="formCard">
+            <section id="exceptions" :class="formCard">
                 <div>
                     <h2 :class="[formTitle, errors.exceptions ? 'text-red-600' : 'text-gray-900']">{{ $t('Нерабочие и праздничные дни') }}</h2>
                     <p :class="hint">{{ $t('В эти даты компания закрыта, даже если день недели рабочий.') }}</p>
