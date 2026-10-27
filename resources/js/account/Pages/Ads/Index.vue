@@ -260,7 +260,7 @@ const resetFilters = () => {
 
         <form class="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm sm:p-5" @submit.prevent="applyFilters">
             <div class="flex items-center gap-2">
-                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-700">
+                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-green-first/10 text-green-first">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                     </svg>
@@ -388,7 +388,7 @@ const resetFilters = () => {
                                         <p class="truncate font-semibold text-gray-900">{{ ad.title }}</p>
                                         <Link
                                             :href="route('account.ads.edit', ad.id)"
-                                            class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-800 transition hover:bg-green-100"
+                                            class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-green-first/20 bg-green-first/10 text-green-first transition hover:bg-green-first/15"
                                             :title="$t('Редактировать')"
                                             :aria-label="$t('Редактировать')"
                                         >
@@ -410,7 +410,7 @@ const resetFilters = () => {
                         <td class="px-2 py-3 text-gray-600">
                             <button
                                 type="button"
-                                class="cursor-pointer rounded-full px-2 py-1 text-left text-sm text-gray-600 transition hover:bg-green-50 hover:text-green-800"
+                                class="cursor-pointer rounded-full px-2 py-1 text-left text-sm text-gray-600 transition hover:bg-green-first/10 hover:text-green-first"
                                 :title="$t('Показать товары этой категории')"
                                 @click="filterByCategory(ad.category_id)"
                             >
@@ -421,7 +421,7 @@ const resetFilters = () => {
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <span
                                     class="inline-flex h-7 w-7 items-center justify-center rounded-full"
-                                    :class="ad.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'"
+                                    :class="ad.is_active ? 'bg-green-first/15 text-green-first' : 'bg-gray-100 text-gray-400'"
                                     :title="ad.is_active ? $t('Активен') : $t('Отключён')"
                                     :aria-label="ad.is_active ? $t('Активен') : $t('Отключён')"
                                 >

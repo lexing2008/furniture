@@ -55,7 +55,7 @@ const actualize = async () => {
         <span class="whitespace-nowrap text-xs text-gray-600">{{ date || '—' }}</span>
         <button
             type="button"
-            class="inline-flex w-24 cursor-pointer items-center justify-center gap-1 whitespace-normal rounded-full border border-green-200 bg-green-50 px-2 py-1 text-center text-[10px] font-semibold leading-3 text-green-800 transition hover:bg-green-100 disabled:opacity-50"
+            class="inline-flex w-24 cursor-pointer items-center justify-center gap-1 whitespace-normal rounded-full border border-green-first/20 bg-green-first/10 px-2 py-1 text-center text-[10px] font-semibold leading-3 text-green-first transition hover:bg-green-first/15 disabled:opacity-50"
             :title="$t('Поднять')"
             :aria-label="$t('Поднять')"
             :disabled="saving"

@@ -172,12 +172,12 @@ const save = async () => {
         <button
             v-if="!editing"
             type="button"
-            class="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-left text-sm font-medium text-gray-800 transition hover:bg-green-50 hover:text-green-800"
+            class="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-left text-sm font-medium text-gray-800 transition hover:bg-green-first/10 hover:text-green-first"
             :title="$t('Изменить цену')"
             @click="startEditing(true)"
         >
             {{ formattedPrice }}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5 text-green-700 opacity-0 transition group-hover:opacity-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5 text-green-first opacity-0 transition group-hover:opacity-100">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
             </svg>
         </button>
@@ -197,7 +197,7 @@ const save = async () => {
                     @keydown.esc.prevent="cancel"
                 />
                 <span class="text-xs font-medium text-gray-500">{{ currency }}</span>
-                <svg v-if="saving" class="h-3.5 w-3.5 animate-spin text-green-700" viewBox="0 0 24 24" fill="none">
+                <svg v-if="saving" class="h-3.5 w-3.5 animate-spin text-green-first" viewBox="0 0 24 24" fill="none">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
                 </svg>
@@ -218,19 +218,19 @@ const save = async () => {
                     v-if="toast"
                     :key="toast.type + toast.message"
                     class="fixed bottom-4 left-4 right-4 z-[120] overflow-hidden rounded-2xl border bg-white/95 shadow-2xl shadow-gray-300/50 backdrop-blur sm:bottom-6 sm:left-auto sm:right-6 sm:w-96"
-                    :class="toast.type === 'success' ? 'border-emerald-100' : 'border-red-100'"
+                    :class="toast.type === 'success' ? 'border-green-first/20' : 'border-red-100'"
                     :role="toast.type === 'error' ? 'alert' : 'status'"
                     :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
                 >
                     <span
                         class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b"
-                        :class="toast.type === 'success' ? 'from-emerald-400 to-green-600' : 'from-red-400 to-rose-600'"
+                        :class="toast.type === 'success' ? 'from-green-first to-green-first/70' : 'from-red-400 to-rose-600'"
                     ></span>
 
                     <div class="flex items-start gap-3 p-4 pl-5">
                         <span
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-lg"
-                            :class="toast.type === 'success' ? 'from-emerald-400 to-green-600 shadow-emerald-200/60' : 'from-red-400 to-rose-600 shadow-red-200/60'"
+                            :class="toast.type === 'success' ? 'from-green-first to-green-first/70 shadow-green-first/20' : 'from-red-400 to-rose-600 shadow-red-200/60'"
                         >
                             <svg v-if="toast.type === 'success'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.6" stroke="currentColor" class="h-5 w-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
@@ -261,7 +261,7 @@ const save = async () => {
                     <div class="h-1 bg-gray-100">
                         <div
                             class="toast-progress h-full origin-left"
-                            :class="toast.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'"
+                            :class="toast.type === 'success' ? 'bg-green-first' : 'bg-red-500'"
                         ></div>
                     </div>
                 </div>

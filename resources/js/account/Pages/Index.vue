@@ -50,6 +50,53 @@ const numberLocale = computed(() => (page.props.locale === 'en' ? 'en-US' : 'ru-
 
 const pendingTasks = computed(() => props.tasks.filter((task) => !task.done));
 
+const taskIconPaths: Record<string, string> = {
+    schedule: 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+    exceptions: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5',
+    delivery: 'M8.25 18.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM19.5 18.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM2.25 6.75h11.25v10.5H2.25V6.75Zm11.25 3h3.879a1.5 1.5 0 0 1 1.06.44l2.561 2.56a1.5 1.5 0 0 1 .44 1.06v2.94h-7.94V9.75Z',
+    payment: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z',
+    socials: 'M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244',
+    contacts: 'M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z',
+    description: 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z',
+};
+
+const taskIcon = (key: string) => taskIconPaths[key] ?? taskIconPaths.description;
+
+const quickActions = [
+    {
+        key: 'create',
+        title: 'Добавить товар/услугу',
+        description: 'Создать новую позицию',
+        href: route('account.ads.create'),
+        icon: 'M12 4.5v15m7.5-7.5h-15',
+        highlight: true,
+    },
+    {
+        key: 'ads',
+        title: 'Мои товары/услуги',
+        description: 'Все ваши позиции',
+        href: route('account.ads.index'),
+        icon: 'M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z',
+        highlight: false,
+    },
+    {
+        key: 'company',
+        title: 'Редактировать компанию',
+        description: 'Информация о компании',
+        href: route('account.general'),
+        icon: 'M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6',
+        highlight: false,
+    },
+    {
+        key: 'schedule',
+        title: 'График работы',
+        description: 'Часы работы и выходные',
+        href: route('account.schedule'),
+        icon: 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+        highlight: false,
+    },
+];
+
 const adsUrl = (status: string) => route('account.ads.index') + (status === 'all' ? '' : `?status=${status}`);
 
 const statCards = computed(() => [
@@ -245,7 +292,7 @@ const adStatus = (ad: RecentAd) => {
 
                     <div class="mt-4 h-2 overflow-hidden rounded-full bg-gray-100">
                         <div
-                            class="h-full rounded-full bg-gradient-to-r bg-green-first transition-all duration-500"
+                            class="h-full rounded-full bg-green-first transition-all duration-500"
                             :style="{ width: `${progress}%` }"
                         ></div>
                     </div>
@@ -258,26 +305,8 @@ const adStatus = (ad: RecentAd) => {
                             class="group flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50/60 p-3.5 transition hover:border-green-first/30 hover:bg-green-first/5"
                         >
                             <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700 ring-1 ring-amber-100">
-                                <svg v-if="task.key === 'schedule'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                </svg>
-                                <svg v-else-if="task.key === 'exceptions'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                </svg>
-                                <svg v-else-if="task.key === 'delivery'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM19.5 18.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM2.25 6.75h11.25v10.5H2.25V6.75Zm11.25 3h3.879a1.5 1.5 0 0 1 1.06.44l2.561 2.56a1.5 1.5 0 0 1 .44 1.06v2.94h-7.94V9.75Z" />
-                                </svg>
-                                <svg v-else-if="task.key === 'payment'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-                                </svg>
-                                <svg v-else-if="task.key === 'socials'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                                </svg>
-                                <svg v-else-if="task.key === 'contacts'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                                </svg>
-                                <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" :d="taskIcon(task.key)" />
                                 </svg>
                             </span>
                             <span class="min-w-0 flex-1">
@@ -323,13 +352,13 @@ const adStatus = (ad: RecentAd) => {
                     </div>
 
                     <div class="mt-auto pt-4">
-                        <div class="flex items-start gap-2.5 rounded-2xl border border-green-first/10 bg-green-first/5 p-3.5">
-                            <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-green-first shadow-sm ring-1 ring-green-first/15">
+                        <div class="flex items-center gap-2.5 rounded-2xl border border-green-first/10 bg-green-first/5 p-3.5">
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-green-first shadow-sm ring-1 ring-green-first/15">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.75 6.75 0 0 0 6.75-6.75c0-.621-.504-1.125-1.125-1.125H6.375c-.621 0-1.125.504-1.125 1.125A6.75 6.75 0 0 0 12 12.75Zm0 0a3 3 0 0 1-3-3m3 3a3 3 0 0 0 3-3m-3 8.25a.75.75 0 0 0 .75-.75v-.75h-1.5v.75c0 .414.336.75.75.75Z" />
                                 </svg>
                             </span>
-                            <p class="text-xs leading-5 text-gray-500">
+                            <p class="min-w-0 text-xs leading-5 text-gray-500">
                                 {{ $t('Заполненный профиль помогает посетителям быстрее выбрать компанию.') }}
                             </p>
                         </div>
@@ -340,47 +369,18 @@ const adStatus = (ad: RecentAd) => {
                 <aside class="flex flex-col rounded-3xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
                     <h2 class="text-lg font-bold tracking-tight text-gray-900">{{ $t('Быстрые действия') }}</h2>
                     <div class="mt-4 space-y-2">
-                        <Link :href="route('account.ads.create')" class="group flex items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-green-first/10">
-                            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-green-first/10 text-green-first ring-1 ring-green-first/20">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                            </span>
-                            <span class="flex-1 text-sm font-medium text-gray-800">{{ $t('Добавить товар/услугу') }}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4 text-gray-300 transition group-hover:text-green-first">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5 15.75 12l-7.5 7.5" />
-                            </svg>
-                        </Link>
-                        <Link :href="route('account.ads.index')" class="group flex items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-green-first/10">
-                            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-green-first/10 text-green-first ring-1 ring-green-first/20">
+                        <Link
+                            v-for="action in quickActions"
+                            :key="action.key"
+                            :href="action.href"
+                            class="group flex items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-green-first/10"
+                        >
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-first/10 text-green-first ring-1 ring-green-first/20">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" :d="action.icon" />
                                 </svg>
                             </span>
-                            <span class="flex-1 text-sm font-medium text-gray-800">{{ $t('Мои товары/услуги') }}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4 text-gray-300 transition group-hover:text-green-first">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5 15.75 12l-7.5 7.5" />
-                            </svg>
-                        </Link>
-                        <Link :href="route('account.general')" class="group flex items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-green-first/10">
-                            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-green-first/10 text-green-first ring-1 ring-green-first/20">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6" />
-                                </svg>
-                            </span>
-                            <span class="flex-1 text-sm font-medium text-gray-800">{{ $t('Редактировать компанию') }}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4 text-gray-300 transition group-hover:text-green-first">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5 15.75 12l-7.5 7.5" />
-                            </svg>
-                        </Link>
-                        <Link :href="route('account.schedule')" class="group flex items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-green-first/10">
-                            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-green-first/10 text-green-first ring-1 ring-green-first/20">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                </svg>
-                            </span>
-                            <span class="flex-1 text-sm font-medium text-gray-800">{{ $t('График работы') }}</span>
+                            <span class="flex-1 text-sm font-medium text-gray-800">{{ $t(action.title) }}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4 text-gray-300 transition group-hover:text-green-first">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5 15.75 12l-7.5 7.5" />
                             </svg>
@@ -416,7 +416,7 @@ const adStatus = (ad: RecentAd) => {
                     </Link>
                 </div>
 
-                <div v-if="recent_ads.length" class="mt-4 grid gap-3 md:grid-cols-3">
+                <div v-if="recent_ads.length" class="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                     <Link
                         v-for="ad in recent_ads"
                         :key="ad.id"
