@@ -215,7 +215,10 @@ class AdTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Ads/Index', false)
-                ->has('ads', 1));
+                ->has('ads', 1)
+                ->where('ads.0.article', 'ART-1')
+                ->where('ads.0.filter_count', 3)
+                ->where('ads.0.thumb_url', url('/storage/'.ltrim(AdImagePath::small($image->path), '/'))));
 
         $this->actingAs($this->user)
             ->get($this->url("/ads/create?copy={$ad->id}"))
@@ -228,6 +231,42 @@ class AdTest extends TestCase
                 ->where('source.regions', [$this->city->id])
                 ->where('filters.0.value', [$colorVariant->id])
                 ->has('filters', 3));
+    }
+
+    public function test_ads_can_be_searched_by_title_article_and_number(): void
+    {
+        $base = [
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+        ];
+
+        $sofa = Ad::create([
+            ...$base,
+            'title' => 'Диван Осло',
+            'article' => 'ART-1',
+            'number' => 'SKU-1',
+        ]);
+        $table = Ad::create([
+            ...$base,
+            'title' => 'Стол',
+            'article' => 'ART-2',
+            'number' => 'SKU-2',
+        ]);
+
+        foreach ([['Осло', $sofa], ['ART-2', $table], ['SKU-1', $sofa]] as [$term, $expected]) {
+            $this->actingAs($this->user)
+                ->get($this->url('/ads?search='.urlencode($term)))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Ads/Index', false)
+                    ->has('ads', 1)
+                    ->where('ads.0.id', $expected->id)
+                    ->where('search', $term));
+        }
     }
 
     public function test_tags_are_removed_from_plain_text_ad_fields(): void

@@ -459,5 +459,9 @@
     "Отмена": "Cancel",
     "Например, https://example.com": "For example, https://example.com",
     "Не воруйте изображения, это грех.": "Do not steal images, it is a sin.",
-    "Предпросмотр видео": "Video preview"
+    "Предпросмотр видео": "Video preview",
+    "Поиск по названию, артикулу или номеру": "Search by name, article or internal number",
+    "Очистить поиск": "Clear search",
+    "Найдено: :count": "Found: :count",
+    "Параметры": "Parameters"
 }

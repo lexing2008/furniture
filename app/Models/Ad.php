@@ -124,6 +124,18 @@ class Ad extends Model
     }
 
     /**
+     * Number of distinct filters that have a value for this ad.
+     */
+    public function filledFiltersCount(): int
+    {
+        return $this->filterInts->pluck('filter_id')
+            ->merge($this->filterFloats->pluck('filter_id'))
+            ->merge($this->filterVariants->pluck('filter_id'))
+            ->unique()
+            ->count();
+    }
+
+    /**
      * Replace all filter values of the ad.
      *
      * @param  array{ints: array<int, int>, floats: array<int, float|int|string>, variants: array<int, array<int, int>>}  $values

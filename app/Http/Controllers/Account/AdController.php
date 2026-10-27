@@ -30,14 +30,31 @@ class AdController extends Controller
         $country = $this->currentCountry($request, $company);
 
         $status = $request->string('status')->toString();
+        $search = trim((string) $request->input('search', ''));
 
         if (! in_array($status, Ad::STATUSES, true)) {
             $status = 'all';
         }
 
         $adsQuery = $company->ads()
-            ->with('category.translations')
+            ->with([
+                'category.translations',
+                'images',
+                'filterInts:id,ad_id,filter_id',
+                'filterFloats:id,ad_id,filter_id',
+                'filterVariants:id,ad_id,filter_id',
+            ])
             ->orderByDesc('id');
+
+        if ($search !== '') {
+            $adsQuery->where(function ($query) use ($search) {
+                $like = '%'.$search.'%';
+
+                $query->where('title', 'like', $like)
+                    ->orWhere('article', 'like', $like)
+                    ->orWhere('number', 'like', $like);
+            });
+        }
 
         match ($status) {
             'active' => $adsQuery->active(),
@@ -51,16 +68,20 @@ class AdController extends Controller
             ->map(fn (Ad $ad) => [
                 'id' => $ad->id,
                 'title' => $ad->title,
+                'article' => $ad->article,
                 'number' => $ad->number,
                 'category' => $ad->category->displayName(),
                 'price' => (float) $ad->price,
                 'currency' => $ad->currency,
+                'thumb_url' => $ad->images->first()?->thumbnailUrl(100),
+                'filter_count' => $ad->filledFiltersCount(),
                 'created_at' => $ad->created_at?->format('d.m.Y'),
             ]);
 
         return Inertia::render('Ads/Index', [
             'ads' => $ads,
             'status' => $status,
+            'search' => $search,
             'currencyDecimals' => (int) ($country?->countryData?->currency_decimals ?? 2),
         ]);
     }
