@@ -68,6 +68,8 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         Route::delete('ads/images/{tmpFile}', [AdImageController::class, 'destroy'])->name('account.ads.images.destroy');
         Route::get('ads/{ad}/edit', [AdController::class, 'edit'])->name('account.ads.edit');
         Route::put('ads/{ad}', [AdController::class, 'update'])->name('account.ads.update');
+        Route::patch('ads/{ad}/price', [AdController::class, 'updatePrice'])->name('account.ads.price.update');
+        Route::patch('ads/{ad}/actualize', [AdController::class, 'actualize'])->name('account.ads.actualize');
 
         // General information about the company
         Route::get('general', [CompanyGeneralController::class, 'edit'])->name('account.general');

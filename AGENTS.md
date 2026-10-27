@@ -195,6 +195,8 @@ GET    /account/ads/create
 POST   /account/ads
 GET    /account/ads/{ad}/edit
 PUT    /account/ads/{ad}
+PATCH  /account/ads/{ad}/price
+PATCH  /account/ads/{ad}/actualize
 GET    /account/ads/filters?category_id=...
 POST   /account/ads/images
 POST   /account/ads/images/url
@@ -223,7 +225,8 @@ PUT    /account/website
 - `is_banned` (default `false`, без поля в форме кабинета);
 - `video`, `description`, `price`, `currency`;
 - `warranty_value`, `warranty_unit` (`days|months|years`);
-- `is_moderated` (default `false`).
+- `is_moderated` (default `false`);
+- `published_at` — дата актуальности, обновляется при создании, редактировании, изменении цены и подтверждении актуальности.
 
 Фильтры:
 
@@ -317,7 +320,7 @@ php artisan tmp-files:clean
 - `is_active` и `is_banned` — флаги видимости/блокировки; в форме кабинета редактируется только `is_active`.
 - `ads.description` очищается профилем `company` и редактируется через WYSIWYG.
 - В форме товара регионы можно выбирать массово по стране/области.
-- В списке товаров есть поиск по названию/артикулу/номеру, фильтры, миниатюра 100, статусы и число заполненных фильтров.
+- В списке товаров есть поиск по названию/артикулу/номеру, фильтры (категория, область/город, цена, фото, параметры, видео), миниатюра 100, статусы, число заполненных фильтров, редактирование цены и подтверждение актуальности.
 - Админка:
   - языки;
   - категории;
@@ -356,6 +359,6 @@ php artisan tmp-files:clean
 
 ## 16. Текущий baseline
 
-- Тесты: **46 passed, 656 assertions**.
+- Тесты: **48 passed, 712 assertions**.
 - `vue-tsc` и `npm run build` проходят.
 - Последние крупные изменения: локализация сайта/кабинета, разделы компании, часовые пояса, расписание, доставка/оплата, страны и валюты, товары/услуги, изображения и миниатюры, копирование товара, WYSIWYG-описание, выбор всех регионов, модерация.

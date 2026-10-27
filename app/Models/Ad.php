@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'company_id', 'category_id', 'title', 'number', 'article', 'video', 'description',
-    'price', 'currency', 'warranty_value', 'warranty_unit', 'is_moderated', 'is_active', 'is_banned',
+    'price', 'currency', 'warranty_value', 'warranty_unit', 'is_moderated', 'is_active', 'is_banned', 'published_at',
 ])]
 class Ad extends Model
 {
@@ -34,6 +34,7 @@ class Ad extends Model
             'is_moderated' => 'boolean',
             'is_active' => 'boolean',
             'is_banned' => 'boolean',
+            'published_at' => 'datetime',
         ];
     }
 

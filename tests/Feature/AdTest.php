@@ -175,6 +175,7 @@ class AdTest extends TestCase
         $this->assertSame('ART-1', $ad->article);
         $this->assertFalse($ad->is_active);
         $this->assertFalse($ad->is_banned);
+        $this->assertNotNull($ad->published_at);
         $this->assertSame('BYN', $ad->currency);
         $this->assertSame('1999.9000', $ad->price);
         $this->assertSame($this->city->id, $ad->regions()->first()?->id);
@@ -217,6 +218,7 @@ class AdTest extends TestCase
                 ->component('Ads/Index', false)
                 ->has('ads', 1)
                 ->where('ads.0.article', 'ART-1')
+                ->where('ads.0.images_count', 1)
                 ->where('ads.0.filter_count', 3)
                 ->where('ads.0.thumb_url', url('/storage/'.ltrim(AdImagePath::small($image->path), '/'))));
 
@@ -273,12 +275,15 @@ class AdTest extends TestCase
 
         $queries = [
             'category_id='.$this->category->id => $matching,
-            'region_id='.$this->city->id => $matching,
+            'area_id='.$this->city->parent_id => $matching,
+            'city_id='.$this->city->id => $matching,
             'price_from=10&price_to=100' => $matching,
-            'has_filters=1' => $matching,
+            'has_filters=with' => $matching,
+            'has_filters=without' => $other,
             'photo=with' => $matching,
             'photo=without' => $other,
-            'has_video=1' => $matching,
+            'has_video=with' => $matching,
+            'has_video=without' => $other,
         ];
 
         foreach ($queries as $query => $expected) {
@@ -422,6 +427,92 @@ class AdTest extends TestCase
         $this->assertTrue($ad->is_active);
         $this->assertFalse($ad->is_banned);
         $this->assertFalse($ad->is_moderated);
+    }
+
+    public function test_published_at_is_updated_by_actions(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Диван',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_moderated' => true,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $before = $ad->published_at;
+
+        $this->travel(1)->minutes();
+
+        $this->actingAs($this->user)
+            ->put($this->url("/ads/{$ad->id}"), [
+                'title' => 'Диван',
+                'number' => null,
+                'article' => null,
+                'category_id' => $this->category->id,
+                'description' => '',
+                'price' => '100',
+                'warranty_value' => null,
+                'warranty_unit' => 'months',
+                'video' => null,
+                'regions' => [$this->city->id],
+                'filters' => [],
+                'existing_images' => [],
+                'new_images' => [],
+                'deleted_image_ids' => [],
+            ])
+            ->assertRedirect();
+
+        $afterUpdate = $ad->fresh()?->published_at;
+        $this->assertTrue($afterUpdate?->greaterThan($before) ?? false);
+
+        $this->travel(1)->minutes();
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/price"), ['price' => '200'])
+            ->assertOk();
+
+        $afterPrice = $ad->fresh()?->published_at;
+        $this->assertTrue($afterPrice?->greaterThan($afterUpdate) ?? false);
+
+        $this->travel(1)->minutes();
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/actualize"))
+            ->assertOk()
+            ->assertJsonStructure(['published_at']);
+
+        $this->assertTrue($ad->fresh()?->published_at?->greaterThan($afterPrice) ?? false);
+    }
+
+    public function test_price_can_be_updated_from_the_list(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Диван',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_moderated' => true,
+        ]);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/price"), ['price' => '123.45'])
+            ->assertOk()
+            ->assertJsonPath('price', 123.45);
+
+        $this->assertSame('123.4500', $ad->fresh()?->price);
+        $this->assertTrue($ad->fresh()?->is_moderated);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/price"), ['price' => '-1'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('price');
     }
 
     public function test_moderation_is_reset_only_when_content_changes(): void

@@ -34,18 +34,27 @@ class AdController extends Controller
         $search = trim((string) $request->input('search', ''));
         $language = $this->language($request, $company);
         $categoryId = $request->integer('category_id') ?: null;
-        $regionId = $request->integer('region_id') ?: null;
+        $areaId = $request->integer('area_id') ?: null;
+        $cityId = $request->integer('city_id') ?: null;
         $priceFrom = $request->filled('price_from') && is_numeric($request->input('price_from'))
             ? (float) $request->input('price_from')
             : null;
         $priceTo = $request->filled('price_to') && is_numeric($request->input('price_to'))
             ? (float) $request->input('price_to')
             : null;
-        $hasFilters = $request->boolean('has_filters');
+        $hasFilters = in_array($request->input('has_filters'), ['with', 'without'], true)
+            ? (string) $request->input('has_filters')
+            : null;
         $photo = in_array($request->input('photo'), ['with', 'without'], true)
             ? (string) $request->input('photo')
             : null;
-        $hasVideo = $request->boolean('has_video');
+        $hasVideo = in_array($request->input('has_video'), ['with', 'without'], true)
+            ? (string) $request->input('has_video')
+            : null;
+
+        if ($cityId !== null && $areaId === null) {
+            $areaId = Region::query()->whereKey($cityId)->value('parent_id');
+        }
 
         if (! in_array($status, Ad::STATUSES, true)) {
             $status = 'all';
@@ -75,8 +84,16 @@ class AdController extends Controller
             $adsQuery->where('category_id', $categoryId);
         }
 
-        if ($regionId !== null) {
-            $adsQuery->whereHas('regions', fn ($query) => $query->where('regions.id', $regionId));
+        if ($cityId !== null) {
+            $adsQuery->whereHas('regions', fn ($query) => $query->where('regions.id', $cityId));
+        } elseif ($areaId !== null) {
+            $regionIds = Region::query()
+                ->where('parent_id', $areaId)
+                ->pluck('id')
+                ->push($areaId)
+                ->all();
+
+            $adsQuery->whereHas('regions', fn ($query) => $query->whereIn('regions.id', $regionIds));
         }
 
         if ($priceFrom !== null) {
@@ -87,12 +104,16 @@ class AdController extends Controller
             $adsQuery->where('price', '<=', $priceTo);
         }
 
-        if ($hasFilters) {
+        if ($hasFilters === 'with') {
             $adsQuery->where(function ($query) {
                 $query->whereHas('filterInts')
                     ->orWhereHas('filterFloats')
                     ->orWhereHas('filterVariants');
             });
+        } elseif ($hasFilters === 'without') {
+            $adsQuery->whereDoesntHave('filterInts')
+                ->whereDoesntHave('filterFloats')
+                ->whereDoesntHave('filterVariants');
         }
 
         if ($photo === 'with') {
@@ -101,8 +122,12 @@ class AdController extends Controller
             $adsQuery->whereDoesntHave('images');
         }
 
-        if ($hasVideo) {
+        if ($hasVideo === 'with') {
             $adsQuery->whereNotNull('video')->where('video', '!=', '');
+        } elseif ($hasVideo === 'without') {
+            $adsQuery->where(function ($query) {
+                $query->whereNull('video')->orWhere('video', '');
+            });
         }
 
         match ($status) {
@@ -119,11 +144,14 @@ class AdController extends Controller
                 'title' => $ad->title,
                 'article' => $ad->article,
                 'number' => $ad->number,
+                'category_id' => $ad->category_id,
                 'category' => $ad->category->displayName(),
                 'price' => (float) $ad->price,
                 'currency' => $ad->currency,
                 'thumb_url' => $ad->images->first()?->thumbnailUrl(100),
+                'images_count' => $ad->images->count(),
                 'filter_count' => $ad->filledFiltersCount(),
+                'published_at' => $ad->published_at?->format('d.m.Y H:i'),
                 'is_active' => $ad->is_active,
                 'is_moderated' => $ad->is_moderated,
                 'is_banned' => $ad->is_banned,
@@ -137,7 +165,8 @@ class AdController extends Controller
             'currencyDecimals' => (int) ($country?->countryData?->currency_decimals ?? 2),
             'adFilters' => [
                 'category_id' => $categoryId,
-                'region_id' => $regionId,
+                'area_id' => $areaId,
+                'city_id' => $cityId,
                 'price_from' => $priceFrom,
                 'price_to' => $priceTo,
                 'has_filters' => $hasFilters,
@@ -145,7 +174,7 @@ class AdController extends Controller
                 'has_video' => $hasVideo,
             ],
             'categoryOptions' => $this->categoryOptions($language),
-            'regionOptions' => $this->regionOptions($countryId, $language),
+            'regionFilterOptions' => $this->regionFilterOptions($countryId, $language),
         ]);
     }
 
@@ -193,6 +222,7 @@ class AdController extends Controller
             $ad->currency = (string) $request->currency();
             $ad->is_moderated = false;
             $ad->is_banned = false;
+            $ad->published_at = now();
             $ad->save();
 
             $ad->regions()->sync($request->validated('regions'));
@@ -258,6 +288,41 @@ class AdController extends Controller
         ]);
     }
 
+    public function updatePrice(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'price' => ['required', 'numeric', 'min:0', 'max:99999999999.9999'],
+        ], [
+            'price.required' => __('Укажите цену.'),
+            'price.numeric' => __('Цена должна быть числом.'),
+            'price.min' => __('Цена не может быть отрицательной.'),
+        ]);
+
+        $company = $this->company($request);
+        $ad = $this->ad($request, $company);
+
+        $ad->update([
+            'price' => $data['price'],
+            'published_at' => now(),
+        ]);
+
+        return response()->json([
+            'price' => (float) $ad->price,
+        ]);
+    }
+
+    public function actualize(Request $request): JsonResponse
+    {
+        $company = $this->company($request);
+        $ad = $this->ad($request, $company);
+
+        $ad->update(['published_at' => now()]);
+
+        return response()->json([
+            'published_at' => $ad->published_at?->format('d.m.Y H:i'),
+        ]);
+    }
+
     public function update(AdRequest $request, AdImageService $imageService): SymfonyResponse
     {
         $company = $this->company($request);
@@ -276,6 +341,7 @@ class AdController extends Controller
                 ...$request->adData(),
                 'currency' => (string) $request->currency(),
                 'is_moderated' => $ad->is_moderated && ! $resetModeration,
+                'published_at' => now(),
             ]);
             $ad->regions()->sync($request->validated('regions'));
             $ad->syncFilters($request->filterValues());
@@ -358,29 +424,30 @@ class AdController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, label: string}>
+     * @return array{areas: array<int, array{id: int, label: string}>, cities: array<int, array{id: int, label: string, area_id: int}>}
      */
-    private function regionOptions(?int $countryId, ?string $language): array
+    private function regionFilterOptions(?int $countryId, ?string $language): array
     {
-        $options = [];
+        $areas = [];
+        $cities = [];
         $isEnglish = $language === 'en';
 
-        $walk = function (array $nodes, array $path) use (&$walk, &$options, $isEnglish): void {
-            foreach ($nodes as $node) {
-                $name = $isEnglish ? ($node['name_en'] ?? $node['name']) : $node['name'];
-                $next = [...$path, $name];
+        foreach (Region::cityTree($countryId) as $country) {
+            foreach ($country['children'] as $area) {
+                $areaName = $isEnglish ? ($area['name_en'] ?? $area['name']) : $area['name'];
+                $areas[] = ['id' => $area['id'], 'label' => $areaName];
 
-                if ($node['selectable']) {
-                    $options[] = ['id' => $node['id'], 'label' => implode(' / ', array_slice($next, -2))];
-                } else {
-                    $walk($node['children'], $next);
+                foreach ($area['children'] as $city) {
+                    $cities[] = [
+                        'id' => $city['id'],
+                        'label' => $isEnglish ? ($city['name_en'] ?? $city['name']) : $city['name'],
+                        'area_id' => $area['id'],
+                    ];
                 }
             }
-        };
+        }
 
-        $walk(Region::cityTree($countryId), []);
-
-        return $options;
+        return ['areas' => $areas, 'cities' => $cities];
     }
 
     private function currentCountry(Request $request, Company $company): ?Region
