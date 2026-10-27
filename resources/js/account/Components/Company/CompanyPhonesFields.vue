@@ -6,6 +6,7 @@ import type { InertiaForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { emptyPhone } from './companyForm';
 import type { PhoneData } from './companyForm';
+import { formCard, formTitle } from '@/account/Components/Forms/formStyles';
 
 const props = defineProps<{
     form: InertiaForm<T>;
@@ -24,20 +25,22 @@ const removePhone = (index: number) => props.form.phones.splice(index, 1);
 
 const codePlaceholder = computed(() => (props.phoneCode ? `+${props.phoneCode}` : '+'));
 
-const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
-const smallButton = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
+const smallButton =
+    'inline-flex cursor-pointer items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-green-first hover:text-green-800';
+const addButton =
+    'inline-flex cursor-pointer items-center gap-1 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-800 transition hover:bg-green-100';
 </script>
 
 <template>
-    <section :class="section">
+    <section :class="formCard">
         <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold" :class="errors.phones ? 'text-red-600' : 'text-gray-900'">{{ $t('Телефоны') }} <span class="text-red-600">*</span></h2>
-            <button type="button" :class="smallButton" @click="addPhone">{{ $t('+ Добавить телефон') }}</button>
+            <h2 :class="[formTitle, errors.phones ? 'text-red-600' : 'text-gray-900']">{{ $t('Телефоны') }} <span class="text-red-600">*</span></h2>
+            <button type="button" :class="addButton" @click="addPhone">{{ $t('+ Добавить телефон') }}</button>
         </div>
 
         <InputError :message="errors.phones" />
 
-        <div v-for="(phone, index) in form.phones" :key="index" class="grid gap-3 md:grid-cols-[6rem_1fr_2fr_auto] md:items-start">
+        <div v-for="(phone, index) in form.phones" :key="index" class="grid gap-3 rounded-xl border border-gray-200/80 bg-gray-50/50 p-4 md:grid-cols-[6rem_1fr_2fr_auto] md:items-start">
             <div>
                 <InputLabel :for="`phone_code_${index}`" :value="$t('Код')" required :invalid="!!phoneError(index, 'code')" />
                 <TextInput

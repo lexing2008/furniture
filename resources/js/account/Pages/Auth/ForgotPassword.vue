@@ -23,9 +23,10 @@ const submit = () => {
     <GuestLayout>
         <Head :title="$t('Forgot Password')" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            {{ $t('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
-        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">{{ $t('Восстановление пароля') }}</h1>
+        <p class="mt-2 text-sm leading-6 text-gray-600">
+            {{ $t('Забыли пароль? Не страшно. Укажите email, и мы отправим ссылку для сброса пароля.') }}
+        </p>
 
         <div
             v-if="status"
@@ -34,7 +35,7 @@ const submit = () => {
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit">
+        <form class="mt-6" @submit.prevent="submit">
             <div>
                 <InputLabel for="email" :value="$t('Email')" required :invalid="!!form.errors.email" />
 
@@ -52,12 +53,13 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
+            <div class="mt-6">
                 <PrimaryButton
+                    class="w-full justify-center py-3"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    {{ $t('Email Password Reset Link') }}
+                    {{ $t('Отправить ссылку для сброса пароля') }}
                 </PrimaryButton>
             </div>
         </form>

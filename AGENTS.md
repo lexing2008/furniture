@@ -169,6 +169,7 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 - `locale` приходит из Inertia shared props.
 - Алиасы: `@account`, `@admin`; также `ziggy-js`.
 - В кабинете используется зелёный sidebar `bg-green-first`.
+- Формы кабинета используют общие `AccountPageHeader`, `AccountFormActions` и `FormStyles`.
 - Для длинного HTML — общий `WysiwygEditor` с `resizable` и `height-key`.
 - Категория товара выбирается через дерево `CategoryTreeSelect` с поиском (как выбор региона при регистрации).
 

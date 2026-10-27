@@ -163,22 +163,22 @@ const button = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs 
 
 <template>
     <div class="space-y-3">
-        <input
-            v-model="query"
-            type="search"
-            class="block w-full rounded-full border px-4 py-2 text-sm shadow-xs" :class="invalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-first focus:ring-green-first'"
-            :placeholder="$t('Поиск категории')"
-        />
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 pt-2">
             <button type="button" :class="button" @click="expandAll">{{ $t('Развернуть все') }}</button>
             <button type="button" :class="button" @click="collapseAll">{{ $t('Свернуть все') }}</button>
             <span v-if="selectedPath" class="text-sm text-gray-500">{{ $t('Выбран: :name', { name: selectedPath }) }}</span>
         </div>
+        <input
+            v-model="query"
+            type="search"
+            class="block w-full rounded-full border px-4 text-sm shadow-xs placeholder-gray-300" :class="invalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-first focus:ring-green-first'"
+            :placeholder="$t('Поиск категории')"
+        />
 
         <p v-if="filteredNodes.length === 0" class="text-sm text-gray-500">{{ $t('Ничего не найдено') }}</p>
 
-        <ul v-else class="space-y-1 rounded-md border p-3" :class="invalid ? 'border-red-500' : 'border-gray-200'">
+        <ul v-else class="max-h-96 space-y-1 overflow-y-auto rounded-xl border p-3" :class="invalid ? 'border-red-500' : 'border-gray-200'">
             <CategoryTreeNode v-for="node in filteredNodes" :key="node.id" :node="node" />
         </ul>
     </div>

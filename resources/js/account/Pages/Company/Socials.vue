@@ -2,7 +2,9 @@
 import type { CompanySocialsFields } from '@/account/Components/Company/companyForm';
 import InputError from '@/account/Components/InputError.vue';
 import InputLabel from '@/account/Components/InputLabel.vue';
-import PrimaryButton from '@/account/Components/PrimaryButton.vue';
+import AccountFormActions from '@/account/Components/Forms/AccountFormActions.vue';
+import AccountPageHeader from '@/account/Components/Forms/AccountPageHeader.vue';
+import { formCard, formGrid, formTitle } from '@/account/Components/Forms/formStyles';
 import TextInput from '@/account/Components/TextInput.vue';
 import AccountLayout from '@/account/Layouts/AccountLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
@@ -25,21 +27,24 @@ const submit = () => {
     form.put(route('account.socials.update'), { preserveScroll: true });
 };
 
-const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
 </script>
 
 <template>
     <Head :title="$t('Соцсети')" />
 
     <AccountLayout>
-        <h1 class="text-2xl font-bold text-gray-900">{{ $t('Соцсети') }}</h1>
+        <AccountPageHeader
+            icon="socials"
+            :title="$t('Соцсети')"
+            :description="$t('Добавьте ссылки на страницы компании в соцсетях.')"
+        />
 
         <form class="space-y-6" @submit.prevent="submit">
-            <section :class="section">
-                <h2 class="text-lg font-semibold" :class="Object.keys(errors).some((key) => key.startsWith('socials.')) ? 'text-red-600' : 'text-gray-900'">{{ $t('Ссылки на соцсети') }}</h2>
-                <p class="text-xs text-gray-500">{{ $t('Укажите полные адреса страниц компании. Пустые поля не сохраняются.') }}</p>
+            <section :class="formCard">
+                <h2 :class="[formTitle, Object.keys(errors).some((key) => key.startsWith('socials.')) ? 'text-red-600' : 'text-gray-900']">{{ $t('Ссылки на соцсети') }}</h2>
+                <p class="text-sm leading-6 text-gray-500">{{ $t('Укажите полные адреса страниц компании. Пустые поля не сохраняются.') }}</p>
 
-                <div class="grid gap-4 md:grid-cols-2">
+                <div :class="formGrid">
                     <div v-for="(title, key) in socials" :key="key">
                         <InputLabel :for="`social_${key}`" :value="title" :invalid="!!errors[`socials.${key}`]" />
                         <TextInput
@@ -55,10 +60,7 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
                 </div>
             </section>
 
-            <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">{{ $t('Сохранить') }}</PrimaryButton>
-                <span v-if="form.recentlySuccessful" class="text-sm text-green-700">{{ $t('Сохранено') }}</span>
-            </div>
+            <AccountFormActions :processing="form.processing" :success="form.recentlySuccessful" />
         </form>
     </AccountLayout>
 </template>

@@ -23,11 +23,12 @@ const submit = () => {
     <GuestLayout>
         <Head :title="$t('Confirm Password')" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            {{ $t('This is a secure area of the application. Please confirm your password before continuing.') }}
-        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">{{ $t('Подтверждение пароля') }}</h1>
+        <p class="mt-2 text-sm leading-6 text-gray-600">
+            {{ $t('Это защищённый раздел. Подтвердите пароль, чтобы продолжить.') }}
+        </p>
 
-        <form @submit.prevent="submit">
+        <form class="mt-6" @submit.prevent="submit">
             <div>
                 <InputLabel for="password" :value="$t('Password')" required :invalid="!!form.errors.password" />
                 <TextInput
@@ -43,13 +44,13 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="mt-4 flex justify-end">
+            <div class="mt-6">
                 <PrimaryButton
-                    class="ms-4"
+                    class="w-full justify-center py-3"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    {{ $t('Confirm') }}
+                    {{ $t('Подтвердить') }}
                 </PrimaryButton>
             </div>
         </form>

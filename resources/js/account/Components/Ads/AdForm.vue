@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import InputError from '@/account/Components/InputError.vue';
 import InputLabel from '@/account/Components/InputLabel.vue';
-import PrimaryButton from '@/account/Components/PrimaryButton.vue';
+import AccountFormActions from '@/account/Components/Forms/AccountFormActions.vue';
+import { formCard, formHint, formTitle } from '@/account/Components/Forms/formStyles';
 import TextInput from '@/account/Components/TextInput.vue';
 import AdRegionTree from '@/account/Components/Ads/AdRegionTree.vue';
 import CategoryTreeSelect from '@/account/Components/Ads/CategoryTreeSelect.vue';
@@ -415,16 +416,17 @@ const submit = () => {
     form.post(route('account.ads.store'), { preserveScroll: true });
 };
 
-const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
-const hint = 'text-xs text-gray-500';
-const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
-const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500 transition hover:border-green-first hover:text-green-800';
+const hint = formHint;
+const smallButton =
+    'cursor-pointer rounded-full border border-gray-300 bg-white/90 px-2.5 py-1 text-xs font-medium text-gray-600 shadow-xs transition hover:border-green-first hover:text-green-800';
+const dropzone =
+    'flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/50 px-4 py-8 text-center text-sm text-gray-500 transition hover:border-green-first hover:bg-green-50/30 hover:text-green-800';
 </script>
 
 <template>
     <form class="space-y-6" @submit.prevent="submit">
-        <section :class="section">
-            <h2 class="text-lg font-semibold text-gray-900">{{ $t('Основная информация') }}</h2>
+        <section :class="formCard">
+            <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Основная информация') }}</h2>
 
             <div>
                 <InputLabel for="title" :value="$t('Название')" required :invalid="!!form.errors.title" />
@@ -501,17 +503,22 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             </div>
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <h2 class="text-lg font-semibold" :class="errors.images ? 'text-red-600' : 'text-gray-900'">{{ $t('Изображения') }}</h2>
+                <h2 :class="[formTitle, errors.images ? 'text-red-600' : 'text-gray-900']">{{ $t('Изображения') }}</h2>
                 <p :class="hint">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
             </div>
 
             <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFileInput" />
 
             <div :class="[dropzone, errors.images ? 'border-red-500' : '']" @click="openFileDialog" @dragover.prevent @drop.prevent="onDropzone">
-                <p>{{ $t('Перетащите изображения сюда или нажмите, чтобы выбрать') }}</p>
-                <p class="mt-1 text-xs">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
+                <span class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-green-700 shadow-xs ring-1 ring-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                </span>
+                <p class="font-medium text-gray-700">{{ $t('Перетащите изображения сюда или нажмите, чтобы выбрать') }}</p>
+                <p class="mt-1 text-xs text-gray-500">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
             </div>
 
             <p v-if="uploadError" class="text-sm text-red-600">{{ uploadError }}</p>
@@ -566,9 +573,9 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             </div>
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Видео') }}</h2>
+                <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Видео') }}</h2>
                 <p :class="hint">{{ $t('Ссылка на YouTube') }}</p>
             </div>
 
@@ -579,9 +586,9 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             </div>
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <h2 class="text-lg font-semibold" :class="form.errors.regions ? 'text-red-600' : 'text-gray-900'">{{ $t('Регионы') }} <span class="text-red-600">*</span></h2>
+                <h2 :class="[formTitle, form.errors.regions ? 'text-red-600' : 'text-gray-900']">{{ $t('Регионы') }} <span class="text-red-600">*</span></h2>
                 <p :class="hint">{{ $t('Выберите регионы, в которых показывать товар/услугу.') }}</p>
             </div>
 
@@ -589,9 +596,9 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             <InputError :message="form.errors.regions" />
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <h2 class="text-lg font-semibold" :class="form.errors.filters ? 'text-red-600' : 'text-gray-900'">{{ $t('Параметры фильтров') }}</h2>
+                <h2 :class="[formTitle, form.errors.filters ? 'text-red-600' : 'text-gray-900']">{{ $t('Параметры фильтров') }}</h2>
             </div>
 
             <p v-if="!form.category_id" :class="hint">{{ $t('Выберите категорию, чтобы загрузить фильтры.') }}</p>
@@ -660,9 +667,10 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             <InputError :message="form.errors.filters" />
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <InputLabel for="is_active" :value="$t('Отображать на сайте')" required :invalid="!!form.errors.is_active" />
+                <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Публикация') }}</h2>
+                <InputLabel for="is_active" :value="$t('Отображать на сайте')" required :invalid="!!form.errors.is_active" class="mt-4" />
                 <select
                     id="is_active"
                     v-model="form.is_active"
@@ -676,16 +684,26 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             </div>
         </section>
 
-        <div class="flex flex-wrap items-center gap-4">
-            <PrimaryButton :disabled="form.processing || isUploading || filtersLoading">{{ $t('Сохранить') }}</PrimaryButton>
-            <Link
-                v-if="copyUrl"
-                :href="copyUrl"
-                class="inline-flex items-center rounded-full border border-green-first px-4 py-2 text-xs font-semibold uppercase tracking-widest text-green-first transition hover:bg-green-first/10"
-            >
-                {{ $t('Добавить похожее') }}
-            </Link>
-            <a :href="route('account.ads.index')" class="text-sm text-gray-600 underline hover:text-gray-900">{{ $t('К списку') }}</a>
-        </div>
+        <AccountFormActions
+            :processing="form.processing"
+            :disabled="isUploading || filtersLoading"
+            :success="form.recentlySuccessful"
+        >
+            <template #actions>
+                <Link
+                    v-if="copyUrl"
+                    :href="copyUrl"
+                    class="inline-flex items-center justify-center rounded-full border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-medium text-green-800 transition hover:bg-green-100"
+                >
+                    {{ $t('Добавить похожее') }}
+                </Link>
+                <Link
+                    :href="route('account.ads.index')"
+                    class="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:text-gray-900"
+                >
+                    {{ $t('К списку') }}
+                </Link>
+            </template>
+        </AccountFormActions>
     </form>
 </template>
