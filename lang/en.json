@@ -388,5 +388,17 @@
     "Ничего не найдено": "Nothing found",
     "Показаны первые 50 категорий. Уточните поиск.": "Showing the first 50 categories. Refine your search.",
     "Сбросить": "Reset",
-    "Описание не должно быть длиннее :max символов без учёта HTML-тегов.": "The description must not be longer than :max characters excluding HTML tags."
+    "Описание не должно быть длиннее :max символов без учёта HTML-тегов.": "The description must not be longer than :max characters excluding HTML tags.",
+    "Вход в кабинет компании": "Company account login",
+    "Управляйте компанией, товарами и услугами в одном месте.": "Manage your company, products and services in one place.",
+    "Размещайте товары и услуги": "List products and services",
+    "Управляйте графиком, доставкой и оплатой": "Manage working hours, delivery and payment",
+    "Следите за статусом публикаций": "Track publication status",
+    "Доступ для владельцев компаний": "Access for company owners",
+    "Добро пожаловать": "Welcome back",
+    "Вход в кабинет": "Sign in to your account",
+    "Войдите, чтобы управлять компанией.": "Sign in to manage your company.",
+    "Скрыть пароль": "Hide password",
+    "Показать пароль": "Show password",
+    "Защищённый вход для владельцев компаний": "Secure access for company owners"
 }
