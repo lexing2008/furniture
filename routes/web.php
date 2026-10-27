@@ -64,6 +64,7 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         Route::post('ads', [AdController::class, 'store'])->name('account.ads.store');
         Route::get('ads/filters', [AdController::class, 'filters'])->name('account.ads.filters');
         Route::post('ads/images', [AdImageController::class, 'store'])->name('account.ads.images.store');
+        Route::post('ads/images/url', [AdImageController::class, 'storeUrl'])->name('account.ads.images.url');
         Route::delete('ads/images/{tmpFile}', [AdImageController::class, 'destroy'])->name('account.ads.images.destroy');
         Route::get('ads/{ad}/edit', [AdController::class, 'edit'])->name('account.ads.edit');
         Route::put('ads/{ad}', [AdController::class, 'update'])->name('account.ads.update');
@@ -71,6 +72,7 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         // General information about the company
         Route::get('general', [CompanyGeneralController::class, 'edit'])->name('account.general');
         Route::put('general', [CompanyGeneralController::class, 'update'])->name('account.general.update');
+        Route::put('website', [CompanyGeneralController::class, 'updateWebsite'])->name('account.website.update');
 
         // Working hours of the company and its non-working days
         Route::get('schedule', [CompanyScheduleController::class, 'edit'])->name('account.schedule');

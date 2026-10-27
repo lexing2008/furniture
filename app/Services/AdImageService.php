@@ -26,6 +26,14 @@ class AdImageService
      */
     public function upload(UploadedFile $file, int $userId): TmpFile
     {
+        return $this->uploadFromPath($file->getRealPath(), $userId);
+    }
+
+    /**
+     * Store an image by its local source path. Used by device uploads and remote URLs.
+     */
+    public function uploadFromPath(string $sourcePath, int $userId): TmpFile
+    {
         $uuid = Str::uuid()->toString();
         $path = AdImagePath::main($uuid);
         $medium = AdImagePath::medium($path);
@@ -37,9 +45,9 @@ class AdImageService
         $disk->makeDirectory(AdImagePath::DIRECTORY.'/'.AdImagePath::SMALL_SIZE);
 
         try {
-            $this->convertToWebp($file->getRealPath(), $disk->path($path), self::MAX_SIDE, self::MAX_SIDE, self::WEBP_QUALITY);
-            $this->convertToWebp($file->getRealPath(), $disk->path($medium), 630, 467, 80);
-            $this->convertToWebp($file->getRealPath(), $disk->path($small), 100, 100, 75);
+            $this->convertToWebp($sourcePath, $disk->path($path), self::MAX_SIDE, self::MAX_SIDE, self::WEBP_QUALITY);
+            $this->convertToWebp($sourcePath, $disk->path($medium), 630, 467, 80);
+            $this->convertToWebp($sourcePath, $disk->path($small), 100, 100, 75);
         } catch (Throwable $exception) {
             $disk->delete(AdImagePath::variants($path));
 

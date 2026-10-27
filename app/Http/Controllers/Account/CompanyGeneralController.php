@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Account\Concerns\ResolvesCompany;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\CompanyUpdateRequest;
+use App\Http\Requests\Account\CompanyWebsiteRequest;
 use App\Models\Category;
 use App\Models\Region;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +42,16 @@ class CompanyGeneralController extends Controller
             ],
             'regions' => Region::cityTree(),
             'categories' => Category::selectableTree($region?->language()),
+        ]);
+    }
+
+    public function updateWebsite(CompanyWebsiteRequest $request): JsonResponse
+    {
+        $company = $this->company($request);
+        $company->update(['website' => $request->validated('website')]);
+
+        return response()->json([
+            'website' => $company->website,
         ]);
     }
 

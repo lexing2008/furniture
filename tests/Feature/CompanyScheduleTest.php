@@ -128,7 +128,7 @@ class CompanyScheduleTest extends TestCase
                 7 => ['is_closed' => true],
             ]),
             'exceptions' => [
-                ['date' => '2026-12-25', 'name' => 'Рождество'],
+                ['date' => '2026-12-25', 'name' => '<b>Рождество</b>'],
                 ['date' => '2027-01-01', 'name' => ''],
             ],
         ];

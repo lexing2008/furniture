@@ -86,7 +86,7 @@ const hint = 'text-sm leading-6 text-gray-500';
                         class="rounded-xl border border-gray-200/80 bg-gray-50/50 p-4"
                     >
                         <div class="flex flex-wrap items-end gap-4">
-                            <div class="inline-flex w-fit rounded-full border border-gray-200 bg-white px-3 py-1 pb-1 text-xs font-semibold text-gray-700 shadow-xs">
+                            <div class="inline-flex w-fit rounded-full border border-gray-200 bg-white px-3 py-1 pb-1 mb-1 text-xs font-semibold text-gray-700 shadow-xs">
                                 {{ $t(dayNames[day.day_of_week]) }}
                             </div>
 

@@ -32,6 +32,7 @@ const props = withDefaults(
         ad?: AdData | null;
         source?: AdCopySource | null;
         copyUrl?: string | null;
+        companyWebsite?: string | null;
         initialFilters?: AdFilter[];
     }>(),
     {
@@ -39,6 +40,7 @@ const props = withDefaults(
         ad: null,
         source: null,
         copyUrl: null,
+        companyWebsite: null,
         initialFilters: () => [],
     },
 );
@@ -70,7 +72,6 @@ const initialForm = (): AdFormData => {
         return {
             ...emptyAdForm(props.defaultRegionId),
             category_id: props.source.category_id,
-            price: props.source.price,
             warranty_value: props.source.warranty_value === null ? '' : String(props.source.warranty_value),
             warranty_unit: props.source.warranty_unit,
             description: props.source.description,
@@ -101,12 +102,179 @@ const dragIndex = ref<number | null>(null);
 const dropTargetIndex = ref<number | null>(null);
 const uploads = new Map<string, XMLHttpRequest>();
 const uploadError = ref<string | null>(null);
+const website = ref(props.companyWebsite ?? '');
+const websiteModalOpen = ref(false);
+const websiteValue = ref('');
+const websiteSaving = ref(false);
+const websiteError = ref<string | null>(null);
+const imageUrl = ref('');
+const urlUploading = ref(false);
+const urlError = ref<string | null>(null);
+const uploadingPlaceholder =
+    'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3C/svg%3E';
 const filters = ref<AdFilter[]>([...props.initialFilters]);
 const filtersLoading = ref(false);
 const filtersError = ref<string | null>(null);
 
-const isUploading = computed(() => images.value.some((image) => image.uploading));
+const isUploading = computed(() => urlUploading.value || images.value.some((image) => image.uploading));
 const errors = computed(() => form.errors as Record<string, string | undefined>);
+
+const websiteHost = computed(() => {
+    const value = website.value.trim();
+
+    if (value === '') {
+        return '';
+    }
+
+    try {
+        return new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`).hostname.replace(/^www\./i, '');
+    } catch {
+        return value.replace(/^https?:\/\//i, '').replace(/\/.*$/, '').replace(/^www\./i, '');
+    }
+});
+
+const openWebsiteModal = () => {
+    websiteValue.value = website.value || 'https://';
+    websiteError.value = null;
+    websiteModalOpen.value = true;
+};
+
+const closeWebsiteModal = () => {
+    if (!websiteSaving.value) {
+        websiteModalOpen.value = false;
+    }
+};
+
+const saveWebsite = async () => {
+    websiteSaving.value = true;
+    websiteError.value = null;
+
+    try {
+        const response = await fetch(route('account.website.update'), {
+            method: 'PUT',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+            },
+            body: JSON.stringify({ website: websiteValue.value }),
+        });
+        const data = (await response.json().catch(() => ({}))) as {
+            website?: string;
+            message?: string;
+            errors?: Record<string, string[]>;
+        };
+
+        if (!response.ok) {
+            websiteError.value = data.errors?.website?.[0] ?? data.message ?? translate('Укажите корректный сайт.');
+            return;
+        }
+
+        website.value = data.website ?? websiteValue.value;
+        websiteModalOpen.value = false;
+        urlError.value = null;
+    } catch {
+        websiteError.value = translate('Не удалось сохранить сайт.');
+    } finally {
+        websiteSaving.value = false;
+    }
+};
+
+const onUrlPaste = (event: ClipboardEvent) => {
+    const value = event.clipboardData?.getData('text')?.trim();
+
+    if (!value) {
+        return;
+    }
+
+    imageUrl.value = value;
+    event.preventDefault();
+
+    if (/^https?:\/\//i.test(value)) {
+        void uploadUrl();
+    }
+};
+
+const uploadUrl = async () => {
+    const url = imageUrl.value.trim();
+    urlError.value = null;
+
+    if (url === '' || urlUploading.value) {
+        return;
+    }
+
+    if (website.value.trim() === '') {
+        urlError.value = translate('Сначала укажите сайт компании.');
+        openWebsiteModal();
+
+        return;
+    }
+
+    if (images.value.length >= 15) {
+        urlError.value = translate('Максимум 15 изображений.');
+
+        return;
+    }
+
+    const item: AdImageItem = {
+        key: `url-${Date.now()}-${Math.random()}`,
+        url: uploadingPlaceholder,
+        progress: 0,
+        uploading: true,
+    };
+
+    images.value.push(item);
+    urlUploading.value = true;
+
+    try {
+        const response = await fetch(route('account.ads.images.url'), {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+            },
+            body: JSON.stringify({ url }),
+        });
+        const data = (await response.json().catch(() => ({}))) as {
+            id?: number;
+            url?: string;
+            thumb_630_url?: string;
+            thumb_100_url?: string;
+            message?: string;
+            errors?: Record<string, string[]>;
+        };
+
+        if (!response.ok) {
+            images.value = images.value.filter((image) => image.key !== item.key);
+            urlError.value =
+                data.errors?.url?.[0] ??
+                data.errors?.website?.[0] ??
+                data.errors?.image?.[0] ??
+                data.message ??
+                translate('Не удалось загрузить изображение по ссылке.');
+
+            if (data.errors?.website) {
+                openWebsiteModal();
+            }
+
+            return;
+        }
+
+        item.tempFileId = data.id;
+        item.url = data.url ?? item.url;
+        item.thumb630Url = data.thumb_630_url;
+        item.thumb100Url = data.thumb_100_url;
+        item.progress = 100;
+        item.uploading = false;
+        imageUrl.value = '';
+    } catch {
+        images.value = images.value.filter((image) => image.key !== item.key);
+        urlError.value = translate('Не удалось загрузить изображение по ссылке.');
+    } finally {
+        urlUploading.value = false;
+    }
+};
 
 const descriptionLength = computed(() => {
     const html = form.description ?? '';
@@ -132,6 +300,43 @@ const warrantyUnits = computed<Array<{ value: WarrantyUnit; label: string }>>(()
     { value: 'months', label: translate('Месяцы') },
     { value: 'years', label: translate('Годы') },
 ]);
+
+const youtubeEmbedUrl = computed(() => {
+    const raw = form.video.trim();
+
+    if (raw === '') {
+        return null;
+    }
+
+    let url: URL;
+
+    try {
+        url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    } catch {
+        return null;
+    }
+
+    const host = url.hostname.toLowerCase().replace(/^www\./i, '');
+    let id: string | null = null;
+
+    if (host === 'youtu.be') {
+        id = url.pathname.split('/').filter(Boolean)[0] ?? null;
+    } else if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+        if (url.pathname === '/watch') {
+            id = url.searchParams.get('v');
+        } else {
+            const parts = url.pathname.split('/').filter(Boolean);
+
+            if (['embed', 'shorts', 'live', 'v'].includes(parts[0] ?? '')) {
+                id = parts[1] ?? null;
+            }
+        }
+    }
+
+    return id !== null && /^[A-Za-z0-9_-]{11}$/.test(id)
+        ? `https://www.youtube-nocookie.com/embed/${id}`
+        : null;
+});
 
 function filterState(source: AdFilter[]): Record<string, FilterValue> {
     const values: Record<string, FilterValue> = {};
@@ -424,7 +629,8 @@ const dropzone =
 </script>
 
 <template>
-    <form class="space-y-6" @submit.prevent="submit">
+    <div>
+        <form class="space-y-6" @submit.prevent="submit">
         <section :class="formCard">
             <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Основная информация') }}</h2>
 
@@ -509,6 +715,62 @@ const dropzone =
                 <p :class="hint">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
             </div>
 
+            <div v-if="!website" class="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-start gap-3">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-amber-600 shadow-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                        </svg>
+                    </span>
+                    <div>
+                        <p class="text-sm font-medium text-amber-900">{{ $t('Укажите сайт компании') }}</p>
+                        <p class="mt-1 text-sm leading-5 text-amber-800">{{ $t('Чтобы загружать изображения по ссылке, укажите сайт компании.') }}</p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    class="inline-flex shrink-0 items-center justify-center rounded-full bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700"
+                    @click="openWebsiteModal"
+                >
+                    {{ $t('Указать сайт') }}
+                </button>
+            </div>
+
+            <div v-else class="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div class="min-w-0 flex-1">
+                        <InputLabel for="image_url" :value="$t('Ссылка на изображение')" />
+                        <TextInput
+                            id="image_url"
+                            v-model="imageUrl"
+                            type="url"
+                            class="mt-1 block w-full"
+                            :placeholder="`https://${websiteHost || 'example.com'}/image.jpg`"
+                            autocomplete="off"
+                            @keydown.enter.prevent="uploadUrl"
+                            @paste="onUrlPaste"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-green-first px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        :disabled="urlUploading || imageUrl.trim() === ''"
+                        @click="uploadUrl"
+                    >
+                        <svg v-if="urlUploading" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                        </svg>
+                        {{ urlUploading ? $t('Загрузка...') : $t('Загрузить по ссылке') }}
+                    </button>
+                </div>
+
+                <p class="mt-2" :class="hint">{{ $t('Можно загружать изображения с сайта :host и его поддоменов.', { host: websiteHost }) }}</p>
+                <p v-if="urlError" class="mt-2 text-sm text-red-600">{{ urlError }}</p>
+            </div>
+
+            <p class="text-xs font-medium text-amber-700">{{ $t('Не воруйте изображения, это грех.') }}</p>
+
             <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFileInput" />
 
             <div :class="[dropzone, errors.images ? 'border-red-500' : '']" @click="openFileDialog" @dragover.prevent @drop.prevent="onDropzone">
@@ -550,7 +812,7 @@ const dropzone =
                         @dragstart="startDrag(index, $event)"
                         @dragend="dragEnd"
                     >
-                        <img :src="image.thumb630Url ?? image.url" :alt="`${$t('Изображения')} ${index + 1}`" class="h-40 w-full object-cover" />
+                        <img :src="image.thumb630Url ?? image.url" :alt="`${$t('Изображения')} ${index + 1}`" class="aspect-[630/467] h-auto w-full object-cover" />
 
                         <div v-if="image.uploading" class="absolute inset-0 flex flex-col items-center justify-center bg-black/50 px-4 text-white">
                             <span class="text-sm">{{ $t('Загрузка...') }} {{ image.progress }}%</span>
@@ -563,7 +825,7 @@ const dropzone =
 
                         <div class="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">{{ index + 1 }}</div>
 
-                        <div class="absolute right-2 top-2 flex gap-1">
+                        <div v-if="!image.uploading" class="absolute right-2 top-2 flex gap-1">
                             <button type="button" :class="[smallButton, 'cursor-pointer bg-white/90']" :title="$t('Переместить влево')" @click="moveImage(index, index - 1)">←</button>
                             <button type="button" :class="[smallButton, 'cursor-pointer bg-white/90']" :title="$t('Переместить вправо')" @click="moveImage(index, index + 1)">→</button>
                             <button type="button" :class="[smallButton, 'cursor-pointer bg-white/90 text-red-600']" :title="$t('Удалить')" @click="removeImage(index)">×</button>
@@ -583,6 +845,20 @@ const dropzone =
                 <InputLabel for="video" :value="$t('Ссылка на YouTube')" :invalid="!!form.errors.video" />
                 <TextInput id="video" v-model="form.video" type="url" class="mt-1 block w-full" :placeholder="$t('Например, https://youtube.com/watch?v=...')" :invalid="!!form.errors.video" />
                 <InputError class="mt-2" :message="form.errors.video" />
+
+                <div v-if="youtubeEmbedUrl" class="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-black shadow-sm">
+                    <div class="aspect-video">
+                        <iframe
+                            :src="youtubeEmbedUrl"
+                            class="h-full w-full"
+                            :title="$t('Предпросмотр видео')"
+                            loading="lazy"
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -705,5 +981,67 @@ const dropzone =
                 </Link>
             </template>
         </AccountFormActions>
-    </form>
+        </form>
+
+        <Teleport to="body">
+            <div v-if="websiteModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/50 p-4 backdrop-blur-sm" @click.self="closeWebsiteModal">
+                <div class="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-green-700">{{ $t('Кабинет компании') }}</p>
+                            <h3 class="mt-1 text-xl font-bold tracking-tight text-gray-900">{{ $t('Сайт компании') }}</h3>
+                        </div>
+                        <button
+                            type="button"
+                            class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                            :aria-label="$t('Закрыть')"
+                            @click="closeWebsiteModal"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <p class="mt-3 text-sm leading-6 text-gray-500">
+                        {{ $t('Сайт нужен, чтобы разрешить загрузку только с домена компании и его поддоменов.') }}
+                    </p>
+
+                    <form class="mt-5 space-y-4" @submit.prevent="saveWebsite">
+                        <div>
+                            <InputLabel for="company_website" :value="$t('Сайт компании')" required />
+                            <TextInput
+                                id="company_website"
+                                v-model="websiteValue"
+                                type="url"
+                                class="mt-1 block w-full"
+                                placeholder="https://example.com"
+                                autocomplete="url"
+                                :invalid="!!websiteError"
+                            />
+                            <p class="mt-1 text-xs leading-5 text-gray-500">{{ $t('Например, https://example.com') }}</p>
+                            <InputError class="mt-2" :message="websiteError ?? undefined" />
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <button type="button" class="rounded-full border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50" @click="closeWebsiteModal">
+                                {{ $t('Отмена') }}
+                            </button>
+                            <button
+                                type="submit"
+                                class="inline-flex items-center justify-center gap-2 rounded-full bg-green-first px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+                                :disabled="websiteSaving || websiteValue.trim() === ''"
+                            >
+                                <svg v-if="websiteSaving" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                                </svg>
+                                {{ $t('Сохранить сайт') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </Teleport>
+    </div>
 </template>

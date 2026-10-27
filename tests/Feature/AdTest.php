@@ -17,6 +17,7 @@ use App\Support\AdImagePath;
 use App\Support\Slug;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -222,11 +223,41 @@ class AdTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Ads/Create', false)
                 ->where('source.category_id', $this->category->id)
-                ->where('source.price', '1999.90')
+                ->missing('source.price')
                 ->where('source.warranty_value', 12)
                 ->where('source.regions', [$this->city->id])
                 ->where('filters.0.value', [$colorVariant->id])
                 ->has('filters', 3));
+    }
+
+    public function test_tags_are_removed_from_plain_text_ad_fields(): void
+    {
+        $this->actingAs($this->user)
+            ->post($this->url('/ads'), [
+                'title' => '<b>Диван</b>',
+                'number' => '<i>SKU-10</i>',
+                'article' => '<span>ART-10</span>',
+                'category_id' => $this->category->id,
+                'description' => '<p>Описание</p>',
+                'price' => '100',
+                'warranty_value' => null,
+                'warranty_unit' => 'months',
+                'video' => null,
+                'regions' => [$this->city->id],
+                'filters' => [],
+                'existing_images' => [],
+                'new_images' => [],
+                'deleted_image_ids' => [],
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $ad = Ad::query()->firstOrFail();
+
+        $this->assertSame('Диван', $ad->title);
+        $this->assertSame('SKU-10', $ad->number);
+        $this->assertSame('ART-10', $ad->article);
+        $this->assertSame('<p>Описание</p>', $ad->description);
     }
 
     public function test_ad_name_slug_is_transliterated_and_limited(): void
@@ -374,6 +405,67 @@ class AdTest extends TestCase
                 ->where('status', 'banned')
                 ->has('ads', 1)
                 ->where('ads.0.title', 'Забаненный'));
+    }
+
+    public function test_image_can_be_uploaded_from_a_company_subdomain(): void
+    {
+        $this->company->update(['website' => 'https://example.com']);
+
+        $file = UploadedFile::fake()->image('photo.jpg', 800, 600);
+        $contents = file_get_contents($file->getRealPath());
+
+        Http::fake([
+            'https://img.example.com/photo.jpg' => Http::response($contents, 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson($this->url('/ads/images/url'), [
+                'url' => 'https://img.example.com/photo.jpg',
+            ])
+            ->assertCreated()
+            ->assertJsonStructure(['id', 'url', 'thumb_630_url', 'thumb_100_url']);
+
+        $tmp = TmpFile::findOrFail($response->json('id'));
+        Storage::disk('public')->assertExists($tmp->path);
+        Storage::disk('public')->assertExists(AdImagePath::medium($tmp->path));
+        Storage::disk('public')->assertExists(AdImagePath::small($tmp->path));
+
+        [$width, $height] = getimagesize(Storage::disk('public')->path($tmp->path));
+        $this->assertLessThanOrEqual(1200, $width);
+        $this->assertLessThanOrEqual(1200, $height);
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://img.example.com/photo.jpg');
+    }
+
+    public function test_image_url_requires_a_company_website_and_an_allowed_domain(): void
+    {
+        $this->company->update(['website' => null]);
+
+        $this->actingAs($this->user)
+            ->postJson($this->url('/ads/images/url'), ['url' => 'https://example.com/photo.jpg'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('website');
+
+        $this->actingAs($this->user)
+            ->putJson($this->url('/website'), ['website' => 'example.com'])
+            ->assertOk()
+            ->assertJsonPath('website', 'https://example.com');
+
+        Http::fake([
+            'https://example.com/not-an-image.jpg' => Http::response('not an image', 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson($this->url('/ads/images/url'), ['url' => 'https://example.com/not-an-image.jpg'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('url');
+
+        $this->actingAs($this->user)
+            ->postJson($this->url('/ads/images/url'), ['url' => 'https://evil.example.net/photo.jpg'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('url');
+
+        $this->assertSame(0, TmpFile::query()->count());
     }
 
     public function test_temporary_image_can_be_deleted_from_the_server(): void

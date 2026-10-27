@@ -322,6 +322,54 @@ class AccountPagesTest extends TestCase
         ]);
     }
 
+    public function test_tags_are_removed_from_plain_text_company_fields(): void
+    {
+        $this->actingAs($this->user)->put($this->url('/general'), [
+            'legal_name' => '<b>ООО Новое</b>',
+            'tax_id' => '<i>200000002</i>',
+            'display_name' => '<span>Новое имя</span>',
+            'region_id' => $this->city->id,
+            'description' => '<p>Новое описание</p>',
+            'is_online_store' => true,
+            'website' => '<b>new.example.com</b>',
+            'categories' => [$this->category->id],
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $company = $this->company->fresh();
+
+        $this->assertSame('ООО Новое', $company->legal_name);
+        $this->assertSame('200000002', $company->tax_id);
+        $this->assertSame('Новое имя', $company->display_name);
+        $this->assertSame('https://new.example.com', $company->website);
+        $this->assertSame('<p>Новое описание</p>', $company->description);
+
+        $this->actingAs($this->user)->put($this->url('/contacts'), [
+            'email' => '<i>new@example.com</i>',
+            'phones' => [
+                ['code' => '<b>375</b>', 'number' => '<i>29 222-33-44</i>', 'description' => '<span>Отдел продаж</span>'],
+            ],
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame('new@example.com', $this->company->fresh()->email);
+        $this->assertDatabaseHas('company_phones', [
+            'company_id' => $this->company->id,
+            'code' => '+375',
+            'number' => '29 222-33-44',
+            'description' => 'Отдел продаж',
+        ]);
+
+        $this->actingAs($this->user)->put($this->url('/socials'), [
+            'socials' => [
+                'facebook' => '<b>https://facebook.com/new</b>',
+            ],
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame(
+            ['facebook' => 'https://facebook.com/new'],
+            $this->company->fresh()->socials,
+        );
+    }
+
     public function test_socials_are_saved_and_empty_ones_are_removed(): void
     {
         $this->actingAs($this->user)->put($this->url('/socials'), [

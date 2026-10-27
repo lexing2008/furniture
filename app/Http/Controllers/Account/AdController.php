@@ -80,7 +80,6 @@ class AdController extends Controller
             $filters = $filterService->forCategory($copy->category_id, $copy, $language);
             $source = [
                 'category_id' => $copy->category_id,
-                'price' => number_format((float) $copy->price, $decimals, '.', ''),
                 'warranty_value' => $copy->warranty_value,
                 'warranty_unit' => $copy->warranty_unit,
                 'description' => $copy->description ?? '',
@@ -94,6 +93,7 @@ class AdController extends Controller
             'defaultRegionId' => $company->region_id,
             'currency' => $country?->countryData?->currency,
             'currencyDecimals' => $decimals,
+            'companyWebsite' => $company->website,
             'source' => $source,
             'filters' => $filters,
         ]);
@@ -169,6 +169,7 @@ class AdController extends Controller
             'regions' => Region::cityTree($countryId),
             'currency' => $country?->countryData?->currency,
             'currencyDecimals' => $decimals,
+            'companyWebsite' => $company->website,
             'filters' => $filterService->forCategory($ad->category_id, $ad, $this->language($request, $company)),
         ]);
     }

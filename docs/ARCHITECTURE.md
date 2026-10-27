@@ -333,7 +333,7 @@ Laravel
 
 - `«Добавить похожее»` на edit-странице;
 - `/account/ads/create?copy={id}`;
-- копируются category, price, warranty, description, regions, filters;
+- копируются category, warranty, description, regions, filters;
 - title, number, video, images не копируются.
 
 ## 11. Валидация и HTML

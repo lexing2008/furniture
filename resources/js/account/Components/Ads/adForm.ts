@@ -45,7 +45,6 @@ export interface AdData {
 
 export interface AdCopySource {
     category_id: number;
-    price: string;
     warranty_value: number | null;
     warranty_unit: WarrantyUnit;
     description: string;

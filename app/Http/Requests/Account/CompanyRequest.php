@@ -35,9 +35,9 @@ abstract class CompanyRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'legal_name' => trim((string) $this->input('legal_name', '')),
-            'tax_id' => trim((string) $this->input('tax_id', '')),
-            'display_name' => trim((string) $this->input('display_name', '')),
+            'legal_name' => $this->plainText($this->input('legal_name', '')),
+            'tax_id' => $this->plainText($this->input('tax_id', '')),
+            'display_name' => $this->plainText($this->input('display_name', '')),
             'is_online_store' => $this->boolean('is_online_store'),
             'website' => $this->normalizeUrl($this->input('website')),
             'phones' => $this->normalizePhones($this->input('phones', [])),

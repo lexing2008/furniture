@@ -34,10 +34,10 @@ class AdRequest extends FormRequest
         $filters = $this->input('filters', []);
 
         $this->merge([
-            'title' => trim((string) $this->input('title', '')),
-            'number' => filled($this->input('number')) ? trim((string) $this->input('number')) : null,
-            'article' => filled($this->input('article')) ? trim((string) $this->input('article')) : null,
-            'video' => filled($this->input('video')) ? trim((string) $this->input('video')) : null,
+            'title' => trim(strip_tags((string) $this->input('title', ''))),
+            'number' => filled($this->input('number')) ? trim(strip_tags((string) $this->input('number'))) : null,
+            'article' => filled($this->input('article')) ? trim(strip_tags((string) $this->input('article'))) : null,
+            'video' => filled($this->input('video')) ? trim(strip_tags((string) $this->input('video'))) : null,
             'description' => filled($this->input('description')) ? trim((string) $this->input('description')) : null,
             'price' => trim((string) $this->input('price', '')),
             'warranty_value' => filled($this->input('warranty_value')) ? $this->input('warranty_value') : null,

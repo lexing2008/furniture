@@ -31,7 +31,7 @@ withDefaults(
             <button
                 type="submit"
                 :disabled="processing || disabled"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-green-first px-6 py-3 text-sm font-semibold text-white shadow-md shadow-green-first/20 transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-first/40 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-green-first px-6 py-3 text-sm font-semibold text-white shadow-md shadow-green-first/20 transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-first/40 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
                 <svg v-if="processing" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
