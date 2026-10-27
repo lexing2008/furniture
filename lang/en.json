@@ -546,5 +546,7 @@
     "Создать новую позицию": "Create a new listing",
     "Все ваши позиции": "All your listings",
     "Информация о компании": "Company information",
-    "Часы работы и выходные": "Working hours and days off"
+    "Часы работы и выходные": "Working hours and days off",
+    "Юридический адрес": "Legal address",
+    "Фактический адрес": "Actual address"
 }

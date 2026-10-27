@@ -231,7 +231,9 @@ const resetFilters = () => {
 
                 <input
                     v-model="search"
-                    type="search"
+                    type="text"
+                    autocomplete="off"
+                    enterkeyhint="search"
                     class="h-12 w-full rounded-xl border-0 bg-transparent pl-11 pr-32 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
                     :placeholder="$t('Поиск по названию, артикулу или номеру')"
                 />

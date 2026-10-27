@@ -119,6 +119,8 @@ class AccountPagesTest extends TestCase
         $response = $this->post($this->url('/register'), [
             'legal_name' => 'ООО Новая компания',
             'tax_id' => '300000003',
+            'legal_address' => 'г. Минск, ул. Новая, 1',
+            'actual_address' => 'г. Минск, ул. Фактическая, 2',
             'display_name' => 'Новая компания',
             'region_id' => $this->city->id,
             'description' => '',
@@ -140,6 +142,8 @@ class AccountPagesTest extends TestCase
         $this->assertAuthenticated();
         $this->assertSame('new-owner@example.com', auth()->user()->email);
         $this->assertSame($this->country->id, auth()->user()->company->country_id);
+        $this->assertSame('г. Минск, ул. Новая, 1', auth()->user()->company->legal_address);
+        $this->assertSame('г. Минск, ул. Фактическая, 2', auth()->user()->company->actual_address);
         $response->assertSessionHas('success');
     }
 
@@ -279,7 +283,7 @@ class AccountPagesTest extends TestCase
                 ->has('tasks', 7)
                 ->where('completed_tasks', 5)
                 ->where('progress', 71)
-                ->has('recent_ads', 3));
+                ->has('recent_ads', 4));
     }
 
     public function test_registration_page_uses_the_country_phone_code(): void
@@ -315,6 +319,8 @@ class AccountPagesTest extends TestCase
         $this->actingAs($this->user)->put($this->url('/general'), [
             'legal_name' => 'ООО Новое имя',
             'tax_id' => '200000002',
+            'legal_address' => 'г. Минск, ул. Юридическая, 3',
+            'actual_address' => 'г. Минск, ул. Фактическая, 4',
             'display_name' => 'Новое имя',
             'region_id' => $this->city->id,
             'description' => '<p>Новое описание</p>',
@@ -326,6 +332,8 @@ class AccountPagesTest extends TestCase
         $company = $this->company->fresh();
 
         $this->assertSame('ООО Новое имя', $company->legal_name);
+        $this->assertSame('г. Минск, ул. Юридическая, 3', $company->legal_address);
+        $this->assertSame('г. Минск, ул. Фактическая, 4', $company->actual_address);
         $this->assertSame('https://new.example.com', $company->website);
         $this->assertSame('shop@example.com', $company->email);
         $this->assertSame(['facebook' => 'https://facebook.com/romashka'], $company->socials);
@@ -363,6 +371,8 @@ class AccountPagesTest extends TestCase
         $this->actingAs($this->user)->put($this->url('/general'), [
             'legal_name' => '<b>ООО Новое</b>',
             'tax_id' => '<i>200000002</i>',
+            'legal_address' => '<span>г. Минск, ул. Юридическая, 5</span>',
+            'actual_address' => '<b>г. Минск, ул. Фактическая, 6</b>',
             'display_name' => '<span>Новое имя</span>',
             'region_id' => $this->city->id,
             'description' => '<p>Новое описание</p>',
@@ -375,6 +385,8 @@ class AccountPagesTest extends TestCase
 
         $this->assertSame('ООО Новое', $company->legal_name);
         $this->assertSame('200000002', $company->tax_id);
+        $this->assertSame('г. Минск, ул. Юридическая, 5', $company->legal_address);
+        $this->assertSame('г. Минск, ул. Фактическая, 6', $company->actual_address);
         $this->assertSame('Новое имя', $company->display_name);
         $this->assertSame('https://new.example.com', $company->website);
         $this->assertSame('<p>Новое описание</p>', $company->description);

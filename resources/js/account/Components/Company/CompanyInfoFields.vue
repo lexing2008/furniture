@@ -48,6 +48,20 @@ const errors = computed(() => props.form.errors as Record<string, string | undef
             <InputError class="mt-2" :message="errors.region_id" />
         </div>
 
+        <div class="grid gap-4 md:grid-cols-2">
+            <div>
+                <InputLabel for="legal_address" :value="$t('Юридический адрес')" required :invalid="!!errors.legal_address" />
+                <TextInput id="legal_address" type="text" class="mt-1 block w-full" v-model="form.legal_address" :invalid="!!errors.legal_address" />
+                <InputError class="mt-2" :message="errors.legal_address" />
+            </div>
+
+            <div>
+                <InputLabel for="actual_address" :value="$t('Фактический адрес')" :invalid="!!errors.actual_address" />
+                <TextInput id="actual_address" type="text" class="mt-1 block w-full" v-model="form.actual_address" :invalid="!!errors.actual_address" />
+                <InputError class="mt-2" :message="errors.actual_address" />
+            </div>
+        </div>
+
         <div>
             <InputLabel for="website" :value="$t('Сайт')" :invalid="!!errors.website" />
             <TextInput id="website" type="text" class="mt-1 block w-full" v-model="form.website" placeholder="https://example.com" :invalid="!!errors.website" />

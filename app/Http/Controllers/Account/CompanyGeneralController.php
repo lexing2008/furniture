@@ -34,6 +34,8 @@ class CompanyGeneralController extends Controller
                 'region_id' => $company->region_id,
                 'legal_name' => $company->legal_name,
                 'tax_id' => $company->tax_id,
+                'legal_address' => $company->legal_address ?? '',
+                'actual_address' => $company->actual_address ?? '',
                 'display_name' => $company->display_name,
                 'description' => $company->description ?? '',
                 'is_online_store' => $company->is_online_store,

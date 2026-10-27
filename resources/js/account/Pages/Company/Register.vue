@@ -30,6 +30,8 @@ const form = useForm<RegisterFormData>({
     region_id: props.defaultRegionId,
     legal_name: '',
     tax_id: '',
+    legal_address: '',
+    actual_address: '',
     display_name: '',
     description: '',
     is_online_store: false,

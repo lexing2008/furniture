@@ -9,6 +9,8 @@ export interface CompanyInfoFields {
     region_id: number | null;
     legal_name: string;
     tax_id: string;
+    legal_address: string;
+    actual_address: string;
     display_name: string;
     website: string;
     is_online_store: boolean;

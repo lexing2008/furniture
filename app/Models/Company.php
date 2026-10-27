@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'user_id', 'region_id', 'country_id', 'legal_name', 'tax_id', 'display_name', 'description',
+    'user_id', 'region_id', 'country_id', 'legal_name', 'tax_id', 'legal_address', 'actual_address', 'display_name', 'description',
     'delivery', 'payment', 'is_online_store', 'website', 'email', 'socials',
 ])]
 class Company extends Model

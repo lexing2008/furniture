@@ -29,7 +29,7 @@ class CompanyController extends Controller
         $recentAds = $company->ads()
             ->with(['images', 'category'])
             ->latest('id')
-            ->take(3)
+            ->take(9)
             ->get()
             ->map(fn (Ad $ad) => [
                 'id' => $ad->id,
