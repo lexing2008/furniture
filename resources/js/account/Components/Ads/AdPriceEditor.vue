@@ -217,8 +217,10 @@ const save = async () => {
                 <div
                     v-if="toast"
                     :key="toast.type + toast.message"
-                    class="fixed bottom-4 left-4 right-4 z-[120] overflow-hidden rounded-2xl border bg-white/95 shadow-2xl shadow-gray-300/50 backdrop-blur sm:bottom-6 sm:left-auto sm:right-6 sm:w-96"
-                    :class="toast.type === 'success' ? 'border-green-first/20' : 'border-red-100'"
+                    class="fixed bottom-4 left-4 right-4 z-[120] overflow-hidden rounded-2xl border bg-white/95 ring-1 ring-black/5 backdrop-blur sm:bottom-6 sm:left-auto sm:right-6 sm:w-96"
+                    :class="toast.type === 'success'
+                        ? 'border-green-first/20 shadow-[0_26px_65px_-22px_rgba(103,181,42,0.65),0_10px_30px_-15px_rgba(15,23,42,0.18)]'
+                        : 'border-red-100 shadow-[0_26px_65px_-22px_rgba(239,68,68,0.5),0_10px_30px_-15px_rgba(15,23,42,0.18)]'"
                     :role="toast.type === 'error' ? 'alert' : 'status'"
                     :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
                 >

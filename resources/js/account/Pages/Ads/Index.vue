@@ -354,18 +354,18 @@ const resetFilters = () => {
             <table v-if="ads.length > 0" class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
                     <tr>
-                        <th class="px-2 py-3">{{ $t('Название') }}</th>
-                        <th class="px-2 py-3">{{ $t('Артикул / номер') }}</th>
-                        <th class="px-2 py-3">{{ $t('Категория') }}</th>
-                        <th class="px-2 py-3">{{ $t('Статус') }}</th>
-                        <th class="px-2 py-3">{{ $t('Цена') }}</th>
-                        <th class="px-2 py-3">{{ $t('Параметры') }}</th>
-                        <th class="px-2 py-3">{{ $t('Актуален на') }}</th>
+                        <th class="px-1.5 py-3">{{ $t('Название') }}</th>
+                        <th class="px-1.5 py-3">{{ $t('Артикул / номер') }}</th>
+                        <th class="px-1.5 py-3">{{ $t('Категория') }}</th>
+                        <th class="px-1.5 py-3">{{ $t('Статус') }}</th>
+                        <th class="px-1.5 py-3">{{ $t('Цена') }}</th>
+                        <th class="px-1.5 py-3">{{ $t('Параметры') }}</th>
+                        <th class="px-1.5 py-3">{{ $t('Актуален на') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     <tr v-for="ad in ads" :key="ad.id" class="transition hover:bg-gray-50/70">
-                        <td class="px-2 py-3">
+                        <td class="px-1.5 py-3">
                             <div class="flex min-w-0 items-center gap-3">
                                 <div class="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gray-100 ring-1 ring-gray-200">
                                     <img v-if="ad.thumb_url" :src="ad.thumb_url" :alt="ad.title" loading="lazy" class="h-full w-full object-cover" />
@@ -398,18 +398,29 @@ const resetFilters = () => {
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                             </svg>
                                         </Link>
+                                        <Link
+                                            :href="route('account.ads.create', { copy: ad.id })"
+                                            class="inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:border-green-first/20 hover:bg-green-first/10 hover:text-green-first"
+                                            :title="$t('Создать похожее')"
+                                            :aria-label="$t('Создать похожее')"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A1.125 1.125 0 0 0 14.625 4.125h-9.75A1.125 1.125 0 0 0 3.75 5.25v9.75A1.125 1.125 0 0 0 4.875 16.125H9" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h9A1.125 1.125 0 0 1 19.125 9.375v9A1.125 1.125 0 0 1 18 19.5H9a1.125 1.125 0 0 1-1.125-1.125v-9A1.125 1.125 0 0 1 9 8.25Z" />
+                                            </svg>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
                         </td>
-                        <td class="whitespace-nowrap px-2 py-3 text-gray-600">
+                        <td class="whitespace-nowrap px-1.5 py-3 text-gray-600">
                             <div class="space-y-0.5">
                                 <p v-if="ad.article">{{ ad.article }}</p>
                                 <p v-if="ad.number" :class="ad.article ? 'text-xs text-gray-400' : ''">{{ ad.number }}</p>
                                 <p v-if="!ad.article && !ad.number">—</p>
                             </div>
                         </td>
-                        <td class="px-2 py-3 text-gray-600">
+                        <td class="px-1.5 py-3 text-gray-600">
                             <button
                                 type="button"
                                 class="cursor-pointer rounded-full px-2 py-1 text-left text-sm text-gray-600 transition hover:bg-green-first/10 hover:text-green-first"
@@ -419,7 +430,7 @@ const resetFilters = () => {
                                 {{ ad.category }}
                             </button>
                         </td>
-                        <td class="whitespace-nowrap px-2 py-3">
+                        <td class="whitespace-nowrap px-1.5 py-3">
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <span
                                     class="inline-flex h-7 w-7 items-center justify-center rounded-full"
@@ -448,10 +459,10 @@ const resetFilters = () => {
                                 </span>
                             </div>
                         </td>
-                        <td class="whitespace-nowrap px-2 py-3 font-medium text-gray-800">
+                        <td class="whitespace-nowrap px-1.5 py-3 font-medium text-gray-800">
                             <AdPriceEditor :ad-id="ad.id" :price="ad.price" :currency="ad.currency" :decimals="currencyDecimals" />
                         </td>
-                        <td class="px-2 py-3">
+                        <td class="px-1.5 py-3">
                             <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
@@ -459,7 +470,7 @@ const resetFilters = () => {
                                 {{ ad.filter_count }}
                             </span>
                         </td>
-                        <td class="px-2 py-3 align-top">
+                        <td class="px-1.5 py-3 align-top">
                             <AdActualize :ad-id="ad.id" :published-at="ad.published_at" />
                         </td>
                     </tr>

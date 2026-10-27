@@ -12,7 +12,6 @@ defineProps<{
     defaultRegionId: number | null;
     currency: string | null;
     currencyDecimals: number;
-    companyWebsite: string | null;
     source: AdCopySource | null;
     filters: AdFilter[];
 }>();
@@ -42,7 +41,6 @@ defineProps<{
             :default-region-id="defaultRegionId"
             :currency="currency"
             :currency-decimals="currencyDecimals"
-            :company-website="companyWebsite"
             :source="source"
             :initial-filters="filters"
         />

@@ -12,7 +12,6 @@ defineProps<{
     regions: RegionNode[];
     currency: string | null;
     currencyDecimals: number;
-    companyWebsite: string | null;
     filters: AdFilter[];
 }>();
 </script>
@@ -42,7 +41,6 @@ defineProps<{
             :initial-filters="filters"
             :currency="currency"
             :currency-decimals="currencyDecimals"
-            :company-website="companyWebsite"
             :copy-url="`${route('account.ads.create')}?copy=${ad.id}`"
         />
     </AccountLayout>

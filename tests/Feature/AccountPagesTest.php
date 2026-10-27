@@ -433,6 +433,38 @@ class AccountPagesTest extends TestCase
         );
     }
 
+    public function test_socials_only_accept_their_network_domains(): void
+    {
+        $this->actingAs($this->user)->put($this->url('/socials'), [
+            'socials' => [
+                'facebook' => 'https://m.facebook.com/romashka',
+                'youtube' => 'https://vimeo.com/romashka',
+                'vk' => 'https://vk.com.evil.example/romashka',
+                'x' => 'https://twitter.com/romashka',
+            ],
+        ])->assertSessionHasErrors(['socials.youtube', 'socials.vk']);
+
+        $this->assertSame(
+            ['facebook' => 'https://facebook.com/romashka'],
+            $this->company->fresh()->socials,
+        );
+
+        $this->actingAs($this->user)->put($this->url('/socials'), [
+            'socials' => [
+                'facebook' => 'https://m.facebook.com/romashka',
+                'telegram' => 'https://t.me/romashka',
+            ],
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame(
+            [
+                'facebook' => 'https://m.facebook.com/romashka',
+                'telegram' => 'https://t.me/romashka',
+            ],
+            $this->company->fresh()->socials,
+        );
+    }
+
     public function test_password_can_be_changed(): void
     {
         $this->actingAs($this->user)->put($this->url('/password'), [

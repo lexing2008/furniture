@@ -625,35 +625,35 @@ class AdTest extends TestCase
         Http::assertSent(fn ($request) => $request->url() === 'https://img.example.com/photo.jpg');
     }
 
-    public function test_image_url_requires_a_company_website_and_an_allowed_domain(): void
+    public function test_image_url_can_be_uploaded_from_any_public_site(): void
     {
-        $this->company->update(['website' => null]);
-
-        $this->actingAs($this->user)
-            ->postJson($this->url('/ads/images/url'), ['url' => 'https://example.com/photo.jpg'])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('website');
-
-        $this->actingAs($this->user)
-            ->putJson($this->url('/website'), ['website' => 'example.com'])
-            ->assertOk()
-            ->assertJsonPath('website', 'https://example.com');
+        $file = UploadedFile::fake()->image('photo.jpg', 800, 600);
+        $contents = file_get_contents($file->getRealPath());
 
         Http::fake([
-            'https://example.com/not-an-image.jpg' => Http::response('not an image', 200, ['Content-Type' => 'image/jpeg']),
+            'https://images.other-site.test/photo.jpg' => Http::response($contents, 200, ['Content-Type' => 'image/jpeg']),
+            'https://images.other-site.test/not-an-image.jpg' => Http::response('not an image', 200, ['Content-Type' => 'image/jpeg']),
         ]);
 
+        $response = $this->actingAs($this->user)
+            ->postJson($this->url('/ads/images/url'), [
+                'url' => 'https://images.other-site.test/photo.jpg',
+            ])
+            ->assertCreated()
+            ->assertJsonStructure(['id', 'url', 'thumb_630_url', 'thumb_100_url']);
+
+        $tmp = TmpFile::findOrFail($response->json('id'));
+        Storage::disk('public')->assertExists($tmp->path);
+        $this->assertNull($this->company->fresh()->website);
+
         $this->actingAs($this->user)
-            ->postJson($this->url('/ads/images/url'), ['url' => 'https://example.com/not-an-image.jpg'])
+            ->postJson($this->url('/ads/images/url'), [
+                'url' => 'https://images.other-site.test/not-an-image.jpg',
+            ])
             ->assertStatus(422)
             ->assertJsonValidationErrors('url');
 
-        $this->actingAs($this->user)
-            ->postJson($this->url('/ads/images/url'), ['url' => 'https://evil.example.net/photo.jpg'])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('url');
-
-        $this->assertSame(0, TmpFile::query()->count());
+        Http::assertSent(fn ($request) => $request->url() === 'https://images.other-site.test/photo.jpg');
     }
 
     public function test_temporary_image_can_be_deleted_from_the_server(): void

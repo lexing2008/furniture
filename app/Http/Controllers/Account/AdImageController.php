@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\TmpFile;
 use App\Services\AdImageService;
 use App\Support\AdImagePath;
-use App\Support\CompanyWebsite;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -37,20 +36,6 @@ class AdImageController extends Controller
             'url.required' => __('Вставьте ссылку на изображение.'),
             'url.url' => __('Укажите корректную ссылку на изображение.'),
         ]);
-
-        $company = $request->user()->company()->firstOrFail();
-
-        if (blank($company->website)) {
-            throw ValidationException::withMessages([
-                'website' => __('Сначала укажите сайт компании.'),
-            ]);
-        }
-
-        if (! CompanyWebsite::allows($company->website, $data['url'])) {
-            throw ValidationException::withMessages([
-                'url' => __('Можно загружать изображения только с сайта компании и его поддоменов.'),
-            ]);
-        }
 
         $host = parse_url($data['url'], PHP_URL_HOST);
 

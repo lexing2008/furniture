@@ -548,5 +548,9 @@
     "Информация о компании": "Company information",
     "Часы работы и выходные": "Working hours and days off",
     "Юридический адрес": "Legal address",
-    "Фактический адрес": "Actual address"
+    "Фактический адрес": "Actual address",
+    "Создать похожее": "Create similar",
+    "Проверьте правильность заполнения полей.": "Please check the form fields.",
+    "Можно загружать изображения с любого сайта.": "You can upload images from any website.",
+    "Ссылка должна вести на :network.": "The link must lead to :network."
 }

@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import AccountToast from '@/account/Components/AccountToast.vue';
 import Sidebar from '@/account/Components/Sidebar/Sidebar.vue';
+import { translate } from '@/common/i18n';
 import type { PageProps } from '@/account/types';
 import { router, usePage } from '@inertiajs/vue3';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const page = usePage<PageProps>();
 
@@ -14,6 +16,64 @@ const resend = () => {
 };
 
 const sidebarCollapsed = ref(false);
+
+type Toast = {
+    type: 'success' | 'error';
+    message: string;
+};
+
+const toast = ref<Toast | null>(null);
+let toastTimer: number | null = null;
+
+const showToast = (type: Toast['type'], message: string) => {
+    toast.value = { type, message };
+
+    if (toastTimer !== null) {
+        window.clearTimeout(toastTimer);
+    }
+
+    toastTimer = window.setTimeout(() => {
+        toast.value = null;
+        toastTimer = null;
+    }, 3500);
+};
+
+const closeToast = () => {
+    toast.value = null;
+
+    if (toastTimer !== null) {
+        window.clearTimeout(toastTimer);
+        toastTimer = null;
+    }
+};
+
+onBeforeUnmount(() => {
+    if (toastTimer !== null) {
+        window.clearTimeout(toastTimer);
+    }
+});
+
+watch(
+    () => page.props.flash,
+    (flash) => {
+        if (flash?.success) {
+            showToast('success', flash.success);
+        } else if (flash?.error) {
+            showToast('error', flash.error);
+        }
+    },
+    { deep: true, immediate: true },
+);
+
+watch(
+    () => page.props.errors,
+    (errors) => {
+        if (errors && Object.keys(errors).length > 0 && !page.props.flash?.success && !page.props.flash?.error) {
+            showToast('error', translate('Проверьте правильность заполнения полей.'));
+        }
+    },
+    { deep: true },
+);
 
 onMounted(() => {
     sidebarCollapsed.value = localStorage.getItem('account-sidebar-collapsed') === '1';
@@ -58,16 +118,11 @@ const toggleSidebar = () => {
                         </button>
                     </div>
 
-                    <div v-if="page.props.flash?.success" class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                        {{ page.props.flash.success }}
-                    </div>
-                    <div v-if="page.props.flash?.error" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {{ page.props.flash.error }}
-                    </div>
-
                     <slot />
                 </div>
             </main>
         </div>
+
+        <AccountToast :show="toast !== null" :type="toast?.type ?? 'success'" :message="toast?.message ?? ''" @close="closeToast" />
     </div>
 </template>

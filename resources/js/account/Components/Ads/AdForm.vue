@@ -32,7 +32,6 @@ const props = withDefaults(
         ad?: AdData | null;
         source?: AdCopySource | null;
         copyUrl?: string | null;
-        companyWebsite?: string | null;
         initialFilters?: AdFilter[];
     }>(),
     {
@@ -40,7 +39,6 @@ const props = withDefaults(
         ad: null,
         source: null,
         copyUrl: null,
-        companyWebsite: null,
         initialFilters: () => [],
     },
 );
@@ -102,11 +100,6 @@ const dragIndex = ref<number | null>(null);
 const dropTargetIndex = ref<number | null>(null);
 const uploads = new Map<string, XMLHttpRequest>();
 const uploadError = ref<string | null>(null);
-const website = ref(props.companyWebsite ?? '');
-const websiteModalOpen = ref(false);
-const websiteValue = ref('');
-const websiteSaving = ref(false);
-const websiteError = ref<string | null>(null);
 const imageUrl = ref('');
 const urlUploading = ref(false);
 const urlError = ref<string | null>(null);
@@ -118,67 +111,6 @@ const filtersError = ref<string | null>(null);
 
 const isUploading = computed(() => urlUploading.value || images.value.some((image) => image.uploading));
 const errors = computed(() => form.errors as Record<string, string | undefined>);
-
-const websiteHost = computed(() => {
-    const value = website.value.trim();
-
-    if (value === '') {
-        return '';
-    }
-
-    try {
-        return new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`).hostname.replace(/^www\./i, '');
-    } catch {
-        return value.replace(/^https?:\/\//i, '').replace(/\/.*$/, '').replace(/^www\./i, '');
-    }
-});
-
-const openWebsiteModal = () => {
-    websiteValue.value = website.value || 'https://';
-    websiteError.value = null;
-    websiteModalOpen.value = true;
-};
-
-const closeWebsiteModal = () => {
-    if (!websiteSaving.value) {
-        websiteModalOpen.value = false;
-    }
-};
-
-const saveWebsite = async () => {
-    websiteSaving.value = true;
-    websiteError.value = null;
-
-    try {
-        const response = await fetch(route('account.website.update'), {
-            method: 'PUT',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken(),
-            },
-            body: JSON.stringify({ website: websiteValue.value }),
-        });
-        const data = (await response.json().catch(() => ({}))) as {
-            website?: string;
-            message?: string;
-            errors?: Record<string, string[]>;
-        };
-
-        if (!response.ok) {
-            websiteError.value = data.errors?.website?.[0] ?? data.message ?? translate('Укажите корректный сайт.');
-            return;
-        }
-
-        website.value = data.website ?? websiteValue.value;
-        websiteModalOpen.value = false;
-        urlError.value = null;
-    } catch {
-        websiteError.value = translate('Не удалось сохранить сайт.');
-    } finally {
-        websiteSaving.value = false;
-    }
-};
 
 const onUrlPaste = (event: ClipboardEvent) => {
     const value = event.clipboardData?.getData('text')?.trim();
@@ -200,13 +132,6 @@ const uploadUrl = async () => {
     urlError.value = null;
 
     if (url === '' || urlUploading.value) {
-        return;
-    }
-
-    if (website.value.trim() === '') {
-        urlError.value = translate('Сначала укажите сайт компании.');
-        openWebsiteModal();
-
         return;
     }
 
@@ -249,14 +174,9 @@ const uploadUrl = async () => {
             images.value = images.value.filter((image) => image.key !== item.key);
             urlError.value =
                 data.errors?.url?.[0] ??
-                data.errors?.website?.[0] ??
                 data.errors?.image?.[0] ??
                 data.message ??
                 translate('Не удалось загрузить изображение по ссылке.');
-
-            if (data.errors?.website) {
-                openWebsiteModal();
-            }
 
             return;
         }
@@ -715,28 +635,7 @@ const dropzone =
                 <p :class="hint">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
             </div>
 
-            <div v-if="!website" class="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex items-start gap-3">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-amber-600 shadow-xs">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                        </svg>
-                    </span>
-                    <div>
-                        <p class="text-sm font-medium text-amber-900">{{ $t('Укажите сайт компании') }}</p>
-                        <p class="mt-1 text-sm leading-5 text-amber-800">{{ $t('Чтобы загружать изображения по ссылке, укажите сайт компании.') }}</p>
-                    </div>
-                </div>
-                <button
-                    type="button"
-                    class="inline-flex shrink-0 items-center justify-center rounded-full bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700"
-                    @click="openWebsiteModal"
-                >
-                    {{ $t('Указать сайт') }}
-                </button>
-            </div>
-
-            <div v-else class="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <div class="min-w-0 flex-1">
                         <InputLabel for="image_url" :value="$t('Ссылка на изображение')" />
@@ -745,7 +644,7 @@ const dropzone =
                             v-model="imageUrl"
                             type="url"
                             class="mt-1 block w-full"
-                            :placeholder="`https://${websiteHost || 'example.com'}/image.jpg`"
+                            placeholder="https://example.com/image.jpg"
                             autocomplete="off"
                             @keydown.enter.prevent="uploadUrl"
                             @paste="onUrlPaste"
@@ -765,7 +664,6 @@ const dropzone =
                     </button>
                 </div>
 
-                <p class="mt-2" :class="hint">{{ $t('Можно загружать изображения с сайта :host и его поддоменов.', { host: websiteHost }) }}</p>
                 <p v-if="urlError" class="mt-2 text-sm text-red-600">{{ urlError }}</p>
             </div>
 
@@ -983,65 +881,5 @@ const dropzone =
         </AccountFormActions>
         </form>
 
-        <Teleport to="body">
-            <div v-if="websiteModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/50 p-4 backdrop-blur-sm" @click.self="closeWebsiteModal">
-                <div class="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-green-700">{{ $t('Кабинет компании') }}</p>
-                            <h3 class="mt-1 text-xl font-bold tracking-tight text-gray-900">{{ $t('Сайт компании') }}</h3>
-                        </div>
-                        <button
-                            type="button"
-                            class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
-                            :aria-label="$t('Закрыть')"
-                            @click="closeWebsiteModal"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <p class="mt-3 text-sm leading-6 text-gray-500">
-                        {{ $t('Сайт нужен, чтобы разрешить загрузку только с домена компании и его поддоменов.') }}
-                    </p>
-
-                    <form class="mt-5 space-y-4" @submit.prevent="saveWebsite">
-                        <div>
-                            <InputLabel for="company_website" :value="$t('Сайт компании')" required />
-                            <TextInput
-                                id="company_website"
-                                v-model="websiteValue"
-                                type="url"
-                                class="mt-1 block w-full"
-                                placeholder="https://example.com"
-                                autocomplete="url"
-                                :invalid="!!websiteError"
-                            />
-                            <p class="mt-1 text-xs leading-5 text-gray-500">{{ $t('Например, https://example.com') }}</p>
-                            <InputError class="mt-2" :message="websiteError ?? undefined" />
-                        </div>
-
-                        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                            <button type="button" class="rounded-full border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50" @click="closeWebsiteModal">
-                                {{ $t('Отмена') }}
-                            </button>
-                            <button
-                                type="submit"
-                                class="inline-flex items-center justify-center gap-2 rounded-full bg-green-first px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
-                                :disabled="websiteSaving || websiteValue.trim() === ''"
-                            >
-                                <svg v-if="websiteSaving" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
-                                </svg>
-                                {{ $t('Сохранить сайт') }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </Teleport>
     </div>
 </template>
