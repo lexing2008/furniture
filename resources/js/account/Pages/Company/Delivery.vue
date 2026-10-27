@@ -33,7 +33,7 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 
         <form class="space-y-6" @submit.prevent="submit">
             <section :class="section">
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Условия доставки') }}</h2>
+                <h2 class="text-lg font-semibold" :class="errors.delivery ? 'text-red-600' : 'text-gray-900'">{{ $t('Условия доставки') }}</h2>
                 <p class="text-xs text-gray-500">
                     {{ $t('Опишите способы, сроки и стоимость доставки. Текст будет виден посетителям.') }}
                 </p>

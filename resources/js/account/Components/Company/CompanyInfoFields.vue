@@ -24,33 +24,33 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 
         <div class="grid gap-4 md:grid-cols-2">
             <div>
-                <InputLabel for="legal_name" :value="$t('Официальное название компании')" />
-                <TextInput id="legal_name" type="text" class="mt-1 block w-full" v-model="form.legal_name" />
+                <InputLabel for="legal_name" :value="$t('Официальное название компании')" required :invalid="!!errors.legal_name" />
+                <TextInput id="legal_name" type="text" class="mt-1 block w-full" v-model="form.legal_name" :invalid="!!errors.legal_name" />
                 <InputError class="mt-2" :message="errors.legal_name" />
             </div>
 
             <div>
-                <InputLabel for="tax_id" :value="$t('Tax ID')" />
-                <TextInput id="tax_id" type="text" class="mt-1 block w-full" v-model="form.tax_id" />
+                <InputLabel for="tax_id" :value="$t('Tax ID')" required :invalid="!!errors.tax_id" />
+                <TextInput id="tax_id" type="text" class="mt-1 block w-full" v-model="form.tax_id" :invalid="!!errors.tax_id" />
                 <InputError class="mt-2" :message="errors.tax_id" />
             </div>
 
             <div class="md:col-span-2">
-                <InputLabel for="display_name" :value="$t('Отображаемое название компании')" />
-                <TextInput id="display_name" type="text" class="mt-1 block w-full" v-model="form.display_name" />
+                <InputLabel for="display_name" :value="$t('Отображаемое название компании')" required :invalid="!!errors.display_name" />
+                <TextInput id="display_name" type="text" class="mt-1 block w-full" v-model="form.display_name" :invalid="!!errors.display_name" />
                 <InputError class="mt-2" :message="errors.display_name" />
             </div>
         </div>
 
         <div>
-            <InputLabel :value="$t('Регион (город)')" />
-            <RegionTree v-model="form.region_id" :nodes="regions" />
+            <InputLabel :value="$t('Регион (город)')" required :invalid="!!errors.region_id" />
+            <RegionTree v-model="form.region_id" :nodes="regions" :invalid="!!errors.region_id" />
             <InputError class="mt-2" :message="errors.region_id" />
         </div>
 
         <div>
-            <InputLabel for="website" :value="$t('Сайт')" />
-            <TextInput id="website" type="text" class="mt-1 block w-full" v-model="form.website" placeholder="https://example.com" />
+            <InputLabel for="website" :value="$t('Сайт')" :invalid="!!errors.website" />
+            <TextInput id="website" type="text" class="mt-1 block w-full" v-model="form.website" placeholder="https://example.com" :invalid="!!errors.website" />
             <InputError class="mt-2" :message="errors.website" />
         </div>
 

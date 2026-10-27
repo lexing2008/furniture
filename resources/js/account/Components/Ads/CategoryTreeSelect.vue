@@ -8,8 +8,9 @@ const props = withDefaults(
     defineProps<{
         nodes: CategoryNode[];
         name?: string;
+        invalid?: boolean;
     }>(),
-    { name: 'category_id' },
+    { name: 'category_id', invalid: false },
 );
 
 const model = defineModel<number | null>({ required: true });
@@ -165,7 +166,7 @@ const button = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs 
         <input
             v-model="query"
             type="search"
-            class="block w-full rounded-full border-gray-300 px-4 py-2 text-sm shadow-xs focus:border-green-first focus:ring-green-first"
+            class="block w-full rounded-full border px-4 py-2 text-sm shadow-xs" :class="invalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-first focus:ring-green-first'"
             :placeholder="$t('Поиск категории')"
         />
 
@@ -177,7 +178,7 @@ const button = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs 
 
         <p v-if="filteredNodes.length === 0" class="text-sm text-gray-500">{{ $t('Ничего не найдено') }}</p>
 
-        <ul v-else class="space-y-1 rounded-md border border-gray-200 p-3">
+        <ul v-else class="space-y-1 rounded-md border p-3" :class="invalid ? 'border-red-500' : 'border-gray-200'">
             <CategoryTreeNode v-for="node in filteredNodes" :key="node.id" :node="node" />
         </ul>
     </div>

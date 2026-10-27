@@ -37,11 +37,11 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 
         <form class="space-y-6" @submit.prevent="submit">
             <section :class="section">
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Email') }}</h2>
+                <h2 class="text-lg font-semibold" :class="form.errors.email ? 'text-red-600' : 'text-gray-900'">{{ $t('Email') }}</h2>
 
                 <div>
-                    <InputLabel for="email" :value="$t('Контактный email компании')" />
-                    <TextInput id="email" type="email" class="mt-1 block w-full md:w-1/2" v-model="form.email" />
+                    <InputLabel for="email" :value="$t('Контактный email компании')" :invalid="!!form.errors.email" />
+                    <TextInput id="email" type="email" class="mt-1 block w-full md:w-1/2" v-model="form.email" :invalid="!!form.errors.email" />
                     <p class="mt-1 text-xs text-gray-500">
                         {{ $t('Виден посетителям. Email для входа (:email) не меняется.', { email: page.props.auth.user.email }) }}
                     </p>

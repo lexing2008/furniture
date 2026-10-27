@@ -427,29 +427,29 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             <h2 class="text-lg font-semibold text-gray-900">{{ $t('Основная информация') }}</h2>
 
             <div>
-                <InputLabel for="title" :value="$t('Название')" />
-                <TextInput id="title" v-model="form.title" type="text" class="mt-1 block w-full" :placeholder="$t('Например, диван «Осло»')" />
+                <InputLabel for="title" :value="$t('Название')" required :invalid="!!form.errors.title" />
+                <TextInput id="title" v-model="form.title" type="text" class="mt-1 block w-full" :placeholder="$t('Например, диван «Осло»')" :invalid="!!form.errors.title" />
                 <InputError class="mt-2" :message="form.errors.title" />
             </div>
 
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
-                    <InputLabel for="article" :value="$t('Артикул')" />
-                    <TextInput id="article" v-model="form.article" type="text" class="mt-1 block w-full" :placeholder="$t('Например, ART-12345')" />
+                    <InputLabel for="article" :value="$t('Артикул')" :invalid="!!form.errors.article" />
+                    <TextInput id="article" v-model="form.article" type="text" class="mt-1 block w-full" :placeholder="$t('Например, ART-12345')" :invalid="!!form.errors.article" />
                     <InputError class="mt-2" :message="form.errors.article" />
                 </div>
 
                 <div>
-                    <InputLabel for="number" :value="$t('Номер в собственной системе (необязательно)')" />
-                    <TextInput id="number" v-model="form.number" type="text" class="mt-1 block w-full" :placeholder="$t('Например, 12345')" />
+                    <InputLabel for="number" :value="$t('Номер в собственной системе (необязательно)')" :invalid="!!form.errors.number" />
+                    <TextInput id="number" v-model="form.number" type="text" class="mt-1 block w-full" :placeholder="$t('Например, 12345')" :invalid="!!form.errors.number" />
                     <p :class="hint">{{ $t('Уникальный номер товара или услуги в вашей системе.') }}</p>
                     <InputError class="mt-2" :message="form.errors.number" />
                 </div>
             </div>
 
             <div>
-                <InputLabel :value="$t('Категория')" />
-                <CategoryTreeSelect v-model="form.category_id" :nodes="categories" @change="loadFilters" />
+                <InputLabel :value="$t('Категория')" required :invalid="!!form.errors.category_id" />
+                <CategoryTreeSelect v-model="form.category_id" :nodes="categories" :invalid="!!form.errors.category_id" @change="loadFilters" />
                 <InputError class="mt-2" :message="form.errors.category_id" />
             </div>
 
@@ -460,9 +460,9 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
 
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
-                    <InputLabel for="price" :value="$t('Цена')" />
+                    <InputLabel for="price" :value="$t('Цена')" required :invalid="!!form.errors.price" />
                     <div class="mt-1 flex items-center gap-2">
-                        <TextInput id="price" v-model="form.price" type="number" min="0" :step="priceStep" class="block w-full" :placeholder="$t('Например, 12')" />
+                        <TextInput id="price" v-model="form.price" type="number" min="0" :step="priceStep" class="block w-full" :placeholder="$t('Например, 12')" :invalid="!!form.errors.price" />
                         <span class="shrink-0 text-sm font-medium text-gray-700">{{ currency ?? '—' }}</span>
                     </div>
                     <p :class="hint">{{ $t('Цена отображается в валюте текущего региона.') }}</p>
@@ -470,12 +470,13 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                 </div>
 
                 <div>
-                    <InputLabel for="warranty_value" :value="$t('Срок гарантии')" />
+                    <InputLabel for="warranty_value" :value="$t('Срок гарантии')" :invalid="!!(form.errors.warranty_value || form.errors.warranty_unit)" />
                     <div class="mt-1 flex gap-2">
-                        <TextInput id="warranty_value" v-model="form.warranty_value" type="number" min="1" max="1000" class="block w-full" :placeholder="$t('Например, 12')" />
+                        <TextInput id="warranty_value" v-model="form.warranty_value" type="number" min="1" max="1000" class="block w-full" :placeholder="$t('Например, 12')" :invalid="!!(form.errors.warranty_value || form.errors.warranty_unit)" />
                         <select
                             v-model="form.warranty_unit"
-                            class="w-40 rounded-full border-gray-300 shadow-xs focus:border-green-first focus:ring-green-first"
+                            class="w-40 rounded-full border shadow-xs"
+                            :class="(form.errors.warranty_value || form.errors.warranty_unit) ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-first focus:ring-green-first'"
                         >
                             <option v-for="unit in warrantyUnits" :key="unit.value" :value="unit.value">{{ unit.label }}</option>
                         </select>
@@ -487,7 +488,7 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
 
 
             <div>
-                <InputLabel for="description" :value="$t('Описание')" />
+                <InputLabel for="description" :value="$t('Описание')" :invalid="!!form.errors.description" />
                 <WysiwygEditor
                     v-model="form.description"
                     profile="company"
@@ -502,13 +503,13 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
 
         <section :class="section">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Изображения') }}</h2>
+                <h2 class="text-lg font-semibold" :class="errors.images ? 'text-red-600' : 'text-gray-900'">{{ $t('Изображения') }}</h2>
                 <p :class="hint">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
             </div>
 
             <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFileInput" />
 
-            <div :class="dropzone" @click="openFileDialog" @dragover.prevent @drop.prevent="onDropzone">
+            <div :class="[dropzone, errors.images ? 'border-red-500' : '']" @click="openFileDialog" @dragover.prevent @drop.prevent="onDropzone">
                 <p>{{ $t('Перетащите изображения сюда или нажмите, чтобы выбрать') }}</p>
                 <p class="mt-1 text-xs">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
             </div>
@@ -572,25 +573,25 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             </div>
 
             <div>
-                <InputLabel for="video" :value="$t('Ссылка на YouTube')" />
-                <TextInput id="video" v-model="form.video" type="url" class="mt-1 block w-full" :placeholder="$t('Например, https://youtube.com/watch?v=...')" />
+                <InputLabel for="video" :value="$t('Ссылка на YouTube')" :invalid="!!form.errors.video" />
+                <TextInput id="video" v-model="form.video" type="url" class="mt-1 block w-full" :placeholder="$t('Например, https://youtube.com/watch?v=...')" :invalid="!!form.errors.video" />
                 <InputError class="mt-2" :message="form.errors.video" />
             </div>
         </section>
 
         <section :class="section">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Регионы') }}</h2>
+                <h2 class="text-lg font-semibold" :class="form.errors.regions ? 'text-red-600' : 'text-gray-900'">{{ $t('Регионы') }} <span class="text-red-600">*</span></h2>
                 <p :class="hint">{{ $t('Выберите регионы, в которых показывать товар/услугу.') }}</p>
             </div>
 
-            <AdRegionTree v-model="form.regions" :nodes="regions" />
+            <AdRegionTree v-model="form.regions" :nodes="regions" :invalid="!!form.errors.regions" />
             <InputError :message="form.errors.regions" />
         </section>
 
         <section :class="section">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Параметры фильтров') }}</h2>
+                <h2 class="text-lg font-semibold" :class="form.errors.filters ? 'text-red-600' : 'text-gray-900'">{{ $t('Параметры фильтров') }}</h2>
             </div>
 
             <p v-if="!form.category_id" :class="hint">{{ $t('Выберите категорию, чтобы загрузить фильтры.') }}</p>
@@ -600,7 +601,7 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
 
             <div v-else class="space-y-4">
                 <div v-for="filter in filters" :key="filter.id">
-                    <div class="mb-2 text-sm font-medium text-gray-800">
+                    <div class="mb-2 text-sm font-medium" :class="filterError(filter.id) ? 'text-red-600' : 'text-gray-800'">
                         {{ filter.name }}
                         <span v-if="filter.unit" class="text-gray-500">({{ filter.unit }})</span>
                     </div>
@@ -610,7 +611,8 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                             <input
                                 type="checkbox"
                                 :checked="isVariantChecked(filter.id, variant.id)"
-                                class="rounded-sm border-gray-300 text-green-first shadow-xs focus:ring-green-first"
+                                class="rounded-sm text-green-first shadow-xs focus:ring-green-first"
+                                :class="filterError(filter.id) ? 'border-red-500' : 'border-gray-300'"
                                 @change="toggleVariant(filter.id, variant.id, $event)"
                             />
                             {{ variant.name }}
@@ -623,7 +625,8 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                                 type="radio"
                                 :name="`filter_${filter.id}`"
                                 :checked="Number(form.filters[String(filter.id)]) === variant.id"
-                                class="border-gray-300 text-green-first shadow-xs focus:ring-green-first"
+                                class="text-green-first shadow-xs focus:ring-green-first"
+                                :class="filterError(filter.id) ? 'border-red-500' : 'border-gray-300'"
                                 @change="setRadio(filter.id, variant.id)"
                             />
                             {{ variant.name }}
@@ -635,7 +638,8 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                         :value="String(form.filters[String(filter.id)] ?? '')"
                         type="number"
                         step="1"
-                        class="block w-full rounded-full border-gray-300 shadow-xs focus:border-green-first focus:ring-green-first md:w-64"
+                        class="block w-full rounded-full border shadow-xs md:w-64"
+                        :class="filterError(filter.id) ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-first focus:ring-green-first'"
                         @input="setFilterValue(filter.id, $event)"
                     />
 
@@ -644,7 +648,8 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                         :value="String(form.filters[String(filter.id)] ?? '')"
                         type="number"
                         :step="String(1 / 10 ** (filter.digits_after_point ?? 2))"
-                        class="block w-full rounded-full border-gray-300 shadow-xs focus:border-green-first focus:ring-green-first md:w-64"
+                        class="block w-full rounded-full border shadow-xs md:w-64"
+                        :class="filterError(filter.id) ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-first focus:ring-green-first'"
                         @input="setFilterValue(filter.id, $event)"
                     />
 
@@ -657,11 +662,12 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
 
         <section :class="section">
             <div>
-                <InputLabel for="is_active" :value="$t('Отображать на сайте')" />
+                <InputLabel for="is_active" :value="$t('Отображать на сайте')" required :invalid="!!form.errors.is_active" />
                 <select
                     id="is_active"
                     v-model="form.is_active"
-                    class="mt-1 block w-full rounded-full border-gray-300 shadow-xs focus:border-green-first focus:ring-green-first md:w-96"
+                    class="mt-1 block w-full rounded-full border shadow-xs md:w-96"
+                    :class="form.errors.is_active ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-first focus:ring-green-first'"
                 >
                     <option :value="true">{{ $t('Отображать на сайте') }}</option>
                     <option :value="false">{{ $t('Не отображать на сайте') }}</option>

@@ -72,27 +72,28 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
-                            <InputLabel for="name" :value="$t('Имя')" />
-                            <TextInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" autocomplete="name" />
+                            <InputLabel for="name" :value="$t('Имя')" required :invalid="!!form.errors.name" />
+                            <TextInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" autocomplete="name" :invalid="!!form.errors.name" />
                             <InputError class="mt-2" :message="form.errors.name" />
                         </div>
 
                         <div>
-                            <InputLabel for="email" :value="$t('Email')" />
-                            <TextInput id="email" type="email" class="mt-1 block w-full" v-model="form.email" autocomplete="username" />
+                            <InputLabel for="email" :value="$t('Email')" required :invalid="!!form.errors.email" />
+                            <TextInput id="email" type="email" class="mt-1 block w-full" v-model="form.email" autocomplete="username" :invalid="!!form.errors.email" />
                             <InputError class="mt-2" :message="form.errors.email" />
                         </div>
 
                         <div>
-                            <InputLabel for="password" :value="$t('Пароль')" />
-                            <TextInput id="password" type="password" class="mt-1 block w-full" v-model="form.password" autocomplete="new-password" />
+                            <InputLabel for="password" :value="$t('Пароль')" required :invalid="!!form.errors.password" />
+                            <TextInput id="password" type="password" class="mt-1 block w-full" v-model="form.password" autocomplete="new-password" :invalid="!!form.errors.password" />
                             <InputError class="mt-2" :message="form.errors.password" />
                         </div>
 
                         <div>
-                            <InputLabel for="password_confirmation" :value="$t('Повторите пароль')" />
+                            <InputLabel for="password_confirmation" :value="$t('Повторите пароль')" required :invalid="!!form.errors.password_confirmation" />
                             <TextInput
                                 id="password_confirmation"
+                                :invalid="!!form.errors.password_confirmation"
                                 type="password"
                                 class="mt-1 block w-full"
                                 v-model="form.password_confirmation"
@@ -104,14 +105,15 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
                 </section>
 
                 <div class="space-y-4">
-                    <label class="flex items-start gap-2">
+                    <label class="flex items-start gap-2" :class="{ 'text-red-600': !!form.errors.terms }">
                         <input
                             type="checkbox"
                             v-model="form.terms"
-                            class="mt-0.5 rounded-sm border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500"
+                            class="mt-0.5 rounded-sm text-indigo-600 shadow-xs focus:ring-indigo-500"
+                            :class="form.errors.terms ? 'border-red-500' : 'border-gray-300'"
                         />
-                        <span class="text-sm text-gray-700">
-                            {{ $t('Я согласен с') }}
+                        <span class="text-sm" :class="form.errors.terms ? 'text-red-600' : 'text-gray-700'">
+                            {{ $t('Я согласен с') }} <span class="text-red-600">*</span>
                             <a :href="terms.rules" target="_blank" class="text-indigo-600 underline">{{ $t('Правилами использования веб-сайта') }}</a>
                             {{ $t('и') }}
                             <a :href="terms.privacy" target="_blank" class="text-indigo-600 underline">{{ $t('политикой обработки персональных данных') }}</a>

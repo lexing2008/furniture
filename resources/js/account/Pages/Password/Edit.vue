@@ -51,9 +51,10 @@ const hint = 'mt-1 text-xs text-gray-500';
                 <p :class="hint">{{ $t('Используйте длинный пароль, который не применяется на других сайтах.') }}</p>
 
                 <div>
-                    <InputLabel for="current_password" :value="$t('Текущий пароль')" />
+                    <InputLabel for="current_password" :value="$t('Текущий пароль')" required :invalid="!!form.errors.current_password" />
                     <TextInput
                         id="current_password"
+                        :invalid="!!form.errors.current_password"
                         ref="currentPasswordInput"
                         v-model="form.current_password"
                         type="password"
@@ -64,9 +65,10 @@ const hint = 'mt-1 text-xs text-gray-500';
                 </div>
 
                 <div>
-                    <InputLabel for="password" :value="$t('Новый пароль')" />
+                    <InputLabel for="password" :value="$t('Новый пароль')" required :invalid="!!form.errors.password" />
                     <TextInput
                         id="password"
+                        :invalid="!!form.errors.password"
                         ref="passwordInput"
                         v-model="form.password"
                         type="password"
@@ -77,9 +79,10 @@ const hint = 'mt-1 text-xs text-gray-500';
                 </div>
 
                 <div>
-                    <InputLabel for="password_confirmation" :value="$t('Повторите новый пароль')" />
+                    <InputLabel for="password_confirmation" :value="$t('Повторите новый пароль')" required :invalid="!!form.errors.password_confirmation" />
                     <TextInput
                         id="password_confirmation"
+                        :invalid="!!form.errors.password_confirmation"
                         v-model="form.password_confirmation"
                         type="password"
                         class="mt-1 block w-full md:w-1/2"

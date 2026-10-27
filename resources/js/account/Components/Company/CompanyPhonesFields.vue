@@ -31,7 +31,7 @@ const smallButton = 'cursor-pointer rounded border border-gray-300 px-2 py-1 tex
 <template>
     <section :class="section">
         <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">{{ $t('Телефоны') }}</h2>
+            <h2 class="text-lg font-semibold" :class="errors.phones ? 'text-red-600' : 'text-gray-900'">{{ $t('Телефоны') }} <span class="text-red-600">*</span></h2>
             <button type="button" :class="smallButton" @click="addPhone">{{ $t('+ Добавить телефон') }}</button>
         </div>
 
@@ -39,9 +39,10 @@ const smallButton = 'cursor-pointer rounded border border-gray-300 px-2 py-1 tex
 
         <div v-for="(phone, index) in form.phones" :key="index" class="grid gap-3 md:grid-cols-[6rem_1fr_2fr_auto] md:items-start">
             <div>
-                <InputLabel :for="`phone_code_${index}`" :value="$t('Код')" />
+                <InputLabel :for="`phone_code_${index}`" :value="$t('Код')" required :invalid="!!phoneError(index, 'code')" />
                 <TextInput
                     :id="`phone_code_${index}`"
+                    :invalid="!!phoneError(index, 'code')"
                     type="text"
                     class="mt-1 block w-full"
                     v-model="phone.code"
@@ -51,15 +52,16 @@ const smallButton = 'cursor-pointer rounded border border-gray-300 px-2 py-1 tex
             </div>
 
             <div>
-                <InputLabel :for="`phone_number_${index}`" :value="$t('Номер')" />
-                <TextInput :id="`phone_number_${index}`" type="text" class="mt-1 block w-full" v-model="phone.number" placeholder="29 123-45-67" />
+                <InputLabel :for="`phone_number_${index}`" :value="$t('Номер')" required :invalid="!!phoneError(index, 'number')" />
+                <TextInput :id="`phone_number_${index}`" type="text" class="mt-1 block w-full" v-model="phone.number" placeholder="29 123-45-67" :invalid="!!phoneError(index, 'number')" />
                 <InputError class="mt-1" :message="phoneError(index, 'number')" />
             </div>
 
             <div>
-                <InputLabel :for="`phone_description_${index}`" :value="$t('Что за телефон')" />
+                <InputLabel :for="`phone_description_${index}`" :value="$t('Что за телефон')" :invalid="!!phoneError(index, 'description')" />
                 <TextInput
                     :id="`phone_description_${index}`"
+                    :invalid="!!phoneError(index, 'description')"
                     type="text"
                     class="mt-1 block w-full"
                     v-model="phone.description"

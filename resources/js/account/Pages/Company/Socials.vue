@@ -36,14 +36,15 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 
         <form class="space-y-6" @submit.prevent="submit">
             <section :class="section">
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Ссылки на соцсети') }}</h2>
+                <h2 class="text-lg font-semibold" :class="Object.keys(errors).some((key) => key.startsWith('socials.')) ? 'text-red-600' : 'text-gray-900'">{{ $t('Ссылки на соцсети') }}</h2>
                 <p class="text-xs text-gray-500">{{ $t('Укажите полные адреса страниц компании. Пустые поля не сохраняются.') }}</p>
 
                 <div class="grid gap-4 md:grid-cols-2">
                     <div v-for="(title, key) in socials" :key="key">
-                        <InputLabel :for="`social_${key}`" :value="title" />
+                        <InputLabel :for="`social_${key}`" :value="title" :invalid="!!errors[`socials.${key}`]" />
                         <TextInput
                             :id="`social_${key}`"
+                            :invalid="!!errors[`socials.${key}`]"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.socials[key]"

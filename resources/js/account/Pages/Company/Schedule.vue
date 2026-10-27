@@ -53,7 +53,7 @@ const hint = 'text-xs text-gray-500';
         <form class="space-y-6" @submit.prevent="submit">
             <section :class="section">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-900">{{ $t('Рабочие часы') }}</h2>
+                    <h2 class="text-lg font-semibold" :class="errors.schedule ? 'text-red-600' : 'text-gray-900'">{{ $t('Рабочие часы') }}</h2>
                     <p :class="hint">
                         {{ $t('Время работы компании по дням недели.') }}
                         <template v-if="timezone">{{ $t('Часовой пояс: :timezone.', { timezone }) }}</template>
@@ -80,9 +80,10 @@ const hint = 'text-xs text-gray-500';
 
                             <template v-if="!day.is_closed">
                                 <div class="w-36">
-                                    <InputLabel :for="`open_at_${index}`" :value="$t('Открытие')" />
+                                    <InputLabel :for="`open_at_${index}`" :value="$t('Открытие')" required :invalid="!!scheduleError(index, 'open_at')" />
                                     <TextInput
                                         :id="`open_at_${index}`"
+                                        :invalid="!!scheduleError(index, 'open_at')"
                                         type="time"
                                         class="mt-1 block w-full"
                                         v-model="day.open_at"
@@ -91,9 +92,10 @@ const hint = 'text-xs text-gray-500';
                                 </div>
 
                                 <div class="w-36">
-                                    <InputLabel :for="`close_at_${index}`" :value="$t('Закрытие')" />
+                                    <InputLabel :for="`close_at_${index}`" :value="$t('Закрытие')" required :invalid="!!scheduleError(index, 'close_at')" />
                                     <TextInput
                                         :id="`close_at_${index}`"
+                                        :invalid="!!scheduleError(index, 'close_at')"
                                         type="time"
                                         class="mt-1 block w-full"
                                         v-model="day.close_at"
@@ -113,9 +115,10 @@ const hint = 'text-xs text-gray-500';
                             class="mt-4 flex flex-wrap items-end gap-4 border-t border-gray-100 pt-4"
                         >
                             <div class="w-36">
-                                <InputLabel :for="`break_start_at_${index}`" :value="$t('Начало перерыва')" />
+                                <InputLabel :for="`break_start_at_${index}`" :value="$t('Начало перерыва')" required :invalid="!!scheduleError(index, 'break_start_at')" />
                                 <TextInput
                                     :id="`break_start_at_${index}`"
+                                        :invalid="!!scheduleError(index, 'break_start_at')"
                                     type="time"
                                     class="mt-1 block w-full"
                                     v-model="day.break_start_at"
@@ -124,9 +127,10 @@ const hint = 'text-xs text-gray-500';
                             </div>
 
                             <div class="w-36">
-                                <InputLabel :for="`break_end_at_${index}`" :value="$t('Конец перерыва')" />
+                                <InputLabel :for="`break_end_at_${index}`" :value="$t('Конец перерыва')" required :invalid="!!scheduleError(index, 'break_end_at')" />
                                 <TextInput
                                     :id="`break_end_at_${index}`"
+                                        :invalid="!!scheduleError(index, 'break_end_at')"
                                     type="time"
                                     class="mt-1 block w-full"
                                     v-model="day.break_end_at"
@@ -142,7 +146,7 @@ const hint = 'text-xs text-gray-500';
 
             <section :class="section">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-900">{{ $t('Нерабочие и праздничные дни') }}</h2>
+                    <h2 class="text-lg font-semibold" :class="errors.exceptions ? 'text-red-600' : 'text-gray-900'">{{ $t('Нерабочие и праздничные дни') }}</h2>
                     <p :class="hint">{{ $t('В эти даты компания закрыта, даже если день недели рабочий.') }}</p>
                 </div>
 
@@ -159,9 +163,10 @@ const hint = 'text-xs text-gray-500';
                         class="flex flex-wrap items-end gap-3 rounded-md border border-gray-200 p-4"
                     >
                         <div class="w-48">
-                            <InputLabel :for="`exception_date_${index}`" :value="$t('Дата')" />
+                            <InputLabel :for="`exception_date_${index}`" :value="$t('Дата')" required :invalid="!!exceptionError(index, 'date')" />
                             <TextInput
                                 :id="`exception_date_${index}`"
+                                        :invalid="!!exceptionError(index, 'date')"
                                 type="date"
                                 class="mt-1 block w-full"
                                 v-model="exception.date"
@@ -170,9 +175,10 @@ const hint = 'text-xs text-gray-500';
                         </div>
 
                         <div class="min-w-48 flex-1">
-                            <InputLabel :for="`exception_name_${index}`" :value="$t('Название (необязательно)')" />
+                            <InputLabel :for="`exception_name_${index}`" :value="$t('Название (необязательно)')" :invalid="!!exceptionError(index, 'name')" />
                             <TextInput
                                 :id="`exception_name_${index}`"
+                                        :invalid="!!exceptionError(index, 'name')"
                                 type="text"
                                 class="mt-1 block w-full"
                                 v-model="exception.name"

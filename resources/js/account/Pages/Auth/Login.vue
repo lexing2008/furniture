@@ -37,10 +37,11 @@ const submit = () => {
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" :value="$t('Email')" />
+                <InputLabel for="email" :value="$t('Email')" required :invalid="!!form.errors.email" />
 
                 <TextInput
                     id="email"
+                    :invalid="!!form.errors.email"
                     type="email"
                     class="mt-1 block w-full"
                     v-model="form.email"
@@ -53,10 +54,11 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" :value="$t('Password')" />
+                <InputLabel for="password" :value="$t('Password')" required :invalid="!!form.errors.password" />
 
                 <TextInput
                     id="password"
+                    :invalid="!!form.errors.password"
                     type="password"
                     class="mt-1 block w-full"
                     v-model="form.password"

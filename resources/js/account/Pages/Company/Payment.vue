@@ -33,7 +33,7 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 
         <form class="space-y-6" @submit.prevent="submit">
             <section :class="section">
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Способы оплаты') }}</h2>
+                <h2 class="text-lg font-semibold" :class="errors.payment ? 'text-red-600' : 'text-gray-900'">{{ $t('Способы оплаты') }}</h2>
                 <p class="text-xs text-gray-500">
                     {{ $t('Опишите способы оплаты, например наличными, картой или переводом. Текст будет виден посетителям.') }}
                 </p>

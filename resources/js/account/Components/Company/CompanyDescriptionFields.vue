@@ -17,7 +17,7 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
 
 <template>
     <section :class="section">
-        <h2 class="text-lg font-semibold text-gray-900">{{ $t('Краткое описание') }}</h2>
+        <h2 class="text-lg font-semibold" :class="errors.description ? 'text-red-600' : 'text-gray-900'">{{ $t('Краткое описание') }}</h2>
         <p class="text-xs text-gray-500">{{ $t('Абзацы, заголовки, жирный и курсив, списки и таблицы. Остальное при сохранении удаляется.') }}</p>
 
         <WysiwygEditor

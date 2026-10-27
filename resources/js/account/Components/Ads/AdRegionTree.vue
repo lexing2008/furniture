@@ -6,6 +6,7 @@ import { adRegionTreeKey } from './adRegionTree';
 
 const props = defineProps<{
     nodes: RegionNode[];
+    invalid?: boolean;
 }>();
 
 const selected = defineModel<number[]>({ required: true });
@@ -119,7 +120,7 @@ const button = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs 
 
         <p v-if="nodes.length === 0" class="text-sm text-gray-500">{{ $t('Городов пока нет.') }}</p>
 
-        <ul v-else class="space-y-1 rounded-md border border-gray-200 p-3">
+        <ul v-else class="space-y-1 rounded-md border p-3" :class="invalid ? 'border-red-500' : 'border-gray-200'">
             <AdRegionTreeNode v-for="node in nodes" :key="node.id" :node="node" />
         </ul>
     </div>

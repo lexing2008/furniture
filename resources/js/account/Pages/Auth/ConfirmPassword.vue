@@ -29,9 +29,10 @@ const submit = () => {
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="password" :value="$t('Password')" />
+                <InputLabel for="password" :value="$t('Password')" required :invalid="!!form.errors.password" />
                 <TextInput
                     id="password"
+                    :invalid="!!form.errors.password"
                     type="password"
                     class="mt-1 block w-full"
                     v-model="form.password"
