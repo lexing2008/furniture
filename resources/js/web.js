@@ -246,6 +246,53 @@
         });
     });
 
+    // Выбор вариантов фильтра ведёт на SEO-URL: /category/slug;slug/
+    document.querySelectorAll('[data-filter-variant]').forEach(function (input) {
+        input.addEventListener('change', function () {
+            var form = input.closest('form');
+
+            if (!form || !form.dataset.filterBaseUrl) {
+                return;
+            }
+
+            var baseUrl = new URL(form.dataset.filterBaseUrl, window.location.origin);
+            var selected = [];
+
+            form.querySelectorAll('[data-filter-variant]:checked').forEach(function (item) {
+                if (item.dataset.filterSlug) {
+                    selected.push(item.dataset.filterSlug);
+                }
+            });
+
+            var path = baseUrl.pathname.replace(/\/$/, '');
+
+            if (selected.length > 0) {
+                path += '/' + selected.join(';') + '/';
+            }
+
+            var params = new URLSearchParams(window.location.search);
+
+            form.querySelectorAll('[data-filter-variant]').forEach(function (item) {
+                params.delete(item.name);
+            });
+
+            form.querySelectorAll('input[type="number"]').forEach(function (item) {
+                if (item.value === '') {
+                    params.delete(item.name);
+                } else {
+                    params.set(item.name, item.value);
+                }
+            });
+
+            params.delete('page');
+
+            var url = new URL(window.location.origin + path);
+            url.search = params.toString();
+
+            window.location.href = url.toString();
+        });
+    });
+
     // Полное описание товара и скрытые данные компании.
     document.querySelectorAll('[data-ad-expand]').forEach(function (button) {
         button.addEventListener('click', function () {

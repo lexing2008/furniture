@@ -6,6 +6,8 @@ use App\Enums\Roles;
 use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Filter;
+use App\Models\FilterVariant;
 use App\Models\Language;
 use App\Models\Region;
 use App\Models\RegionCountry;
@@ -398,6 +400,71 @@ class AccountPagesTest extends TestCase
         $this->get('http://minsk.furniture.test/divany?sort=price_asc')
             ->assertOk()
             ->assertSeeInOrder(['Дешёвый товар', 'Товар в категории']);
+    }
+
+    public function test_category_filter_variant_slug_filters_ads(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $filter = Filter::create([
+            'category_id' => $this->category->id,
+            'type' => 'checkbox',
+            'order' => 0,
+            'is_active' => true,
+        ]);
+        $variant = FilterVariant::create(['filter_id' => $filter->id, 'order' => 0]);
+        $variant->translations()->create([
+            'lang' => 'ru',
+            'name_in_filter' => 'Угловой',
+            'name_full' => 'Угловой диван',
+            'name_buy' => 'Купить угловой диван',
+            'slug' => 'uglovoy',
+            'is_active' => true,
+        ]);
+
+        $matching = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Подходящий диван',
+            'description' => '<p>Описание</p>',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+        $matching->filterVariants()->create([
+            'filter_id' => $filter->id,
+            'filter_variant_id' => $variant->id,
+        ]);
+
+        Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Другой диван',
+            'description' => '<p>Описание</p>',
+            'price' => 200,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany/uglovoy/')
+            ->assertOk()
+            ->assertSee('Подходящий диван')
+            ->assertDontSee('Другой диван');
     }
 
     public function test_category_children_are_available_as_json(): void

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ad;
 use App\Models\Category;
+use App\Models\FilterVariant;
 use App\Models\Region;
 use App\Services\AdFilterService;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +17,7 @@ use Illuminate\View\View;
  */
 class RegionCategoryController extends Controller
 {
-    public function show(Region $region, string $categorySlug, Request $request, AdFilterService $filterService): View
+    public function show(Request $request, AdFilterService $filterService, Region $region, string $categorySlug, ?string $filterSlugs = null): View
     {
         $locale = app()->getLocale();
 
@@ -46,6 +47,41 @@ class RegionCategoryController extends Controller
         $filters = $filterService->forCategory($category->id, null, $locale);
         $filterValues = $request->input('filters', []);
         $filterValues = is_array($filterValues) ? $filterValues : [];
+        $categoryUrl = route('region.category', [
+            'region' => $region->subdomain,
+            'categorySlug' => $categorySlug,
+        ]);
+
+        $selectedVariantSlugs = $filterSlugs === null
+            ? []
+            : array_values(array_filter(array_unique(explode(';', $filterSlugs))));
+
+        if ($selectedVariantSlugs !== []) {
+            $variants = FilterVariant::query()
+                ->with(['translations', 'filter'])
+                ->whereHas('translations', function (Builder $query) use ($locale, $selectedVariantSlugs) {
+                    $query->where('lang', $locale)
+                        ->whereIn('slug', $selectedVariantSlugs)
+                        ->where('is_active', true);
+                })
+                ->whereHas('filter', function (Builder $query) use ($category) {
+                    $query->where('category_id', $category->id)->where('is_active', true);
+                })
+                ->get();
+
+            if ($variants->count() !== count($selectedVariantSlugs)) {
+                abort(404);
+            }
+
+            foreach ($variants->groupBy('filter_id') as $filterId => $group) {
+                $type = $group->first()->filter->type->value;
+                $ids = $group->pluck('id')->map(fn ($id) => (int) $id)->unique()->values();
+
+                $filterValues[$filterId] = [
+                    'values' => $type === 'radio' ? $ids->first() : $ids->all(),
+                ];
+            }
+        }
 
         $adsQuery = Ad::query()
             ->with(['images', 'company.phones', 'company.region'])
@@ -92,6 +128,7 @@ class RegionCategoryController extends Controller
             'sidebarCategories' => $sidebarCategories,
             'filters' => $filters,
             'filterValues' => $filterValues,
+            'categoryUrl' => $categoryUrl,
             'ads' => $ads,
             'seo' => $seo,
             'sort' => $sort,

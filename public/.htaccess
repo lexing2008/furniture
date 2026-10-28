@@ -13,6 +13,12 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
+    # Keep trailing slash in the browser while routing /divany/uglovoy/ internally
+    RewriteCond %{REQUEST_URI} ^/[a-z0-9-]+/[a-z0-9;-]+/$
+    RewriteCond %{REQUEST_URI} !^/account/
+    RewriteCond %{REQUEST_URI} !^/admin/
+    RewriteRule ^([a-z0-9-]+)/([a-z0-9;-]+)/$ /$1/$2 [L]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$

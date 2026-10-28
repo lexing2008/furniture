@@ -113,8 +113,9 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         ->whereNumber('category')
         ->name('region.category.children');
 
-    Route::get('/{categorySlug}', [RegionCategoryController::class, 'show'])
+    Route::get('/{categorySlug}/{filterSlugs?}', [RegionCategoryController::class, 'show'])
         ->where('categorySlug', '[a-z0-9-]+')
+        ->where('filterSlugs', '[a-z0-9;-]+')
         ->name('region.category');
 });
 

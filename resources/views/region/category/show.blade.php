@@ -60,7 +60,7 @@
                     <section class="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
                         <h2 class="text-sm font-bold uppercase tracking-wide text-gray-900">{{ __('Фильтры') }}</h2>
 
-                            <form method="GET" action="{{ $currentUrl }}" class="mt-4 space-y-5">
+                            <form method="GET" action="{{ $currentUrl }}" data-filter-base-url="{{ $categoryUrl }}" class="mt-4 space-y-5">
                                 @if($sort !== 'published')
                                     <input type="hidden" name="sort" value="{{ $sort }}">
                                 @endif
@@ -88,6 +88,10 @@
                                                             type="{{ $filter['type'] === 'radio' ? 'radio' : 'checkbox' }}"
                                                             name="{{ $filter['type'] === 'radio' ? 'filters['.$filter['id'].'][values]' : 'filters['.$filter['id'].'][values][]' }}"
                                                             value="{{ $variant['id'] }}"
+                                                            @if(!empty($variant['slug']))
+                                                                data-filter-variant
+                                                                data-filter-slug="{{ $variant['slug'] }}"
+                                                            @endif
                                                             @checked($filter['type'] === 'radio'
                                                                 ? (string) ($selected['values'] ?? '') === (string) $variant['id']
                                                                 : in_array((string) $variant['id'], array_map('strval', $selectedVariants), true))

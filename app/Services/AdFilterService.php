@@ -15,7 +15,7 @@ class AdFilterService
     /**
      * @return array<int, array{
      *     id: int, name: string, unit: ?string, type: string, digits_after_point: ?int,
-     *     variants: array<int, array{id: int, name: string}>, value: mixed
+     *     variants: array<int, array{id: int, name: string, slug: string}>, value: mixed
      * }>
      */
     public function forCategory(int $categoryId, ?Ad $ad = null, ?string $lang = null): array
@@ -35,10 +35,17 @@ class AdFilterService
         return $filters->map(function (Filter $filter) use ($ad, $lang): array {
             $variants = $filter->variants
                 ->filter(fn (FilterVariant $variant) => $this->variantIsActive($variant, $lang))
-                ->map(fn (FilterVariant $variant) => [
-                    'id' => $variant->id,
-                    'name' => $variant->nameIn($lang),
-                ])
+                ->map(function (FilterVariant $variant) use ($lang) {
+                    $translation = $variant->translations->firstWhere('lang', $lang)
+                        ?? $variant->translations->firstWhere('lang', Filter::BASE_LANG)
+                        ?? $variant->translations->first();
+
+                    return [
+                        'id' => $variant->id,
+                        'name' => $variant->nameIn($lang),
+                        'slug' => $translation?->slug ?? '',
+                    ];
+                })
                 ->values()
                 ->all();
 
