@@ -9,6 +9,11 @@
     }
 
     button.addEventListener('click', function () { setRegionPopupOpen(true); });
+
+    document.querySelectorAll('[data-region-popup-open]').forEach(function (openButton) {
+        openButton.addEventListener('click', function () { setRegionPopupOpen(true); });
+    });
+
     buttonClose.addEventListener('click', function () { setRegionPopupOpen(false); });
     backdrop.addEventListener('click', function(event) {
         // Находим сам попап (белое окно)

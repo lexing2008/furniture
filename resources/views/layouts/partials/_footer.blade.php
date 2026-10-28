@@ -55,13 +55,17 @@
                 </p>
 
                 <div class="mt-5 flex flex-wrap items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80 ring-1 ring-white/10">
+                    <button
+                        type="button"
+                        data-region-popup-open
+                        class="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80 ring-1 ring-white/10 transition hover:bg-white/15 hover:text-white"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                         </svg>
                         {{ $regionLabel }}
-                    </span>
+                    </button>
                     <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80 ring-1 ring-white/10">
                         {{ $locale === 'en' ? $country->name_en : $country->name }}
                     </span>
@@ -93,7 +97,7 @@
             <div>
                 <h3 class="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/85">
                     <span class="h-px w-5 bg-white/70"></span>
-                    {{ __('Другие города') }}
+                    {{ __('Большие города') }}
                 </h3>
                 <div class="space-y-2">
                     @forelse ($capitalCities as $city)
@@ -102,8 +106,20 @@
                             {{ __('Мебель в :city', ['city' => $locale === 'en' ? $city->name_en : $city->name_in]) }}
                         </a>
                     @empty
-                        <p class="text-xs leading-5 text-white/40">{{ __('Пока нет других городов.') }}</p>
+                        <p class="text-xs leading-5 text-white/60">{{ __('Пока нет других городов.') }}</p>
                     @endforelse
+
+                    <button
+                        type="button"
+                        data-region-popup-open
+                        class="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80 ring-1 ring-white/10 transition hover:bg-white/15 hover:text-white"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        {{ __('Все города') }}
+                    </button>
                 </div>
             </div>
 
@@ -124,9 +140,8 @@
     </div>
 
     <div class="relative border-t border-white/15">
-        <div class="mx-auto flex max-w-[1600px] flex-col gap-2 px-4 py-5 text-xs text-white/65 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-            <p>{{ __('© :year Мебельный портал :domain', ['year' => date('Y'), 'domain' => $region->subdomain.'.'.config('app.domain')]) }}</p>
-            <p>{{ __('Все права защищены.') }}</p>
+        <div class="mx-auto flex max-w-[1600px] flex-col gap-2 px-4 py-5 text-xs text-white/65 sm:flex-row sm:items-center sm:justify-center sm:px-6 lg:px-8">
+            {{ __('© :year Мебельный портал :domain', ['year' => date('Y'), 'domain' => $region->subdomain.'.'.config('app.domain')]) }}
         </div>
     </div>
 </footer>

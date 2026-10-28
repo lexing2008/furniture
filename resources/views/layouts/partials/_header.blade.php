@@ -26,7 +26,7 @@
         <div class="flex flex-wrap gap-x-10 justify-between items-center">
             <div class="lg:pl-1">
                 <div class="text-xs">{{ __('Мебель в :region', ['region' => app()->getLocale() === 'en' ? $region->name_en : $region->name_in]) }}</div>
-                <a href="{{ $country->url() }}" class="logo">{{ config('app.name') }}</a>
+                <a href="{{ route('region.show') }}" class="logo">{{ config('app.name') }}</a>
             </div>
 
             <div>
