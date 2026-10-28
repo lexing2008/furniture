@@ -13,10 +13,12 @@ use App\Http\Controllers\Account\CompanyGeneralController;
 use App\Http\Controllers\Account\CompanyPaymentController;
 use App\Http\Controllers\Account\CompanyRegistrationController;
 use App\Http\Controllers\Account\CompanyScheduleController;
+use App\Http\Controllers\Account\LanguageController;
 use App\Http\Controllers\Account\CompanySocialsController;
 use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\RegionPageController;
 use App\Http\Middleware\HandleInertiaAccountRequests;
+use App\Http\Middleware\SetLocaleFromUser;
 use App\Http\Middleware\HandleInertiaAdminRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -54,9 +56,10 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         // - - - end Auth
     });
 
-    Route::prefix('account')->middleware(['auth', 'role:customer', HandleInertiaAccountRequests::class])->group(function () {
+    Route::prefix('account')->middleware(['auth', 'role:customer', SetLocaleFromUser::class, HandleInertiaAccountRequests::class])->group(function () {
         // Main page of the account (empty for now)
         Route::get('/', [CompanyController::class, 'index'])->name('account.index');
+        Route::patch('language', [LanguageController::class, 'update'])->name('account.language.update');
 
         // Products and services
         Route::get('ads', [AdController::class, 'index'])->name('account.ads.index');

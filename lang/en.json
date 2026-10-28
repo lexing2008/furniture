@@ -552,5 +552,11 @@
     "Создать похожее": "Create similar",
     "Проверьте правильность заполнения полей.": "Please check the form fields.",
     "Можно загружать изображения с любого сайта.": "You can upload images from any website.",
-    "Ссылка должна вести на :network.": "The link must lead to :network."
+    "Ссылка должна вести на :network.": "The link must lead to :network.",
+    "Язык интерфейса": "Interface language",
+    "Язык интерфейса изменён.": "Interface language updated.",
+    "Русский": "Russian",
+    "English": "English",
+    "Выберите язык интерфейса.": "Choose the interface language.",
+    "Выберите поддерживаемый язык.": "Choose a supported language."
 }

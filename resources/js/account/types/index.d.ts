@@ -6,6 +6,7 @@ export interface User {
     email: string;
     email_verified_at?: string;
     role?: 'admin' | 'manager' | 'seo' | 'customer' | null;
+    lang?: string | null;
 }
 
 export type PageProps<

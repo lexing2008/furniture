@@ -286,6 +286,25 @@ class AccountPagesTest extends TestCase
                 ->has('recent_ads', 4));
     }
 
+    public function test_account_language_is_saved_and_used(): void
+    {
+        $this->actingAs($this->user)->patch($this->url('/language'), ['lang' => 'en'])
+            ->assertRedirect();
+
+        $this->assertSame('en', $this->user->fresh()->lang);
+
+        $this->get($this->url(''))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Index', false)
+                ->where('locale', 'en'));
+
+        $this->actingAs($this->user)->patch($this->url('/language'), ['lang' => 'de'])
+            ->assertSessionHasErrors('lang');
+
+        $this->assertSame('en', $this->user->fresh()->lang);
+    }
+
     public function test_registration_page_uses_the_country_phone_code(): void
     {
         $this->get($this->url('/register'))
