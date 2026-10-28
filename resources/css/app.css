@@ -20,6 +20,8 @@
   --color-bord-blue: #c6d8e9;
   --color-green-first: #67b52a;
   --color-green-second: #599c25;
+  --color-green-third: #89ab00;
+
 }
 
 /*
@@ -128,4 +130,18 @@
 }
 .rich-text .selectedCell {
     background: #e0e7ff;
+}
+
+/* Clamped ad description on category pages */
+.ad-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.ad-description.is-expanded {
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
 }

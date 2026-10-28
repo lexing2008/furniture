@@ -343,6 +343,63 @@ class AccountPagesTest extends TestCase
             ->assertDontSee('Диваны в меню');
     }
 
+    public function test_category_page_shows_active_ads_with_company_details(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Товар в категории',
+            'description' => '<p>Описание товара для категории</p>',
+            'price' => 123.45,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_moderated' => false,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Дешёвый товар',
+            'description' => '<p>Короткое описание</p>',
+            'price' => 50,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_moderated' => false,
+            'is_banned' => false,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany')
+            ->assertOk()
+            ->assertSee('Товар в категории')
+            ->assertSee('Описание товара для категории')
+            ->assertSee('Подробнее')
+            ->assertSee('Скрыть')
+            ->assertSee('Ромашка')
+            ->assertSee('29 111-22-33')
+            ->assertSee('123,45')
+            ->assertSee('text-green-third', false);
+
+        $this->get('http://minsk.furniture.test/divany?sort=price_asc')
+            ->assertOk()
+            ->assertSeeInOrder(['Дешёвый товар', 'Товар в категории']);
+    }
+
     public function test_category_children_are_available_as_json(): void
     {
         Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);

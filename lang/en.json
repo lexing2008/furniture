@@ -567,5 +567,19 @@
     "Закрыть меню": "Close menu",
     "Показать подкатегории": "Show subcategories",
     "Не удалось загрузить подкатегории.": "Could not load subcategories.",
-    "Нет подкатегорий.": "No subcategories."
+    "Нет подкатегорий.": "No subcategories.",
+    "Подробнее": "Read more",
+    "Компания": "Company",
+    "Нет товаров/услуг.": "No products/services.",
+    "Попробуйте изменить фильтры или выбрать другую категорию.": "Try changing the filters or choosing another category.",
+    "Для этой категории пока нет фильтров.": "There are no filters for this category yet.",
+    "Сортировка: сначала актуальные": "Sorted by most recent",
+    "Хлебные крошки": "Breadcrumbs",
+    "Сортировка": "Sorting",
+    "Сначала актуальные": "Most recent first",
+    "Цена: по возрастанию": "Price: low to high",
+    "Цена: по убыванию": "Price: high to low",
+    "Юридическое название": "Legal name",
+    "Скрыть": "Hide",
+    ":category в :region": ":category in :region"
 }
