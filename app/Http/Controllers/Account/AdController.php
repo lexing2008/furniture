@@ -322,6 +322,18 @@ class AdController extends Controller
         ]);
     }
 
+    public function toggleActive(Request $request): JsonResponse
+    {
+        $company = $this->company($request, ['region']);
+        $ad = $this->ad($request, $company);
+
+        $ad->update(['is_active' => ! $ad->is_active]);
+
+        return response()->json([
+            'is_active' => $ad->is_active,
+        ]);
+    }
+
     public function update(AdRequest $request, AdImageService $imageService): SymfonyResponse
     {
         $company = $this->company($request, ['region']);

@@ -30,6 +30,7 @@ class CountryController extends Controller
                 'phone_code' => $region->countryData?->phone_code,
                 'currency' => $region->countryData?->currency,
                 'currency_decimals' => $region->countryData?->currency_decimals,
+                'tax_id_label' => $region->countryData?->tax_id_label,
             ]);
 
         return Inertia::render('countries/IndexCountries', [
@@ -53,6 +54,7 @@ class CountryController extends Controller
                 'phone_code' => $country->countryData?->phone_code ?? '',
                 'currency' => $country->countryData?->currency ?? '',
                 'currency_decimals' => $country->countryData?->currency_decimals ?? 2,
+                'tax_id_label' => $country->countryData?->tax_id_label ?? '',
             ],
         ]);
     }

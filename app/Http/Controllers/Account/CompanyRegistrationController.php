@@ -22,18 +22,18 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class CompanyRegistrationController extends Controller
 {
-    public function create(Request $request): Response
+    public function create(Request $request, Region $region): Response
     {
         // Указываем Inertia использовать другой Blade-шаблон
         Inertia::setRootView('guest');
 
-        $region = Region::fromHost($request->getHost());
-        $country = $region?->root();
+        $country = $region->root();
 
         return Inertia::render('Company/Register', [
             'regions' => Region::cityTree(),
-            'defaultRegionId' => $region?->isCity() ? $region->id : null,
+            'defaultRegionId' => $region->isCity() ? $region->id : null,
             'phoneCode' => $country?->countryData?->phone_code,
+            'taxIdLabel' => $country->countryData?->tax_id_label ?: 'Tax ID',
             // Category names are in the language of the country of the region
             'categories' => Category::selectableTree($region?->language()),
             'terms' => $this->termsLinks(),

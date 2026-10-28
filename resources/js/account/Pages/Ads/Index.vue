@@ -2,6 +2,7 @@
 import AdActualize from '@/account/Components/Ads/AdActualize.vue';
 import AdPriceEditor from '@/account/Components/Ads/AdPriceEditor.vue';
 import AccountLayout from '@/account/Layouts/AccountLayout.vue';
+import { translate } from '@/common/i18n';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 
@@ -77,6 +78,47 @@ const priceTo = ref(props.adFilters.price_to === null ? '' : String(props.adFilt
 const hasFilters = ref<'with' | 'without' | null>(props.adFilters.has_filters);
 const photo = ref<'with' | 'without' | null>(props.adFilters.photo);
 const hasVideo = ref<'with' | 'without' | null>(props.adFilters.has_video);
+const togglingId = ref<number | null>(null);
+const activeStates = ref<Record<number, boolean>>({});
+const toggleError = ref<string | null>(null);
+
+const isActive = (ad: AdRow): boolean => activeStates.value[ad.id] ?? ad.is_active;
+
+const csrfToken = (): string => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+
+const toggleActive = async (ad: AdRow) => {
+    if (togglingId.value !== null) {
+        return;
+    }
+
+    togglingId.value = ad.id;
+    toggleError.value = null;
+
+    try {
+        const response = await fetch(route('account.ads.active.update', ad.id), {
+            method: 'PATCH',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+            },
+        });
+        const data = (await response.json().catch(() => ({}))) as { is_active?: boolean; message?: string };
+
+        if (!response.ok) {
+            throw new Error(data.message ?? translate('Не удалось изменить статус.'));
+        }
+
+        activeStates.value = {
+            ...activeStates.value,
+            [ad.id]: Boolean(data.is_active),
+        };
+    } catch (error) {
+        toggleError.value = error instanceof Error ? error.message : translate('Не удалось изменить статус.');
+    } finally {
+        togglingId.value = null;
+    }
+};
 
 const availableCities = computed(() =>
     areaId.value === null
@@ -221,6 +263,21 @@ const resetFilters = () => {
             </Link>
         </div>
 
+        <div
+            v-if="status === 'moderation'"
+            class="flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3.5 shadow-sm"
+        >
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+            </span>
+            <div class="min-w-0 pt-0.5">
+                <p class="text-sm font-semibold text-amber-900">{{ $t('Товары на модерации отображаются на сайте') }}</p>
+                <p class="mt-0.5 text-xs leading-5 text-amber-800">{{ $t('Статус «На модерации» не влияет на отображение на сайте.') }}</p>
+            </div>
+        </div>
+
         <form class="rounded-2xl border border-gray-200/80 bg-white p-2 shadow-sm" @submit.prevent="submitSearch">
             <div class="relative">
                 <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400">
@@ -350,6 +407,10 @@ const resetFilters = () => {
             {{ $t('Найдено: :count', { count: ads.length }) }}
         </p>
 
+        <div v-if="toggleError" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ toggleError }}
+        </div>
+
         <div class="overflow-x-auto rounded-2xl border border-gray-200/80 bg-white shadow-sm">
             <table v-if="ads.length > 0" class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
@@ -364,7 +425,12 @@ const resetFilters = () => {
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <tr v-for="ad in ads" :key="ad.id" class="transition hover:bg-gray-50/70">
+                    <tr
+                        v-for="ad in ads"
+                        :key="ad.id"
+                        class="transition hover:bg-gray-50/70"
+                        :class="isActive(ad) ? '' : 'opacity-70'"
+                    >
                         <td class="px-1.5 py-3">
                             <div class="flex min-w-0 items-center gap-3">
                                 <div class="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gray-100 ring-1 ring-gray-200">
@@ -432,19 +498,22 @@ const resetFilters = () => {
                         </td>
                         <td class="whitespace-nowrap px-1.5 py-3">
                             <div class="flex flex-wrap items-center gap-1.5">
-                                <span
-                                    class="inline-flex h-7 w-7 items-center justify-center rounded-full"
-                                    :class="ad.is_active ? 'bg-green-first/15 text-green-first' : 'bg-gray-100 text-gray-400'"
-                                    :title="ad.is_active ? $t('Активен') : $t('Отключён')"
-                                    :aria-label="ad.is_active ? $t('Активен') : $t('Отключён')"
+                                <button
+                                    type="button"
+                                    class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-wait disabled:opacity-50"
+                                    :class="isActive(ad) ? 'bg-green-first/15 text-green-first hover:bg-green-first/25' : 'bg-red-50 text-red-600 ring-1 ring-red-200 hover:bg-red-100'"
+                                    :title="isActive(ad) ? $t('Активен') : $t('Не активен')"
+                                    :aria-label="isActive(ad) ? $t('Активен') : $t('Не активен')"
+                                    :disabled="togglingId === ad.id"
+                                    @click="toggleActive(ad)"
                                 >
-                                    <svg v-if="ad.is_active" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                                    <svg v-if="isActive(ad)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                     </svg>
                                     <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9v6m-4.5-6v6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                     </svg>
-                                </span>
+                                </button>
                                 <span v-if="ad.is_banned" class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-1 text-[11px] font-medium text-red-700 ring-1 ring-red-200">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3 w-3">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />

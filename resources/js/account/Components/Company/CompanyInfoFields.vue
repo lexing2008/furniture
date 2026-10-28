@@ -8,10 +8,13 @@ import type { CompanyInfoFields, RegionNode } from './companyForm';
 import RegionTree from './RegionTree.vue';
 import { formCard, formGrid, formTitle } from '@/account/Components/Forms/formStyles';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     form: InertiaForm<T>;
     regions: RegionNode[];
-}>();
+    taxIdLabel?: string;
+}>(), {
+    taxIdLabel: 'Tax ID',
+});
 
 // Errors of the fields of a generic form are not resolved by the Inertia typings
 const errors = computed(() => props.form.errors as Record<string, string | undefined>);
@@ -30,7 +33,7 @@ const errors = computed(() => props.form.errors as Record<string, string | undef
             </div>
 
             <div>
-                <InputLabel for="tax_id" :value="$t('Tax ID')" required :invalid="!!errors.tax_id" />
+                <InputLabel for="tax_id" :value="taxIdLabel" required :invalid="!!errors.tax_id" />
                 <TextInput id="tax_id" type="text" class="mt-1 block w-full" v-model="form.tax_id" :invalid="!!errors.tax_id" />
                 <InputError class="mt-2" :message="errors.tax_id" />
             </div>

@@ -169,7 +169,7 @@ abstract class CompanyRequest extends FormRequest
     {
         return [
             'legal_name' => __('официальное название'),
-            'tax_id' => 'Tax ID',
+            'tax_id' => $this->taxIdLabel(),
             'legal_address' => __('юридический адрес'),
             'actual_address' => __('фактический адрес'),
             'display_name' => __('отображаемое название'),
@@ -186,6 +186,18 @@ abstract class CompanyRequest extends FormRequest
             'password' => __('пароль'),
             'terms' => __('согласие'),
         ];
+    }
+
+    /**
+     * Name of the tax number in the country of the current region.
+     */
+    protected function taxIdLabel(): string
+    {
+        $region = $this->route('region');
+
+        return $region instanceof Region
+            ? ($region->root()->countryData?->tax_id_label ?: 'Tax ID')
+            : 'Tax ID';
     }
 
     /**

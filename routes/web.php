@@ -74,6 +74,7 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         Route::put('ads/{ad}', [AdController::class, 'update'])->name('account.ads.update');
         Route::patch('ads/{ad}/price', [AdController::class, 'updatePrice'])->name('account.ads.price.update');
         Route::patch('ads/{ad}/actualize', [AdController::class, 'actualize'])->name('account.ads.actualize');
+        Route::patch('ads/{ad}/active', [AdController::class, 'toggleActive'])->name('account.ads.active.update');
 
         // General information about the company
         Route::get('general', [CompanyGeneralController::class, 'edit'])->name('account.general');

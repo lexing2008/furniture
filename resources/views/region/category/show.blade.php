@@ -21,7 +21,11 @@
                     <a href="{{ $rootUrl }}" class="transition hover:text-white">{{ $rootName }}</a>
                     @if($root->id !== $category->id)
                         <span aria-hidden="true">/</span>
-                        <span class="text-white">{{ $categoryName }}</span>
+                        <a href="{{ $categoryUrl }}" class="transition hover:text-white">{{ $categoryName }}</a>
+                    @endif
+                    @if(count($selectedVariantNames) === 1)
+                        <span aria-hidden="true">/</span>
+                        <span class="text-white">{{ $selectedVariantNames[0] }}</span>
                     @endif
                 </nav>
 
@@ -196,6 +200,18 @@
                                 <div class="min-w-0 flex-1">
                                     <h2 class="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{{ $ad->title }}</h2>
 
+                                    @if($ad->category_id !== $category->id)
+                                        <div class="mt-2">
+                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-green-first/5 px-2.5 py-1 text-[11px] font-medium text-green-first ring-1 ring-green-first/10">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3 w-3">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                                                </svg>
+                                                {{ $ad->category->nameIn($locale) }}
+                                            </span>
+                                        </div>
+                                    @endif
+
                                     @if($ad->description)
                                         <div data-ad-description class="ad-description rich-text mt-2 text-sm leading-6 text-gray-600">{!! $ad->description !!}</div>
                                     @endif
@@ -304,7 +320,7 @@
                 @endif
 
                 @if(!empty($seo['seo_block']))
-                    <article class="seo-block rich-text mt-8 border-t border-gray-100 pt-7 text-sm leading-6 text-gray-600">
+                    <article class="seo-block rich-text mb-10 mt-8 border-t border-gray-100 pt-7 text-sm leading-6 text-gray-600">
                         {!! $seo['seo_block'] !!}
                     </article>
                 @endif

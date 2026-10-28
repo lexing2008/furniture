@@ -859,6 +859,36 @@ class AdTest extends TestCase
         return 'http://minsk.furniture.test/account'.$path;
     }
 
+    public function test_ad_can_be_disabled_and_enabled_from_the_list(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Переключаемый товар',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url('/ads/'.$ad->id.'/active'))
+            ->assertOk()
+            ->assertJson(['is_active' => false]);
+
+        $this->assertFalse($ad->fresh()->is_active);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url('/ads/'.$ad->id.'/active'))
+            ->assertOk()
+            ->assertJson(['is_active' => true]);
+
+        $this->assertTrue($ad->fresh()->is_active);
+    }
+
     /**
      * @return array{0: Filter, 1: FilterVariant}
      */

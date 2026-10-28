@@ -22,12 +22,13 @@ class CompanyGeneralController extends Controller
 {
     use ResolvesCompany;
 
-    public function edit(Request $request): Response
+    public function edit(Request $request, Region $region): Response
     {
-        $company = $this->company($request, ['region']);
+        $company = $this->company($request, ['region', 'country.countryData']);
 
-        // The language of the region the visitor is on, otherwise of the region of the company
-        $region = Region::fromHost($request->getHost()) ?? $company->region;
+        $taxIdLabel = $company->country?->countryData?->tax_id_label
+            ?: $region->root()->countryData?->tax_id_label
+            ?: 'Tax ID';
 
         return Inertia::render('Company/Edit', [
             'company' => [
@@ -43,7 +44,8 @@ class CompanyGeneralController extends Controller
                 'categories' => $company->categories()->pluck('categories.id')->values(),
             ],
             'regions' => Region::cityTree(),
-            'categories' => Category::selectableTree($region?->language()),
+            'categories' => Category::selectableTree($region->language()),
+            'taxIdLabel' => $taxIdLabel,
         ]);
     }
 

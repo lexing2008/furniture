@@ -105,6 +105,22 @@ class AccountPagesTest extends TestCase
         return "http://minsk.furniture.test/account{$path}";
     }
 
+    public function test_company_forms_use_the_country_tax_id_label(): void
+    {
+        $this->country->countryData()->update(['tax_id_label' => 'УНП']);
+
+        $this->get('http://minsk.furniture.test/account/register')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('taxIdLabel', 'УНП'));
+
+        $this->actingAs($this->user)
+            ->get($this->url('/general'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('taxIdLabel', 'УНП'));
+    }
+
     public function test_customer_login_does_a_full_page_load_into_the_account(): void
     {
         $response = $this->post($this->url('/login'), [

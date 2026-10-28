@@ -591,5 +591,9 @@
     "Нет фото": "No photo",
     ":names в :region": ":names in :region",
     "Показать ещё": "Show more",
-    "Загрузка товаров...": "Loading products..."
+    "Загрузка товаров...": "Loading products...",
+    "Товары на модерации отображаются на сайте": "Products under moderation are displayed on the site",
+    "Статус «На модерации» не влияет на отображение на сайте.": "The “Under moderation” status does not affect display on the site.",
+    "Не активен": "Inactive",
+    "Не удалось изменить статус.": "Could not change the status."
 }

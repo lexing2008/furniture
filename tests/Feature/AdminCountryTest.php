@@ -82,6 +82,7 @@ class AdminCountryTest extends TestCase
                 'phone_code' => '+375',
                 'currency' => 'byn',
                 'currency_decimals' => 2,
+                'tax_id_label' => 'УНП',
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('admin.countries.index'));
@@ -91,8 +92,10 @@ class AdminCountryTest extends TestCase
             'phone_code' => '375',
             'currency' => 'BYN',
             'currency_decimals' => 2,
+            'tax_id_label' => 'УНП',
         ]);
         $this->assertSame('375', $this->country->fresh()->countryData->phone_code);
+        $this->assertSame('УНП', $this->country->fresh()->countryData->tax_id_label);
     }
 
     public function test_country_fields_are_validated(): void

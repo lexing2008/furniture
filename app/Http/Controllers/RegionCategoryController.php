@@ -110,7 +110,7 @@ class RegionCategoryController extends Controller
         }
 
         $adsQuery = Ad::query()
-            ->with(['images', 'company.phones', 'company.region'])
+            ->with(['images', 'company.phones', 'company.region', 'category.translations'])
             ->whereIn('category_id', $categoryIds)
             ->where('is_active', true)
             ->where('is_banned', false);
@@ -162,6 +162,7 @@ class RegionCategoryController extends Controller
             'category' => $category,
             'categoryName' => $categoryName,
             'pageHeading' => $pageHeading,
+            'selectedVariantNames' => $selectedVariantNames,
             'root' => $root,
             'rootName' => $root->nameIn($locale),
             'sidebarCategories' => $sidebarCategories,
