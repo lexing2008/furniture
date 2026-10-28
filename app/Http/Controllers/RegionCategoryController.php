@@ -191,10 +191,29 @@ class RegionCategoryController extends Controller
             ? __(':category в :region', ['category' => $categoryName, 'region' => $regionNameIn])
             : __(':names в :region', ['names' => implode(', ', $selectedVariantNames), 'region' => $regionNameIn]);
 
+        $pageNumber = $ads->currentPage();
+        $pageSuffix = $pageNumber > 1
+            ? __(' — Страница :page', ['page' => $pageNumber])
+            : '';
+        $pageTitle = ($seo['seo_title'] ?: $categoryName).$pageSuffix;
+        $pageDescription = (string) ($seo['seo_description'] ?? '');
+
+        if ($pageNumber > 1 && filled($pageDescription)) {
+            $pageDescription = rtrim($pageDescription).__(' , страница :page', ['page' => $pageNumber]);
+        }
+
+        $pageHeading .= $pageSuffix;
+        $filterPageUrl = url()->current()
+            .($request->except('page') !== [] ? '?'.http_build_query($request->except('page')) : '');
+
         return view('region.category.show', [
             'category' => $category,
             'categoryName' => $categoryName,
             'pageHeading' => $pageHeading,
+            'pageTitle' => $pageTitle,
+            'pageDescription' => $pageDescription,
+            'pageNumber' => $pageNumber,
+            'filterPageUrl' => $filterPageUrl,
             'selectedVariantNames' => $selectedVariantNames,
             'root' => $root,
             'rootName' => $root->nameIn($locale),

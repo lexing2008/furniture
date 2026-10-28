@@ -1,7 +1,7 @@
 @extends('layouts.site')
 
-@section('title', $seo['seo_title'] ?: $categoryName)
-@section('description', $seo['seo_description'] ?: '')
+@section('title', $pageTitle)
+@section('description', $pageDescription)
 
 @section('content')
     @php
@@ -25,7 +25,11 @@
                     @endif
                     @if(count($selectedVariantNames) === 1)
                         <span aria-hidden="true">/</span>
-                        <span class="text-white">{{ $selectedVariantNames[0] }}</span>
+                        <a href="{{ $filterPageUrl }}" class="transition hover:text-white">{{ $selectedVariantNames[0] }}</a>
+                    @endif
+                    @if($pageNumber > 1)
+                        <span aria-hidden="true">/</span>
+                        <span class="text-white">{{ __('Страница :page', ['page' => $pageNumber]) }}</span>
                     @endif
                 </nav>
 
@@ -354,7 +358,7 @@
                 @endif
 
                 @if($ads->hasMorePages())
-                    <div data-load-more-wrapper class="mt-4 flex justify-center">
+                    <div data-load-more-wrapper class="mt-4 flex justify-center {{ $pageNumber === 1 && !empty($seo['seo_block']) ? '' : 'mb-10' }}">
                         <button
                             type="button"
                             data-load-more-url="{{ $ads->nextPageUrl() }}"
@@ -370,7 +374,7 @@
                     </div>
                 @endif
 
-                @if(!empty($seo['seo_block']))
+                @if($pageNumber === 1 && !empty($seo['seo_block']))
                     <article class="seo-block rich-text mb-10 mt-8 border-t border-gray-100 pt-7 text-sm leading-6 text-gray-600">
                         {!! $seo['seo_block'] !!}
                     </article>

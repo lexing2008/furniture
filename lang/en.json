@@ -597,5 +597,7 @@
     "Не активен": "Inactive",
     "Не удалось изменить статус.": "Could not change the status.",
     "Отображать по": "Show",
-    "Количество товаров на странице": "Products per page"
+    "Количество товаров на странице": "Products per page",
+    " — Страница :page": " — Page :page",
+    " , страница :page": " , page :page"
 }
