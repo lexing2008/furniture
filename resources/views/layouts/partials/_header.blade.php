@@ -3,7 +3,7 @@
     $countryLabel = app()->getLocale() === 'en' ? $country->name_en : $country->name;
 @endphp
 
-<header class="pb-2 pt-3">
+<header class="pb-2 pt-2">
     <div class="container mx-auto py-2 px-4">
         <div class="w-full flex  gap-5 text-xs justify-between sm:justify-end mb-2 pr-0.5">
             <a href="#" class="link">{{ __('Каталог мебели') }}</a>
@@ -153,10 +153,10 @@
 
         <!-- Menu -->
         <div
-            class="mt-4 bg-linear-to-b from-green-first to-green-second text-white py-5 px-5 rounded-xl flex flex-wrap gap-x-5">
+            class="mt-4 bg-linear-to-b from-green-first to-green-second text-white py-4 px-5 rounded-xl flex flex-wrap">
             @foreach ($menuCategories as $category)
                 <a href="{{ $category['url'] }}"
-                   class="hover:text-black/80 border-b-gray-200/15 border-b hover:border-b-transparent">{{ $category['menu_name'] }}</a>
+                   class="px-3 py-1 hover:bg-white/10 rounded-full">{{ $category['menu_name'] }}</a>
             @endforeach
         </div>
         <!-- end Menu -->
