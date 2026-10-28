@@ -15,10 +15,10 @@ use Illuminate\Support\Facades\Cache;
  */
 class MenuCategoryService
 {
-    private const CACHE_PREFIX = 'menu_categories:v2:';
+    private const CACHE_PREFIX = 'menu_categories:v3:';
 
     /**
-     * @return Collection<int, array{id: int, name: string, menu_name: string, slug: string}>
+     * @return Collection<int, array{id: int, name: string, menu_name: string, slug: string, has_children: bool}>
      */
     public static function forLocale(?string $locale = null): Collection
     {
@@ -30,6 +30,9 @@ class MenuCategoryService
             function () use ($locale): array {
                 $categories = Category::query()
                     ->with('translations')
+                    ->withCount(['children as active_children_count' => function ($query) {
+                        $query->where('is_active', true);
+                    }])
                     ->where('is_active', true)
                     ->whereHas('translations', function ($query) use ($locale) {
                         $query->where('lang', $locale)
@@ -49,6 +52,7 @@ class MenuCategoryService
                             'name' => $translation?->name ?? $category->displayName(),
                             'menu_name' => $translation?->menu_name ?? $category->menuName(),
                             'slug' => $translation?->slug ?? $category->slugIn($locale),
+                            'has_children' => (int) $category->active_children_count > 0,
                         ];
                     })
                     ->values()

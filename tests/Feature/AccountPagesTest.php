@@ -343,6 +343,30 @@ class AccountPagesTest extends TestCase
             ->assertDontSee('Диваны в меню');
     }
 
+    public function test_category_children_are_available_as_json(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+        $child = Category::create(['parent_id' => $this->category->id, 'is_active' => true]);
+        $child->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Угловые диваны',
+            'slug' => 'uglovye-divany',
+        ]);
+
+        $this->get('http://minsk.furniture.test/categories/'.$this->category->id.'/children')
+            ->assertOk()
+            ->assertJsonCount(1, 'categories')
+            ->assertJsonPath('categories.0.name', 'Угловые диваны')
+            ->assertJsonPath('categories.0.has_children', false);
+    }
+
     public function test_account_language_is_saved_and_used(): void
     {
         $this->actingAs($this->user)->patch($this->url('/language'), ['lang' => 'en'])

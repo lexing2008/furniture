@@ -108,7 +108,11 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
     });
     // - - - end Account
 
-    // Placeholder category page: the content will be added later.
+    // Placeholder category page and lazy-loaded category menu.
+    Route::get('categories/{category}/children', [RegionCategoryController::class, 'children'])
+        ->whereNumber('category')
+        ->name('region.category.children');
+
     Route::get('/{categorySlug}', [RegionCategoryController::class, 'show'])
         ->where('categorySlug', '[a-z0-9-]+')
         ->name('region.category');

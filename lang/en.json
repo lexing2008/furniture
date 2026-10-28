@@ -563,5 +563,9 @@
     "Пока нет других городов.": "No other cities yet.",
     "Информация": "Information",
     "Все права защищены.": "All rights reserved.",
-    "Большие города": "Major cities"
+    "Большие города": "Major cities",
+    "Закрыть меню": "Close menu",
+    "Показать подкатегории": "Show subcategories",
+    "Не удалось загрузить подкатегории.": "Could not load subcategories.",
+    "Нет подкатегорий.": "No subcategories."
 }
