@@ -559,5 +559,8 @@
     "English": "English",
     "Выберите язык интерфейса.": "Choose the interface language.",
     "Выберите поддерживаемый язык.": "Choose a supported language.",
-    ":name в :region": ":name in :region"
+    ":name в :region": ":name in :region",
+    "Пока нет других городов.": "No other cities yet.",
+    "Информация": "Information",
+    "Все права защищены.": "All rights reserved."
 }

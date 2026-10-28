@@ -153,7 +153,7 @@ class AccountPagesTest extends TestCase
         $this->get('http://minsk.furniture.test/')
             ->assertOk()
             ->assertSee('Мебель в Минске')
-            ->assertSee('О нас');
+            ->assertSee('Информация');
 
         Language::create(['code' => 'en', 'name' => 'English', 'name_en' => 'English']);
         Language::create(['code' => 'de', 'name' => 'Deutsch', 'name_en' => 'German']);
@@ -162,7 +162,7 @@ class AccountPagesTest extends TestCase
         $this->get('http://minsk.furniture.test/')
             ->assertOk()
             ->assertSee('Furniture in Minsk')
-            ->assertSee('About us');
+            ->assertSee('Information');
 
         // The country language is not supported: its fallback language wins
         $this->country->update(['lang' => 'de', 'fallback_lang' => 'en']);
@@ -320,6 +320,7 @@ class AccountPagesTest extends TestCase
             'is_capital' => true,
             'is_active' => true,
         ]);
+        $this->city->update(['is_capital' => true]);
 
         $this->get('http://minsk.furniture.test/')
             ->assertOk()
