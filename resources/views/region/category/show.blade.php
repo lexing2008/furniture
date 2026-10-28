@@ -44,7 +44,7 @@
                                 @class([
                                     'flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm transition',
                                     'bg-green-first/10 font-semibold text-green-first' => $item->id === $category->id,
-                                    'text-gray-600 hover:bg-gray-50 hover:text-gray-900' => $item->id !== $category->id,
+                                    'text-brand-blue hover:bg-brand-blue/5' => $item->id !== $category->id,
                                 ])
                             >
                                 <span>{{ $item->nameIn($locale) }}</span>
