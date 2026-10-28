@@ -50,6 +50,7 @@ class RegionCategoryController extends Controller
         $categoryUrl = route('region.category', [
             'region' => $region->subdomain,
             'categorySlug' => $categorySlug,
+            'filterSlugs' => null,
         ]);
 
         $selectedVariantSlugs = $filterSlugs === null

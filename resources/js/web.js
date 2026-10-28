@@ -246,8 +246,30 @@
         });
     });
 
+    // Сброс всех фильтров категории.
+    document.querySelectorAll('[data-filter-reset]').forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            window.location.href = link.dataset.filterReset || link.href;
+        });
+    });
+
     // Выбор вариантов фильтра ведёт на SEO-URL: /category/slug;slug/
     document.querySelectorAll('[data-filter-variant]').forEach(function (input) {
+        if (input.type === 'radio') {
+            input.dataset.wasChecked = input.checked ? '1' : '0';
+
+            input.addEventListener('click', function (event) {
+                if (input.dataset.wasChecked === '1') {
+                    event.preventDefault();
+                    input.checked = false;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+
+                input.dataset.wasChecked = input.checked ? '1' : '0';
+            });
+        }
+
         input.addEventListener('change', function () {
             var form = input.closest('form');
 
@@ -303,10 +325,15 @@
             }
 
             var description = article.querySelector('[data-ad-description]');
+            var gradient = article.querySelector('[data-ad-gradient]');
             var details = article.querySelector('[data-ad-company-details]');
 
             if (description) {
                 description.classList.add('is-expanded');
+            }
+
+            if (gradient) {
+                gradient.classList.remove('hidden');
             }
 
             if (details) {
@@ -329,6 +356,7 @@
             }
 
             article.querySelector('[data-ad-description]')?.classList.remove('is-expanded');
+            article.querySelector('[data-ad-gradient]')?.classList.add('hidden');
             article.querySelector('[data-ad-company-details]')?.classList.add('hidden');
 
             var expand = article.querySelector('[data-ad-expand]');

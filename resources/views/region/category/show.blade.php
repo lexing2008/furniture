@@ -31,7 +31,7 @@
 
         <div class="grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
             <aside class="space-y-4">
-                <section class="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
+                <section class="rounded-2xl border border-gray-200/80 bg-white p-4">
                     <h2 class="text-sm font-bold uppercase tracking-wide text-gray-900">{{ __('Категории') }}</h2>
 
                     <nav class="mt-3 space-y-1" aria-label="{{ __('Категории') }}">
@@ -57,7 +57,7 @@
                 </section>
 
                 @if($filters !== [])
-                    <section class="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
+                    <section class="rounded-2xl border border-gray-200/80 bg-white p-4">
                         <h2 class="text-sm font-bold uppercase tracking-wide text-gray-900">{{ __('Фильтры') }}</h2>
 
                             <form method="GET" action="{{ $currentUrl }}" data-filter-base-url="{{ $categoryUrl }}" class="mt-4 space-y-5">
@@ -132,7 +132,7 @@
                                     <button type="submit" class="cursor-pointer rounded-full bg-green-first px-4 py-2 text-xs font-semibold text-white transition hover:bg-green-second">
                                         {{ __('Применить') }}
                                     </button>
-                                    <a href="{{ $currentUrl }}" class="rounded-full border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50">
+                                    <a href="{{ $categoryUrl }}" data-filter-reset="{{ $categoryUrl }}" class="rounded-full border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50">
                                         {{ __('Сбросить') }}
                                     </a>
                                 </div>
@@ -144,17 +144,32 @@
             <section class="min-w-0">
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2  opacity-40 hover:opacity-100 transition duration-500">
                     <p class="text-sm text-gray-500">{{ __('Найдено: :count', ['count' => $ads->total()]) }}</p>
-                    <label class="flex items-center gap-2 text-xs text-gray-500">
-                        <span>{{ __('Сортировка') }}:</span>
-                        <select data-sort-select class="cursor-pointer rounded-lg border-gray-200 bg-white py-1.5 pl-2.5 pr-8 text-xs text-gray-700 shadow-sm focus:border-green-first focus:ring-green-first">
-                            @foreach($sortOptions as $value => $label)
-                                <option value="{{ $sortUrls[$value] }}" @selected($sort === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
+                    <label class="group flex items-center gap-2" aria-label="{{ __('Сортировка') }}">
+                        <span class="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 sm:inline">{{ __('Сортировка') }}</span>
+                        <span class="relative inline-flex">
+                            <span class="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-green-first">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5h11.25M3 12h7.5M3 16.5h4.5M16.5 4.5v15m0 0 3-3m-3 3-3-3" />
+                                </svg>
+                            </span>
+                            <select
+                                data-sort-select
+                                class="h-9 max-w-[230px] cursor-pointer appearance-none truncate rounded-full border border-gray-200/90 bg-gradient-to-b from-white to-gray-50/80 py-0 pl-9 pr-9 text-xs font-semibold text-gray-600 shadow-sm transition duration-200 hover:border-green-first/40 hover:text-green-first focus:border-green-first focus:outline-none focus:ring-4 focus:ring-green-first/10"
+                            >
+                                @foreach($sortOptions as $value => $label)
+                                    <option value="{{ $sortUrls[$value] }}" @selected($sort === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition group-focus-within:text-green-first">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3.5 w-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </span>
+                        </span>
                     </label>
                 </div>
 
-                <div class="space-y-4">
+                <div class="divide-y divide-gray-200/80">
                     @forelse($ads as $ad)
                         @php
                             $company = $ad->company;
@@ -164,11 +179,11 @@
                             $hasDetails = $ad->description || $company->legal_name || $company->phones->isNotEmpty();
                         @endphp
 
-                        <article class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm transition duration-200 hover:border-green-first/25 hover:shadow-md">
-                            <div class="flex flex-col gap-5 p-4 lg:flex-row lg:p-5">
-                                <div class="relative h-56 w-full shrink-0 overflow-hidden rounded-xl bg-gray-100 lg:h-44 lg:w-60">
+                        <article class="py-6 first:pt-0 last:pb-0">
+                            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-7">
+                                <div class="relative flex aspect-[630/467] w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2] lg:w-60">
                                     @if($image)
-                                        <img src="{{ $image->thumbnailUrl(630) }}" alt="{{ $ad->title }}" loading="lazy" class="h-full w-full object-cover">
+                                        <img src="{{ $image->thumbnailUrl(630) }}" alt="{{ $ad->title }}" loading="lazy" class="h-full w-full object-contain">
                                     @else
                                         <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 text-gray-300">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-10 w-10">
@@ -186,7 +201,7 @@
                                     @endif
                                 </div>
 
-                                <div class="shrink-0 border-t border-gray-100 pt-4 lg:w-64 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+                                <div class="shrink-0 border-t border-gray-100 pt-4 lg:w-64 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
                                     <p class="text-2xl font-bold tracking-tight text-gray-900">{{ number_format((float) $ad->price, 2, ',', ' ') }} <span class="text-sm font-semibold text-gray-500">{{ $ad->currency }}</span></p>
 
                                     @if($publishedAt)
@@ -237,6 +252,7 @@
                                     </div>
                                 </div>
                             </div>
+                            <div data-ad-gradient class="pointer-events-none mt-2 hidden h-10 w-full bg-gradient-to-t from-gray-100/80 via-gray-50/50 to-transparent"></div>
                         </article>
                     @empty
                         <div class="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-14 text-center shadow-sm">
