@@ -29,9 +29,6 @@
 
     function setRegionPopupOpen(open) {
         backdrop.classList.toggle('hidden', !open);
-        if (open) {
-            setMobileMenuOpen(false);
-        }
     }
 
     button.addEventListener('click', function () {
@@ -78,10 +75,18 @@
     }
 
     document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
-            setRegionPopupOpen(false);
-            setMobileMenuOpen(false);
+        if (event.key !== 'Escape') {
+            return;
         }
+
+        // Escape closes the region popup first; the mobile menu stays underneath.
+        if (!backdrop.classList.contains('hidden')) {
+            setRegionPopupOpen(false);
+
+            return;
+        }
+
+        setMobileMenuOpen(false);
     });
 
     window.addEventListener('resize', function () {

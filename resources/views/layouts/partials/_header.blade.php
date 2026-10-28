@@ -29,7 +29,7 @@
         </div>
         <div class="flex flex-wrap gap-x-10 justify-between items-center">
             <div class="min-w-0 max-md:flex-1 lg:pl-1">
-                <div class="max-md:hidden text-xs">{{ __('Мебель в :region', ['region' => app()->getLocale() === 'en' ? $region->name_en : $region->name_in]) }}</div>
+                <div class="text-xs text-gray-500">{{ __('Мебель в :region', ['region' => $regionNameIn]) }}</div>
                 <a href="{{ route('region.show') }}" class="logo">{{ config('app.name') }}</a>
             </div>
 
@@ -118,8 +118,8 @@
                     </svg>
                 </span>
                 <span class="min-w-0">
-                    <span class="block truncate text-lg font-bold tracking-tight text-gray-900">{{ config('app.name') }}</span>
                     <span class="block truncate text-[10px] font-medium uppercase tracking-[0.12em] text-gray-400">{{ __('Мебель в :region', ['region' => $regionNameIn]) }}</span>
+                    <span class="block truncate text-lg font-bold tracking-tight text-gray-900">{{ config('app.name') }}</span>
                 </span>
             </a>
             <button
