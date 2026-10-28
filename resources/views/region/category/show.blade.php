@@ -298,7 +298,11 @@
 
                                         <div data-ad-company-details class="hidden">
                                             @if($company->legal_name)
-                                                <p class="mt-3 text-[11px] leading-5 text-gray-500">{{ $company->legal_name }}</p>
+                                                <p class="mt-1 text-[11px] leading-5 text-gray-500">{{ $company->legal_name }}</p>
+                                            @endif
+
+                                            @if($company->tax_id)
+                                                <p class="mt-2 text-[11px] leading-5 text-gray-500">{{ $company->country?->countryData?->tax_id_label ?: 'Tax ID' }} {{ $company->tax_id }}</p>
                                             @endif
 
                                             @if($company->phones->isNotEmpty())
