@@ -139,14 +139,15 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 
 ## 7. Локализация
 
-Язык сайта и кабинета берётся из страны текущего региона:
+Язык публичного сайта берётся из страны текущего региона. Язык кабинета: сохранённый `users.lang`, если он поддерживается, иначе — язык региона.
 
 - middleware `SetLocaleFromRegion`;
 - админка не локализуется и остаётся русской;
 - поддерживаются `ru` и `en`;
 - для неподдерживаемого языка используется `fallback_lang` страны;
 - если fallback не задан или тоже не поддерживается — fallback `en`;
-- если не заданы ни язык страны, ни fallback — остаётся `APP_LOCALE=ru`.
+- если не заданы ни язык страны, ни fallback — остаётся `APP_LOCALE=ru`;
+- в кабинете пользователь может выбрать `ru`/`en`, выбор сохраняется в `users.lang`.
 
 Переводы:
 
@@ -169,6 +170,7 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 - `locale` приходит из Inertia shared props.
 - Алиасы: `@account`, `@admin`; также `ziggy-js`.
 - В кабинете используется зелёный sidebar `bg-green-first`.
+- Формы кабинета используют общие `AccountPageHeader`, `AccountFormActions` и `FormStyles`.
 - Для длинного HTML — общий `WysiwygEditor` с `resizable` и `height-key`.
 - Категория товара выбирается через дерево `CategoryTreeSelect` с поиском (как выбор региона при регистрации).
 
@@ -176,7 +178,7 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 
 Основные разделы:
 
-- главная;
+- главная: статистика товаров, заполненность профиля, быстрые действия и последние товары;
 - о компании;
 - товары и услуги;
 - график работы;
@@ -194,9 +196,13 @@ GET    /account/ads/create
 POST   /account/ads
 GET    /account/ads/{ad}/edit
 PUT    /account/ads/{ad}
+PATCH  /account/ads/{ad}/price
+PATCH  /account/ads/{ad}/actualize
 GET    /account/ads/filters?category_id=...
 POST   /account/ads/images
+POST   /account/ads/images/url
 DELETE /account/ads/images/{tmpFile}
+PUT    /account/website
 ```
 
 ## 10. Товары/услуги (`ads`)
@@ -220,7 +226,8 @@ DELETE /account/ads/images/{tmpFile}
 - `is_banned` (default `false`, без поля в форме кабинета);
 - `video`, `description`, `price`, `currency`;
 - `warranty_value`, `warranty_unit` (`days|months|years`);
-- `is_moderated` (default `false`).
+- `is_moderated` (default `false`);
+- `published_at` — дата актуальности; обновляется при создании, редактировании, изменении цены и подтверждении актуальности; хранится в UTC, отображается в таймзоне региона компании (город → область → страна).
 
 Фильтры:
 
@@ -245,7 +252,7 @@ DELETE /account/ads/images/{tmpFile}
 
 - на странице редактирования есть «Добавить похожее»;
 - открывает `/account/ads/create?copy={id}`;
-- копируются категория, цена, гарантия, описание, регионы и фильтры;
+- копируются категория, гарантия, описание, регионы и фильтры;
 - заголовок, номер, видео и изображения не копируются.
 
 ## 11. Изображения товаров
@@ -255,14 +262,15 @@ DELETE /account/ads/images/{tmpFile}
 Основная папка:
 
 ```text
-storage/app/public/furniture/manual
-storage/app/public/furniture/manual/630
-storage/app/public/furniture/manual/100
+storage/app/public/furniture/manual/{category_slug}
+storage/app/public/furniture/manual/{category_slug}/630
+storage/app/public/furniture/manual/{category_slug}/100
 ```
 
 Правила:
 
 - загрузка сразу при выборе файла, с progressbar;
+- загрузка по ссылке: с любого сайта, обязательна проверка содержимого как изображения;
 - до 15 изображений;
 - основное изображение — WebP, вписано в `1200×1200`, quality 92;
 - превью 630 — вписано в `630×467`, quality 80;
@@ -272,7 +280,9 @@ storage/app/public/furniture/manual/100
 - после сохранения товара `tmp_files` удаляется;
 - при удалении временного изображения на фронте вызывается `DELETE /account/ads/images/{tmpFile}` и удаляются все три файла;
 - при удалении изображения товара физическое удаление происходит после успешного сохранения;
-- имена файлов: `{category-slug}-{uuid}.webp`;
+- имя файла: `{name_slug}.{uuid}.webp`, где `name_slug` — транслитерированный slug названия до 150 символов;
+- путь: `furniture/manual/{category_slug}/{name_slug}.{uuid}.webp`;
+- превью: `furniture/manual/{category_slug}/630/...` и `.../{category_slug}/100/...`;
 - UUID хранится отдельно: `ad_images.uuid`, `tmp_files.uuid`;
 - превью лежат в `630/` и `100/` с тем же базовым именем.
 
@@ -309,7 +319,9 @@ php artisan tmp-files:clean
 - `warranty_value` по умолчанию пустой; единица по умолчанию — месяцы.
 - `is_active` и `is_banned` — флаги видимости/блокировки; в форме кабинета редактируется только `is_active`.
 - `ads.description` очищается профилем `company` и редактируется через WYSIWYG.
+- Ссылки в соцсетях принимаются только с доменов соответствующей соцсети (включая поддомены).
 - В форме товара регионы можно выбирать массово по стране/области.
+- В списке товаров есть поиск по названию/артикулу/номеру, фильтры (категория, область/город, цена, фото, параметры, видео), миниатюра 100, статусы, число заполненных фильтров, редактирование цены и подтверждение актуальности.
 - Админка:
   - языки;
   - категории;
@@ -348,6 +360,6 @@ php artisan tmp-files:clean
 
 ## 16. Текущий baseline
 
-- Тесты: **38 passed, 424 assertions**.
+- Тесты: **52 passed, 778 assertions**.
 - `vue-tsc` и `npm run build` проходят.
 - Последние крупные изменения: локализация сайта/кабинета, разделы компании, часовые пояса, расписание, доставка/оплата, страны и валюты, товары/услуги, изображения и миниатюры, копирование товара, WYSIWYG-описание, выбор всех регионов, модерация.

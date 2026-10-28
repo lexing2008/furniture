@@ -1,10 +1,38 @@
 <script setup lang="ts">
 import MainNavLink from '@/account/Components/Sidebar/MainNavLink.vue';
+import SidebarAdsLink from '@/account/Components/Sidebar/SidebarAdsLink.vue';
 import SidebarProfile from '@/account/Components/Sidebar/SidebarProfile.vue';
-import { onUnmounted, ref, watch } from 'vue';
+import type { PageProps } from '@/account/types';
+import { usePage } from '@inertiajs/vue3';
+import { computed, onUnmounted, ref, watch } from 'vue';
+
+withDefaults(
+    defineProps<{
+        collapsed?: boolean;
+    }>(),
+    { collapsed: false },
+);
+
+defineEmits<{
+    toggle: [];
+}>();
 
 // Внутреннее реактивное состояние для мобильного отображения
 const isSidebarOpen = ref<boolean>(false);
+
+const page = usePage<PageProps>();
+
+const adCounts = computed(() => page.props.ad_counts ?? { all: 0, active: 0, disabled: 0, moderation: 0, banned: 0 });
+
+const adsStatus = computed(() => {
+    const status = new URL(page.url, 'http://localhost').searchParams.get('status');
+
+    return ['all', 'active', 'disabled', 'moderation', 'banned'].includes(status ?? '')
+        ? (status as 'all' | 'active' | 'disabled' | 'moderation' | 'banned')
+        : 'all';
+});
+
+const onAdsIndex = computed(() => (typeof route !== 'undefined' ? !!route().current('account.ads.index') : false));
 
 // Блокируем прокрутку страницы, когда мобильное меню открыто
 watch(isSidebarOpen, (newValue) => {
@@ -52,12 +80,17 @@ onUnmounted(() => {
 
     <!-- Боковая панель -->
     <aside
-        class="fixed inset-y-0 left-0 z-50 flex w-80 md:w-72 flex-col bg-green-first text-green-950 transition-transform duration-300 ease-in-out md:translate-x-0 md:relative"
-        :class="{ 'translate-x-0': isSidebarOpen, '-translate-x-full': !isSidebarOpen }"
+        class="fixed inset-y-0 left-0 z-50 flex w-80 shrink-0 flex-col overflow-hidden bg-green-first text-green-950 transition-all duration-300 ease-in-out md:relative md:translate-x-0"
+        :class="{
+            'translate-x-0': isSidebarOpen,
+            '-translate-x-full': !isSidebarOpen,
+            'md:w-0': collapsed,
+            'md:w-72': !collapsed,
+        }"
     >
         <!-- Брендинг / Логотип -->
         <div class="flex h-16 items-center justify-between px-6 border-b border-green-950/15">
-            <div class="overflow-hidden">
+            <div class="min-w-0 flex-1 overflow-hidden">
                 <a
                     v-if="$page.props.company_region?.url"
                     :href="$page.props.company_region.url"
@@ -77,6 +110,19 @@ onUnmounted(() => {
             >
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- Свернуть sidebar на десктопе -->
+            <button
+                type="button"
+                class="hidden h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-green-950/60 transition hover:bg-white/20 hover:text-green-950 md:flex"
+                :title="$t('Скрыть меню')"
+                :aria-label="$t('Скрыть меню')"
+                @click="$emit('toggle')"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 19.5-7.5-7.5 7.5-7.5" />
                 </svg>
             </button>
         </div>
@@ -102,6 +148,53 @@ onUnmounted(() => {
                 </template>
                 {{ $t('Добавить товар/услугу') }}
             </MainNavLink>
+
+
+            <!-- Мои товары и услуги -->
+            <div>
+                <MainNavLink routeName="account.ads.index">
+                    <template #icon>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                        </svg>
+                    </template>
+                    {{ $t('Мои товары/услуги') }}
+                </MainNavLink>
+
+                <div class="ml-4 mt-1 space-y-0.5 border-l border-green-950/15 pl-2">
+                    <SidebarAdsLink
+                        status="all"
+                        :label="$t('Все товары/услуги')"
+                        :count="adCounts.all"
+                        :active="!!onAdsIndex && adsStatus === 'all'"
+                    />
+                    <SidebarAdsLink
+                        status="active"
+                        :label="$t('Активные')"
+                        :count="adCounts.active"
+                        :active="!!onAdsIndex && adsStatus === 'active'"
+                    />
+                    <SidebarAdsLink
+                        status="disabled"
+                        :label="$t('Отключенные')"
+                        :count="adCounts.disabled"
+                        :active="!!onAdsIndex && adsStatus === 'disabled'"
+                    />
+                    <SidebarAdsLink
+                        status="moderation"
+                        :label="$t('На модерации')"
+                        :count="adCounts.moderation"
+                        :active="!!onAdsIndex && adsStatus === 'moderation'"
+                    />
+                    <SidebarAdsLink
+                        status="banned"
+                        :label="$t('Забаненные')"
+                        :count="adCounts.banned"
+                        :active="!!onAdsIndex && adsStatus === 'banned'"
+                    />
+                </div>
+            </div>
 
 
             <!-- О компании -->

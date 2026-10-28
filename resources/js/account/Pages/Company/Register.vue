@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import InputError from '@/account/Components/InputError.vue';
 import InputLabel from '@/account/Components/InputLabel.vue';
-import PrimaryButton from '@/account/Components/PrimaryButton.vue';
+import AccountFormActions from '@/account/Components/Forms/AccountFormActions.vue';
+import AccountPageHeader from '@/account/Components/Forms/AccountPageHeader.vue';
+import { formCard, formGrid, formTitle } from '@/account/Components/Forms/formStyles';
 import TextInput from '@/account/Components/TextInput.vue';
 import CompanyFields from '@/account/Components/Company/CompanyFields.vue';
 import { emptyPhone } from '@/account/Components/Company/companyForm';
 import type { CategoryNode, CompanyFormFields, RegionNode } from '@/account/Components/Company/companyForm';
-import type { PageProps } from '@/account/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 
 interface RegisterFormData extends CompanyFormFields {
     name: string;
@@ -25,12 +26,12 @@ const props = defineProps<{
     terms: { rules: string; privacy: string };
 }>();
 
-const page = usePage<PageProps>();
-
 const form = useForm<RegisterFormData>({
     region_id: props.defaultRegionId,
     legal_name: '',
     tax_id: '',
+    legal_address: '',
+    actual_address: '',
     display_name: '',
     description: '',
     is_online_store: false,
@@ -50,27 +51,36 @@ const submit = () => {
     });
 };
 
-const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
 </script>
 
 <template>
     <Head :title="$t('Регистрация компании')" />
 
-    <div class="min-h-screen bg-gray-50 py-8">
-        <div class="mx-auto max-w-4xl space-y-6 px-4">
-            <div>
-                <p class="text-sm text-gray-500">{{ page.props.app_name }}</p>
-                <h1 class="text-2xl font-bold text-gray-900">{{ $t('Регистрация компании') }}</h1>
-            </div>
+    <div class="min-h-screen bg-gray-50 py-8 sm:py-12">
+        <div class="mx-auto max-w-5xl space-y-6 px-4">
+            <AccountPageHeader
+                icon="register"
+                :title="$t('Регистрация компании')"
+                :description="$t('Создайте кабинет компании и начните размещать товары и услуги.')"
+            >
+                <template #actions>
+                    <Link
+                        :href="route('account.login')"
+                        class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-xs transition hover:border-green-first hover:text-green-800"
+                    >
+                        {{ $t('Уже есть кабинет? Войти') }}
+                    </Link>
+                </template>
+            </AccountPageHeader>
 
             <form class="space-y-6" @submit.prevent="submit">
                 <CompanyFields :form="form" :regions="regions" :phone-code="phoneCode" :categories="categories" />
 
-                <section :class="section">
-                    <h2 class="text-lg font-semibold text-gray-900">{{ $t('Ваш аккаунт') }}</h2>
-                    <p class="text-xs text-gray-500">{{ $t('Этим аккаунтом вы будете входить в кабинет. На почту придёт письмо со ссылкой подтверждения.') }}</p>
+                <section :class="formCard">
+                    <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Ваш аккаунт') }}</h2>
+                    <p class="text-sm leading-6 text-gray-500">{{ $t('Этим аккаунтом вы будете входить в кабинет. На почту придёт письмо со ссылкой подтверждения.') }}</p>
 
-                    <div class="grid gap-4 md:grid-cols-2">
+                    <div :class="formGrid">
                         <div>
                             <InputLabel for="name" :value="$t('Имя')" required :invalid="!!form.errors.name" />
                             <TextInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" autocomplete="name" :invalid="!!form.errors.name" />
@@ -104,28 +114,30 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
                     </div>
                 </section>
 
-                <div class="space-y-4">
+                <section :class="formCard">
+                    <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Согласие') }}</h2>
                     <label class="flex items-start gap-2" :class="{ 'text-red-600': !!form.errors.terms }">
                         <input
                             type="checkbox"
                             v-model="form.terms"
-                            class="mt-0.5 rounded-sm text-indigo-600 shadow-xs focus:ring-indigo-500"
+                            class="mt-0.5 rounded-sm text-green-first shadow-xs focus:ring-green-first"
                             :class="form.errors.terms ? 'border-red-500' : 'border-gray-300'"
                         />
                         <span class="text-sm" :class="form.errors.terms ? 'text-red-600' : 'text-gray-700'">
                             {{ $t('Я согласен с') }} <span class="text-red-600">*</span>
-                            <a :href="terms.rules" target="_blank" class="text-indigo-600 underline">{{ $t('Правилами использования веб-сайта') }}</a>
+                            <a :href="terms.rules" target="_blank" class="text-green-800 underline decoration-green-300 underline-offset-2">{{ $t('Правилами использования веб-сайта') }}</a>
                             {{ $t('и') }}
-                            <a :href="terms.privacy" target="_blank" class="text-indigo-600 underline">{{ $t('политикой обработки персональных данных') }}</a>
+                            <a :href="terms.privacy" target="_blank" class="text-green-800 underline decoration-green-300 underline-offset-2">{{ $t('политикой обработки персональных данных') }}</a>
                         </span>
                     </label>
                     <InputError :message="form.errors.terms" />
+                </section>
 
-                    <div class="flex flex-col sm:flex-row items-center gap-4">
-                        <PrimaryButton :disabled="form.processing">{{ $t('Зарегистрировать компанию') }}</PrimaryButton>
-                        <Link :href="route('account.login')" class="text-sm text-gray-600 underline hover:text-gray-900">{{ $t('Уже есть кабинет? Войти') }}</Link>
-                    </div>
-                </div>
+                <AccountFormActions
+                    :processing="form.processing"
+                    :label="$t('Зарегистрировать компанию')"
+                    :hint="$t('Поля со звёздочкой обязательны.')"
+                />
             </form>
         </div>
     </div>

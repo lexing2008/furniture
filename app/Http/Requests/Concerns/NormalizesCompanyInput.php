@@ -8,11 +8,19 @@ namespace App\Http\Requests\Concerns;
 trait NormalizesCompanyInput
 {
     /**
+     * Plain text fields never contain HTML tags.
+     */
+    protected function plainText(mixed $value): string
+    {
+        return trim(strip_tags((string) $value));
+    }
+
+    /**
      * "example.com" -> "https://example.com", an empty value is null.
      */
     protected function normalizeUrl(mixed $value): ?string
     {
-        $value = trim((string) $value);
+        $value = trim(strip_tags((string) $value));
 
         if ($value === '') {
             return null;
@@ -30,13 +38,13 @@ trait NormalizesCompanyInput
             ->map(function ($phone) {
                 $phone = is_array($phone) ? $phone : [];
 
-                $code = preg_replace('/\s+/', '', trim((string) ($phone['code'] ?? '')));
+                $code = preg_replace('/\s+/', '', strip_tags((string) ($phone['code'] ?? '')));
 
                 return [
                     // "375" and "+375" are the same
                     'code' => $code === '' ? '' : '+'.ltrim($code, '+'),
-                    'number' => trim((string) ($phone['number'] ?? '')),
-                    'description' => trim((string) ($phone['description'] ?? '')) ?: null,
+                    'number' => trim(strip_tags((string) ($phone['number'] ?? ''))),
+                    'description' => trim(strip_tags((string) ($phone['description'] ?? ''))) ?: null,
                 ];
             })
             // A row that was left blank is not a phone
@@ -50,6 +58,6 @@ trait NormalizesCompanyInput
      */
     protected function normalizeEmail(mixed $value): ?string
     {
-        return mb_strtolower(trim((string) $value)) ?: null;
+        return mb_strtolower(trim(strip_tags((string) $value))) ?: null;
     }
 }

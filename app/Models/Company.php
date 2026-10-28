@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'user_id', 'region_id', 'country_id', 'legal_name', 'tax_id', 'display_name', 'description',
+    'user_id', 'region_id', 'country_id', 'legal_name', 'tax_id', 'legal_address', 'actual_address', 'display_name', 'description',
     'delivery', 'payment', 'is_online_store', 'website', 'email', 'socials',
 ])]
 class Company extends Model
@@ -20,7 +20,7 @@ class Company extends Model
         'facebook' => 'Facebook',
         'instagram' => 'Instagram',
         'youtube' => 'YouTube',
-        'vk' => 'ВКонтакте',
+        'vk' => 'Vk',
         'telegram' => 'Telegram',
         'tiktok' => 'TikTok',
         'linkedin' => 'LinkedIn',
@@ -53,6 +53,14 @@ class Company extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'country_id');
+    }
+
+    /**
+     * Timezone of the company region: the city first, then its area, then the country.
+     */
+    public function timezone(): string
+    {
+        return $this->region?->getTimezone() ?? (string) config('app.timezone');
     }
 
     public function phones(): HasMany

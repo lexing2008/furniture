@@ -6,6 +6,7 @@ export interface User {
     email: string;
     email_verified_at?: string;
     role?: 'admin' | 'manager' | 'seo' | 'customer' | null;
+    lang?: string | null;
 }
 
 export type PageProps<
@@ -20,6 +21,13 @@ export type PageProps<
     } | null;
     auth: {
         user: User;
+    };
+    ad_counts: {
+        all: number;
+        active: number;
+        disabled: number;
+        moderation: number;
+        banned: number;
     };
     ziggy: Config & { location: string };
     flash?: {

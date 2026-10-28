@@ -4,6 +4,7 @@ namespace App\Http\Requests\Account;
 
 use App\Http\Requests\Concerns\NormalizesCompanyInput;
 use App\Models\Company;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -12,6 +13,24 @@ use Illuminate\Foundation\Http\FormRequest;
 class CompanySocialsRequest extends FormRequest
 {
     use NormalizesCompanyInput;
+
+    /**
+     * Domains that belong to each social network.
+     *
+     * @var array<string, list<string>>
+     */
+    private const SOCIAL_DOMAINS = [
+        'facebook' => ['facebook.com', 'fb.com'],
+        'instagram' => ['instagram.com'],
+        'youtube' => ['youtube.com', 'youtu.be'],
+        'vk' => ['vk.com', 'vk.ru'],
+        'telegram' => ['t.me', 'telegram.me'],
+        'tiktok' => ['tiktok.com'],
+        'linkedin' => ['linkedin.com'],
+        'x' => ['x.com', 'twitter.com'],
+        'ok' => ['ok.ru', 'odnoklassniki.ru'],
+        'pinterest' => ['pinterest.com', 'pin.it'],
+    ];
 
     public function authorize(): bool
     {
@@ -36,7 +55,34 @@ class CompanySocialsRequest extends FormRequest
     {
         return [
             'socials' => ['array'],
-            'socials.*' => ['nullable', 'url:http,https', 'max:255'],
+            'socials.*' => [
+                'nullable',
+                'url:http,https',
+                'max:255',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if (! is_string($value) || $value === '') {
+                        return;
+                    }
+
+                    $key = substr($attribute, (int) strrpos($attribute, '.') + 1);
+                    $allowedDomains = self::SOCIAL_DOMAINS[$key] ?? [];
+
+                    if ($allowedDomains === []) {
+                        return;
+                    }
+
+                    $host = rtrim(strtolower((string) parse_url($value, PHP_URL_HOST)), '.');
+
+                    foreach ($allowedDomains as $domain) {
+                        if ($host === $domain || str_ends_with($host, '.'.$domain)) {
+                            return;
+                        }
+                    }
+
+                    $network = Company::SOCIALS[$key] ?? __('соцсеть');
+                    $fail(__('Ссылка должна вести на :network.', ['network' => $network]));
+                },
+            ],
         ];
     }
 

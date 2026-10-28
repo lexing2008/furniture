@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Roles;
+use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Language;
@@ -118,6 +119,8 @@ class AccountPagesTest extends TestCase
         $response = $this->post($this->url('/register'), [
             'legal_name' => 'ООО Новая компания',
             'tax_id' => '300000003',
+            'legal_address' => 'г. Минск, ул. Новая, 1',
+            'actual_address' => 'г. Минск, ул. Фактическая, 2',
             'display_name' => 'Новая компания',
             'region_id' => $this->city->id,
             'description' => '',
@@ -139,6 +142,8 @@ class AccountPagesTest extends TestCase
         $this->assertAuthenticated();
         $this->assertSame('new-owner@example.com', auth()->user()->email);
         $this->assertSame($this->country->id, auth()->user()->company->country_id);
+        $this->assertSame('г. Минск, ул. Новая, 1', auth()->user()->company->legal_address);
+        $this->assertSame('г. Минск, ул. Фактическая, 2', auth()->user()->company->actual_address);
         $response->assertSessionHas('success');
     }
 
@@ -246,6 +251,60 @@ class AccountPagesTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->component('Password/Edit', false));
     }
 
+    public function test_dashboard_shows_ad_counts_and_profile_tasks(): void
+    {
+        $this->actingAs($this->user);
+
+        $base = [
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Товар',
+            'price' => 10,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+        ];
+
+        Ad::create($base + ['is_active' => true, 'is_moderated' => true, 'is_banned' => false]);
+        Ad::create($base + ['is_active' => false, 'is_moderated' => true, 'is_banned' => false]);
+        Ad::create($base + ['is_active' => true, 'is_moderated' => false, 'is_banned' => false]);
+        Ad::create($base + ['is_active' => true, 'is_moderated' => true, 'is_banned' => true]);
+
+        $this->get($this->url(''))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Index', false)
+                ->where('company.name', 'Ромашка')
+                ->where('counts.all', 4)
+                ->where('counts.active', 2)
+                ->where('counts.disabled', 1)
+                ->where('counts.moderation', 1)
+                ->where('counts.banned', 1)
+                ->has('tasks', 7)
+                ->where('completed_tasks', 5)
+                ->where('progress', 71)
+                ->has('recent_ads', 4));
+    }
+
+    public function test_account_language_is_saved_and_used(): void
+    {
+        $this->actingAs($this->user)->patch($this->url('/language'), ['lang' => 'en'])
+            ->assertRedirect();
+
+        $this->assertSame('en', $this->user->fresh()->lang);
+
+        $this->get($this->url(''))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Index', false)
+                ->where('locale', 'en'));
+
+        $this->actingAs($this->user)->patch($this->url('/language'), ['lang' => 'de'])
+            ->assertSessionHasErrors('lang');
+
+        $this->assertSame('en', $this->user->fresh()->lang);
+    }
+
     public function test_registration_page_uses_the_country_phone_code(): void
     {
         $this->get($this->url('/register'))
@@ -279,6 +338,8 @@ class AccountPagesTest extends TestCase
         $this->actingAs($this->user)->put($this->url('/general'), [
             'legal_name' => 'ООО Новое имя',
             'tax_id' => '200000002',
+            'legal_address' => 'г. Минск, ул. Юридическая, 3',
+            'actual_address' => 'г. Минск, ул. Фактическая, 4',
             'display_name' => 'Новое имя',
             'region_id' => $this->city->id,
             'description' => '<p>Новое описание</p>',
@@ -290,6 +351,8 @@ class AccountPagesTest extends TestCase
         $company = $this->company->fresh();
 
         $this->assertSame('ООО Новое имя', $company->legal_name);
+        $this->assertSame('г. Минск, ул. Юридическая, 3', $company->legal_address);
+        $this->assertSame('г. Минск, ул. Фактическая, 4', $company->actual_address);
         $this->assertSame('https://new.example.com', $company->website);
         $this->assertSame('shop@example.com', $company->email);
         $this->assertSame(['facebook' => 'https://facebook.com/romashka'], $company->socials);
@@ -322,6 +385,58 @@ class AccountPagesTest extends TestCase
         ]);
     }
 
+    public function test_tags_are_removed_from_plain_text_company_fields(): void
+    {
+        $this->actingAs($this->user)->put($this->url('/general'), [
+            'legal_name' => '<b>ООО Новое</b>',
+            'tax_id' => '<i>200000002</i>',
+            'legal_address' => '<span>г. Минск, ул. Юридическая, 5</span>',
+            'actual_address' => '<b>г. Минск, ул. Фактическая, 6</b>',
+            'display_name' => '<span>Новое имя</span>',
+            'region_id' => $this->city->id,
+            'description' => '<p>Новое описание</p>',
+            'is_online_store' => true,
+            'website' => '<b>new.example.com</b>',
+            'categories' => [$this->category->id],
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $company = $this->company->fresh();
+
+        $this->assertSame('ООО Новое', $company->legal_name);
+        $this->assertSame('200000002', $company->tax_id);
+        $this->assertSame('г. Минск, ул. Юридическая, 5', $company->legal_address);
+        $this->assertSame('г. Минск, ул. Фактическая, 6', $company->actual_address);
+        $this->assertSame('Новое имя', $company->display_name);
+        $this->assertSame('https://new.example.com', $company->website);
+        $this->assertSame('<p>Новое описание</p>', $company->description);
+
+        $this->actingAs($this->user)->put($this->url('/contacts'), [
+            'email' => '<i>new@example.com</i>',
+            'phones' => [
+                ['code' => '<b>375</b>', 'number' => '<i>29 222-33-44</i>', 'description' => '<span>Отдел продаж</span>'],
+            ],
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame('new@example.com', $this->company->fresh()->email);
+        $this->assertDatabaseHas('company_phones', [
+            'company_id' => $this->company->id,
+            'code' => '+375',
+            'number' => '29 222-33-44',
+            'description' => 'Отдел продаж',
+        ]);
+
+        $this->actingAs($this->user)->put($this->url('/socials'), [
+            'socials' => [
+                'facebook' => '<b>https://facebook.com/new</b>',
+            ],
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame(
+            ['facebook' => 'https://facebook.com/new'],
+            $this->company->fresh()->socials,
+        );
+    }
+
     public function test_socials_are_saved_and_empty_ones_are_removed(): void
     {
         $this->actingAs($this->user)->put($this->url('/socials'), [
@@ -333,6 +448,38 @@ class AccountPagesTest extends TestCase
 
         $this->assertSame(
             ['youtube' => 'https://youtube.com/channel/romashka'],
+            $this->company->fresh()->socials,
+        );
+    }
+
+    public function test_socials_only_accept_their_network_domains(): void
+    {
+        $this->actingAs($this->user)->put($this->url('/socials'), [
+            'socials' => [
+                'facebook' => 'https://m.facebook.com/romashka',
+                'youtube' => 'https://vimeo.com/romashka',
+                'vk' => 'https://vk.com.evil.example/romashka',
+                'x' => 'https://twitter.com/romashka',
+            ],
+        ])->assertSessionHasErrors(['socials.youtube', 'socials.vk']);
+
+        $this->assertSame(
+            ['facebook' => 'https://facebook.com/romashka'],
+            $this->company->fresh()->socials,
+        );
+
+        $this->actingAs($this->user)->put($this->url('/socials'), [
+            'socials' => [
+                'facebook' => 'https://m.facebook.com/romashka',
+                'telegram' => 'https://t.me/romashka',
+            ],
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame(
+            [
+                'facebook' => 'https://m.facebook.com/romashka',
+                'telegram' => 'https://t.me/romashka',
+            ],
             $this->company->fresh()->socials,
         );
     }

@@ -15,8 +15,8 @@ class CompanyRegistrationRequest extends CompanyRequest
         parent::prepareForValidation();
 
         $this->merge([
-            'name' => trim((string) $this->input('name', '')),
-            'email' => mb_strtolower(trim((string) $this->input('email', ''))),
+            'name' => $this->plainText($this->input('name', '')),
+            'email' => mb_strtolower($this->plainText($this->input('email', ''))),
             'terms' => $this->boolean('terms'),
         ]);
     }

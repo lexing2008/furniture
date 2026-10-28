@@ -14,8 +14,11 @@ use App\Models\RegionCountry;
 use App\Models\TmpFile;
 use App\Models\User;
 use App\Support\AdImagePath;
+use App\Support\Slug;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -173,6 +176,7 @@ class AdTest extends TestCase
         $this->assertSame('ART-1', $ad->article);
         $this->assertFalse($ad->is_active);
         $this->assertFalse($ad->is_banned);
+        $this->assertNotNull($ad->published_at);
         $this->assertSame('BYN', $ad->currency);
         $this->assertSame('1999.9000', $ad->price);
         $this->assertSame($this->city->id, $ad->regions()->first()?->id);
@@ -183,8 +187,19 @@ class AdTest extends TestCase
 
         $image = $ad->images()->firstOrFail();
         $this->assertNotNull($image->uuid);
-        $this->assertStringStartsWith('divany-', basename($image->path));
+        $this->assertSame(
+            'furniture/manual/divany/divan-oslo.'.$image->uuid.'.webp',
+            $image->path,
+        );
         Storage::disk('public')->assertExists($image->path);
+        $this->assertSame(
+            'furniture/manual/divany/630/divan-oslo.'.$image->uuid.'.webp',
+            AdImagePath::medium($image->path),
+        );
+        $this->assertSame(
+            'furniture/manual/divany/100/divan-oslo.'.$image->uuid.'.webp',
+            AdImagePath::small($image->path),
+        );
         Storage::disk('public')->assertExists(AdImagePath::medium($image->path));
         Storage::disk('public')->assertExists(AdImagePath::small($image->path));
 
@@ -202,7 +217,11 @@ class AdTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Ads/Index', false)
-                ->has('ads', 1));
+                ->has('ads', 1)
+                ->where('ads.0.article', 'ART-1')
+                ->where('ads.0.images_count', 1)
+                ->where('ads.0.filter_count', 3)
+                ->where('ads.0.thumb_url', url('/storage/'.ltrim(AdImagePath::small($image->path), '/'))));
 
         $this->actingAs($this->user)
             ->get($this->url("/ads/create?copy={$ad->id}"))
@@ -210,11 +229,144 @@ class AdTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Ads/Create', false)
                 ->where('source.category_id', $this->category->id)
-                ->where('source.price', '1999.90')
+                ->missing('source.price')
                 ->where('source.warranty_value', 12)
                 ->where('source.regions', [$this->city->id])
                 ->where('filters.0.value', [$colorVariant->id])
                 ->has('filters', 3));
+    }
+
+    public function test_ads_can_be_filtered_by_list_parameters(): void
+    {
+        $otherCategory = Category::create(['is_active' => true]);
+        $otherCategory->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Столы',
+            'menu_name' => 'Столы',
+            'slug' => 'stoly',
+        ]);
+
+        $base = [
+            'company_id' => $this->company->id,
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+        ];
+
+        $matching = Ad::create([
+            ...$base,
+            'category_id' => $this->category->id,
+            'title' => 'Подходящий',
+            'price' => 50,
+            'video' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
+        $matching->regions()->attach($this->city->id);
+        $matching->images()->create(['path' => 'furniture/manual/filtered.webp', 'order' => 0]);
+        $filter = $this->intFilter('Высота', 'см');
+        $matching->filterInts()->create(['filter_id' => $filter->id, 'value' => 90]);
+
+        $other = Ad::create([
+            ...$base,
+            'category_id' => $otherCategory->id,
+            'title' => 'Другой',
+            'price' => 500,
+            'video' => null,
+        ]);
+
+        $queries = [
+            'category_id='.$this->category->id => $matching,
+            'area_id='.$this->city->parent_id => $matching,
+            'city_id='.$this->city->id => $matching,
+            'price_from=10&price_to=100' => $matching,
+            'has_filters=with' => $matching,
+            'has_filters=without' => $other,
+            'photo=with' => $matching,
+            'photo=without' => $other,
+            'has_video=with' => $matching,
+            'has_video=without' => $other,
+        ];
+
+        foreach ($queries as $query => $expected) {
+            $this->actingAs($this->user)
+                ->get($this->url('/ads?'.$query))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->has('ads', 1)
+                    ->where('ads.0.id', $expected->id));
+        }
+    }
+
+    public function test_ads_can_be_searched_by_title_article_and_number(): void
+    {
+        $base = [
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+        ];
+
+        $sofa = Ad::create([
+            ...$base,
+            'title' => 'Диван Осло',
+            'article' => 'ART-1',
+            'number' => 'SKU-1',
+        ]);
+        $table = Ad::create([
+            ...$base,
+            'title' => 'Стол',
+            'article' => 'ART-2',
+            'number' => 'SKU-2',
+        ]);
+
+        foreach ([['Осло', $sofa], ['ART-2', $table], ['SKU-1', $sofa]] as [$term, $expected]) {
+            $this->actingAs($this->user)
+                ->get($this->url('/ads?search='.urlencode($term)))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Ads/Index', false)
+                    ->has('ads', 1)
+                    ->where('ads.0.id', $expected->id)
+                    ->where('search', $term));
+        }
+    }
+
+    public function test_tags_are_removed_from_plain_text_ad_fields(): void
+    {
+        $this->actingAs($this->user)
+            ->post($this->url('/ads'), [
+                'title' => '<b>Диван</b>',
+                'number' => '<i>SKU-10</i>',
+                'article' => '<span>ART-10</span>',
+                'category_id' => $this->category->id,
+                'description' => '<p>Описание</p>',
+                'price' => '100',
+                'warranty_value' => null,
+                'warranty_unit' => 'months',
+                'video' => null,
+                'regions' => [$this->city->id],
+                'filters' => [],
+                'existing_images' => [],
+                'new_images' => [],
+                'deleted_image_ids' => [],
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $ad = Ad::query()->firstOrFail();
+
+        $this->assertSame('Диван', $ad->title);
+        $this->assertSame('SKU-10', $ad->number);
+        $this->assertSame('ART-10', $ad->article);
+        $this->assertSame('<p>Описание</p>', $ad->description);
+    }
+
+    public function test_ad_name_slug_is_transliterated_and_limited(): void
+    {
+        $this->assertSame('divan-oslo', Slug::makeLimited('Диван Осло', 150));
+        $this->assertSame(150, strlen(Slug::makeLimited(str_repeat('a', 200), 150)));
     }
 
     public function test_description_length_ignores_html_tags(): void
@@ -278,6 +430,137 @@ class AdTest extends TestCase
         $this->assertFalse($ad->is_moderated);
     }
 
+    public function test_published_at_is_updated_by_actions(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Диван',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_moderated' => true,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $before = $ad->published_at;
+
+        $this->travel(1)->minutes();
+
+        $this->actingAs($this->user)
+            ->put($this->url("/ads/{$ad->id}"), [
+                'title' => 'Диван',
+                'number' => null,
+                'article' => null,
+                'category_id' => $this->category->id,
+                'description' => '',
+                'price' => '100',
+                'warranty_value' => null,
+                'warranty_unit' => 'months',
+                'video' => null,
+                'regions' => [$this->city->id],
+                'filters' => [],
+                'existing_images' => [],
+                'new_images' => [],
+                'deleted_image_ids' => [],
+            ])
+            ->assertRedirect();
+
+        $afterUpdate = $ad->fresh()?->published_at;
+        $this->assertTrue($afterUpdate?->greaterThan($before) ?? false);
+
+        $this->travel(1)->minutes();
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/price"), ['price' => '200'])
+            ->assertOk();
+
+        $afterPrice = $ad->fresh()?->published_at;
+        $this->assertTrue($afterPrice?->greaterThan($afterUpdate) ?? false);
+
+        $this->travel(1)->minutes();
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/actualize"))
+            ->assertOk()
+            ->assertJsonStructure(['published_at']);
+
+        $this->assertTrue($ad->fresh()?->published_at?->greaterThan($afterPrice) ?? false);
+    }
+
+    public function test_published_at_uses_company_region_timezone_with_parent_fallback(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-27 12:00:00', 'UTC'));
+        $this->city->update(['timezone' => 'Asia/Tokyo']);
+
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Товар',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_moderated' => true,
+            'published_at' => Carbon::parse('2026-10-26 00:00:00', 'UTC'),
+        ]);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/actualize"))
+            ->assertOk()
+            ->assertJsonPath('published_at', '27.10.2026 21:00');
+
+        $this->assertSame(
+            '2026-10-27 12:00:00',
+            $ad->fresh()->published_at?->utc()->format('Y-m-d H:i:s'),
+        );
+
+        $this->city->update(['timezone' => null]);
+        Region::findOrFail($this->city->parent_id)->update(['timezone' => 'Asia/Tokyo']);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/actualize"))
+            ->assertOk()
+            ->assertJsonPath('published_at', '27.10.2026 21:00');
+
+        $area = Region::findOrFail($this->city->parent_id);
+        $area->update(['timezone' => null]);
+        $this->country->update(['timezone' => 'Asia/Tokyo']);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/actualize"))
+            ->assertOk()
+            ->assertJsonPath('published_at', '27.10.2026 21:00');
+    }
+
+    public function test_price_can_be_updated_from_the_list(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Диван',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_moderated' => true,
+        ]);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/price"), ['price' => '123.45'])
+            ->assertOk()
+            ->assertJsonPath('price', 123.45);
+
+        $this->assertSame('123.4500', $ad->fresh()?->price);
+        $this->assertTrue($ad->fresh()?->is_moderated);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url("/ads/{$ad->id}/price"), ['price' => '-1'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('price');
+    }
+
     public function test_moderation_is_reset_only_when_content_changes(): void
     {
         $ad = Ad::create([
@@ -318,6 +601,105 @@ class AdTest extends TestCase
             ->put($this->url("/ads/{$ad->id}"), [...$payload, 'title' => 'Диван изменён'])
             ->assertRedirect();
         $this->assertFalse($ad->fresh()?->is_moderated);
+    }
+
+    public function test_ads_are_filtered_by_status_and_counts_are_shared(): void
+    {
+        $base = [
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+        ];
+
+        Ad::create([...$base, 'title' => 'Активный', 'is_active' => true, 'is_moderated' => true, 'is_banned' => false]);
+        Ad::create([...$base, 'title' => 'Отключённый', 'is_active' => false, 'is_moderated' => true, 'is_banned' => false]);
+        Ad::create([...$base, 'title' => 'На модерации', 'is_active' => true, 'is_moderated' => false, 'is_banned' => false]);
+        Ad::create([...$base, 'title' => 'Забаненный', 'is_active' => true, 'is_moderated' => true, 'is_banned' => true]);
+
+        $this->actingAs($this->user)
+            ->get($this->url('/ads?status=active'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Ads/Index', false)
+                ->where('status', 'active')
+                ->has('ads', 2)
+                ->where('ad_counts.all', 4)
+                ->where('ad_counts.active', 2)
+                ->where('ad_counts.disabled', 1)
+                ->where('ad_counts.moderation', 1)
+                ->where('ad_counts.banned', 1));
+
+        $this->actingAs($this->user)
+            ->get($this->url('/ads?status=banned'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('status', 'banned')
+                ->has('ads', 1)
+                ->where('ads.0.title', 'Забаненный'));
+    }
+
+    public function test_image_can_be_uploaded_from_a_company_subdomain(): void
+    {
+        $this->company->update(['website' => 'https://example.com']);
+
+        $file = UploadedFile::fake()->image('photo.jpg', 800, 600);
+        $contents = file_get_contents($file->getRealPath());
+
+        Http::fake([
+            'https://img.example.com/photo.jpg' => Http::response($contents, 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson($this->url('/ads/images/url'), [
+                'url' => 'https://img.example.com/photo.jpg',
+            ])
+            ->assertCreated()
+            ->assertJsonStructure(['id', 'url', 'thumb_630_url', 'thumb_100_url']);
+
+        $tmp = TmpFile::findOrFail($response->json('id'));
+        Storage::disk('public')->assertExists($tmp->path);
+        Storage::disk('public')->assertExists(AdImagePath::medium($tmp->path));
+        Storage::disk('public')->assertExists(AdImagePath::small($tmp->path));
+
+        [$width, $height] = getimagesize(Storage::disk('public')->path($tmp->path));
+        $this->assertLessThanOrEqual(1200, $width);
+        $this->assertLessThanOrEqual(1200, $height);
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://img.example.com/photo.jpg');
+    }
+
+    public function test_image_url_can_be_uploaded_from_any_public_site(): void
+    {
+        $file = UploadedFile::fake()->image('photo.jpg', 800, 600);
+        $contents = file_get_contents($file->getRealPath());
+
+        Http::fake([
+            'https://images.other-site.test/photo.jpg' => Http::response($contents, 200, ['Content-Type' => 'image/jpeg']),
+            'https://images.other-site.test/not-an-image.jpg' => Http::response('not an image', 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson($this->url('/ads/images/url'), [
+                'url' => 'https://images.other-site.test/photo.jpg',
+            ])
+            ->assertCreated()
+            ->assertJsonStructure(['id', 'url', 'thumb_630_url', 'thumb_100_url']);
+
+        $tmp = TmpFile::findOrFail($response->json('id'));
+        Storage::disk('public')->assertExists($tmp->path);
+        $this->assertNull($this->company->fresh()->website);
+
+        $this->actingAs($this->user)
+            ->postJson($this->url('/ads/images/url'), [
+                'url' => 'https://images.other-site.test/not-an-image.jpg',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('url');
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://images.other-site.test/photo.jpg');
     }
 
     public function test_temporary_image_can_be_deleted_from_the_server(): void
@@ -428,7 +810,7 @@ class AdTest extends TestCase
         $this->assertDatabaseMissing('ad_images', ['id' => $first->id]);
         Storage::disk('public')->assertMissing('furniture/manual/first.webp');
         $this->assertSame(0, $second->fresh()?->order);
-        $this->assertStringStartsWith('divany-', basename((string) $second->fresh()?->path));
+        $this->assertSame('furniture/manual/divany/stol.second.webp', $second->fresh()?->path);
         $this->assertSame(2, $ad->images()->count());
         $this->assertDatabaseMissing('tmp_files', ['id' => $tmp->id]);
     }

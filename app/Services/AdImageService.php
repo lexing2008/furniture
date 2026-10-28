@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Ad;
 use App\Models\TmpFile;
 use App\Support\AdImagePath;
+use App\Support\Slug;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -25,6 +26,14 @@ class AdImageService
      */
     public function upload(UploadedFile $file, int $userId): TmpFile
     {
+        return $this->uploadFromPath($file->getRealPath(), $userId);
+    }
+
+    /**
+     * Store an image by its local source path. Used by device uploads and remote URLs.
+     */
+    public function uploadFromPath(string $sourcePath, int $userId): TmpFile
+    {
         $uuid = Str::uuid()->toString();
         $path = AdImagePath::main($uuid);
         $medium = AdImagePath::medium($path);
@@ -36,9 +45,9 @@ class AdImageService
         $disk->makeDirectory(AdImagePath::DIRECTORY.'/'.AdImagePath::SMALL_SIZE);
 
         try {
-            $this->convertToWebp($file->getRealPath(), $disk->path($path), self::MAX_SIDE, self::MAX_SIDE, self::WEBP_QUALITY);
-            $this->convertToWebp($file->getRealPath(), $disk->path($medium), 630, 467, 80);
-            $this->convertToWebp($file->getRealPath(), $disk->path($small), 100, 100, 75);
+            $this->convertToWebp($sourcePath, $disk->path($path), self::MAX_SIDE, self::MAX_SIDE, self::WEBP_QUALITY);
+            $this->convertToWebp($sourcePath, $disk->path($medium), 630, 467, 80);
+            $this->convertToWebp($sourcePath, $disk->path($small), 100, 100, 75);
         } catch (Throwable $exception) {
             $disk->delete(AdImagePath::variants($path));
 
@@ -75,6 +84,7 @@ class AdImageService
     public function sync(Ad $ad, int $userId, string $slug, array $existing, array $new, array $deleted): array
     {
         $images = $ad->images()->get()->keyBy('id');
+        $nameSlug = Slug::makeLimited((string) $ad->title, 150);
         $pathsToDelete = [];
 
         $disk = Storage::disk('public');
@@ -100,7 +110,7 @@ class AdImageService
             }
 
             $uuid = $image->uuid ?: $this->uuidFromPath($image->path);
-            $target = AdImagePath::main($slug.'-'.$uuid);
+            $target = AdImagePath::forAd($slug, $nameSlug, $uuid);
             $this->moveVariants($image->path, $target);
             $image->update([
                 'path' => $target,
@@ -119,7 +129,7 @@ class AdImageService
                 ->firstOrFail();
 
             $uuid = $tmp->uuid ?: $this->uuidFromPath($tmp->path);
-            $target = AdImagePath::main($slug.'-'.$uuid);
+            $target = AdImagePath::forAd($slug, $nameSlug, $uuid);
             $this->moveVariants($tmp->path, $target);
 
             $ad->images()->create([
@@ -168,6 +178,7 @@ class AdImageService
             }
 
             $toPath = $toPaths[$index];
+            $disk->makeDirectory(dirname($toPath));
 
             if ($disk->exists($toPath)) {
                 $disk->delete($fromPath);

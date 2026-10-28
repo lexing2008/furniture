@@ -6,6 +6,7 @@ import type { InertiaForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import type { CompanyInfoFields, RegionNode } from './companyForm';
 import RegionTree from './RegionTree.vue';
+import { formCard, formGrid, formTitle } from '@/account/Components/Forms/formStyles';
 
 const props = defineProps<{
     form: InertiaForm<T>;
@@ -15,14 +16,13 @@ const props = defineProps<{
 // Errors of the fields of a generic form are not resolved by the Inertia typings
 const errors = computed(() => props.form.errors as Record<string, string | undefined>);
 
-const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
 </script>
 
 <template>
-    <section :class="section">
-        <h2 class="text-lg font-semibold text-gray-900">{{ $t('Данные компании') }}</h2>
+    <section :class="formCard">
+        <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Данные компании') }}</h2>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <div :class="formGrid">
             <div>
                 <InputLabel for="legal_name" :value="$t('Официальное название компании')" required :invalid="!!errors.legal_name" />
                 <TextInput id="legal_name" type="text" class="mt-1 block w-full" v-model="form.legal_name" :invalid="!!errors.legal_name" />
@@ -46,6 +46,20 @@ const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow
             <InputLabel :value="$t('Регион (город)')" required :invalid="!!errors.region_id" />
             <RegionTree v-model="form.region_id" :nodes="regions" :invalid="!!errors.region_id" />
             <InputError class="mt-2" :message="errors.region_id" />
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            <div>
+                <InputLabel for="legal_address" :value="$t('Юридический адрес')" required :invalid="!!errors.legal_address" />
+                <TextInput id="legal_address" type="text" class="mt-1 block w-full" v-model="form.legal_address" :invalid="!!errors.legal_address" />
+                <InputError class="mt-2" :message="errors.legal_address" />
+            </div>
+
+            <div>
+                <InputLabel for="actual_address" :value="$t('Фактический адрес')" :invalid="!!errors.actual_address" />
+                <TextInput id="actual_address" type="text" class="mt-1 block w-full" v-model="form.actual_address" :invalid="!!errors.actual_address" />
+                <InputError class="mt-2" :message="errors.actual_address" />
+            </div>
         </div>
 
         <div>

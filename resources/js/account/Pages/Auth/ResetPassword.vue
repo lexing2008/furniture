@@ -31,7 +31,10 @@ const submit = () => {
     <GuestLayout>
         <Head :title="$t('Reset Password')" />
 
-        <form @submit.prevent="submit">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">{{ $t('Новый пароль') }}</h1>
+        <p class="mt-2 text-sm leading-6 text-gray-600">{{ $t('Придумайте новый пароль для входа в кабинет.') }}</p>
+
+        <form class="mt-6" @submit.prevent="submit">
             <div>
                 <InputLabel for="email" :value="$t('Email')" required :invalid="!!form.errors.email" />
 
@@ -89,12 +92,13 @@ const submit = () => {
                 />
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
+            <div class="mt-6">
                 <PrimaryButton
+                    class="w-full justify-center py-3"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    {{ $t('Reset Password') }}
+                    {{ $t('Сохранить новый пароль') }}
                 </PrimaryButton>
             </div>
         </form>

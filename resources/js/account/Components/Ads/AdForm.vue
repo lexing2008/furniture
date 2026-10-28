@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import InputError from '@/account/Components/InputError.vue';
 import InputLabel from '@/account/Components/InputLabel.vue';
-import PrimaryButton from '@/account/Components/PrimaryButton.vue';
+import AccountFormActions from '@/account/Components/Forms/AccountFormActions.vue';
+import { formCard, formHint, formTitle } from '@/account/Components/Forms/formStyles';
 import TextInput from '@/account/Components/TextInput.vue';
 import AdRegionTree from '@/account/Components/Ads/AdRegionTree.vue';
 import CategoryTreeSelect from '@/account/Components/Ads/CategoryTreeSelect.vue';
@@ -69,7 +70,6 @@ const initialForm = (): AdFormData => {
         return {
             ...emptyAdForm(props.defaultRegionId),
             category_id: props.source.category_id,
-            price: props.source.price,
             warranty_value: props.source.warranty_value === null ? '' : String(props.source.warranty_value),
             warranty_unit: props.source.warranty_unit,
             description: props.source.description,
@@ -100,12 +100,101 @@ const dragIndex = ref<number | null>(null);
 const dropTargetIndex = ref<number | null>(null);
 const uploads = new Map<string, XMLHttpRequest>();
 const uploadError = ref<string | null>(null);
+const imageUrl = ref('');
+const urlUploading = ref(false);
+const urlError = ref<string | null>(null);
+const uploadingPlaceholder =
+    'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3C/svg%3E';
 const filters = ref<AdFilter[]>([...props.initialFilters]);
 const filtersLoading = ref(false);
 const filtersError = ref<string | null>(null);
 
-const isUploading = computed(() => images.value.some((image) => image.uploading));
+const isUploading = computed(() => urlUploading.value || images.value.some((image) => image.uploading));
 const errors = computed(() => form.errors as Record<string, string | undefined>);
+
+const onUrlPaste = (event: ClipboardEvent) => {
+    const value = event.clipboardData?.getData('text')?.trim();
+
+    if (!value) {
+        return;
+    }
+
+    imageUrl.value = value;
+    event.preventDefault();
+
+    if (/^https?:\/\//i.test(value)) {
+        void uploadUrl();
+    }
+};
+
+const uploadUrl = async () => {
+    const url = imageUrl.value.trim();
+    urlError.value = null;
+
+    if (url === '' || urlUploading.value) {
+        return;
+    }
+
+    if (images.value.length >= 15) {
+        urlError.value = translate('Максимум 15 изображений.');
+
+        return;
+    }
+
+    const item: AdImageItem = {
+        key: `url-${Date.now()}-${Math.random()}`,
+        url: uploadingPlaceholder,
+        progress: 0,
+        uploading: true,
+    };
+
+    images.value.push(item);
+    urlUploading.value = true;
+
+    try {
+        const response = await fetch(route('account.ads.images.url'), {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+            },
+            body: JSON.stringify({ url }),
+        });
+        const data = (await response.json().catch(() => ({}))) as {
+            id?: number;
+            url?: string;
+            thumb_630_url?: string;
+            thumb_100_url?: string;
+            message?: string;
+            errors?: Record<string, string[]>;
+        };
+
+        if (!response.ok) {
+            images.value = images.value.filter((image) => image.key !== item.key);
+            urlError.value =
+                data.errors?.url?.[0] ??
+                data.errors?.image?.[0] ??
+                data.message ??
+                translate('Не удалось загрузить изображение по ссылке.');
+
+            return;
+        }
+
+        item.tempFileId = data.id;
+        item.url = data.url ?? item.url;
+        item.thumb630Url = data.thumb_630_url;
+        item.thumb100Url = data.thumb_100_url;
+        item.progress = 100;
+        item.uploading = false;
+        imageUrl.value = '';
+    } catch {
+        images.value = images.value.filter((image) => image.key !== item.key);
+        urlError.value = translate('Не удалось загрузить изображение по ссылке.');
+    } finally {
+        urlUploading.value = false;
+    }
+};
 
 const descriptionLength = computed(() => {
     const html = form.description ?? '';
@@ -131,6 +220,43 @@ const warrantyUnits = computed<Array<{ value: WarrantyUnit; label: string }>>(()
     { value: 'months', label: translate('Месяцы') },
     { value: 'years', label: translate('Годы') },
 ]);
+
+const youtubeEmbedUrl = computed(() => {
+    const raw = form.video.trim();
+
+    if (raw === '') {
+        return null;
+    }
+
+    let url: URL;
+
+    try {
+        url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    } catch {
+        return null;
+    }
+
+    const host = url.hostname.toLowerCase().replace(/^www\./i, '');
+    let id: string | null = null;
+
+    if (host === 'youtu.be') {
+        id = url.pathname.split('/').filter(Boolean)[0] ?? null;
+    } else if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+        if (url.pathname === '/watch') {
+            id = url.searchParams.get('v');
+        } else {
+            const parts = url.pathname.split('/').filter(Boolean);
+
+            if (['embed', 'shorts', 'live', 'v'].includes(parts[0] ?? '')) {
+                id = parts[1] ?? null;
+            }
+        }
+    }
+
+    return id !== null && /^[A-Za-z0-9_-]{11}$/.test(id)
+        ? `https://www.youtube-nocookie.com/embed/${id}`
+        : null;
+});
 
 function filterState(source: AdFilter[]): Record<string, FilterValue> {
     const values: Record<string, FilterValue> = {};
@@ -415,16 +541,18 @@ const submit = () => {
     form.post(route('account.ads.store'), { preserveScroll: true });
 };
 
-const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
-const hint = 'text-xs text-gray-500';
-const smallButton = 'rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
-const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500 transition hover:border-green-first hover:text-green-800';
+const hint = formHint;
+const smallButton =
+    'cursor-pointer rounded-full border border-gray-300 bg-white/90 px-2.5 py-1 text-xs font-medium text-gray-600 shadow-xs transition hover:border-green-first hover:text-green-800';
+const dropzone =
+    'flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/50 px-4 py-8 text-center text-sm text-gray-500 transition hover:border-green-first hover:bg-green-50/30 hover:text-green-800';
 </script>
 
 <template>
-    <form class="space-y-6" @submit.prevent="submit">
-        <section :class="section">
-            <h2 class="text-lg font-semibold text-gray-900">{{ $t('Основная информация') }}</h2>
+    <div>
+        <form class="space-y-6" @submit.prevent="submit">
+        <section :class="formCard">
+            <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Основная информация') }}</h2>
 
             <div>
                 <InputLabel for="title" :value="$t('Название')" required :invalid="!!form.errors.title" />
@@ -501,17 +629,56 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             </div>
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <h2 class="text-lg font-semibold" :class="errors.images ? 'text-red-600' : 'text-gray-900'">{{ $t('Изображения') }}</h2>
+                <h2 :class="[formTitle, errors.images ? 'text-red-600' : 'text-gray-900']">{{ $t('Изображения') }}</h2>
                 <p :class="hint">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
             </div>
+
+            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div class="min-w-0 flex-1">
+                        <InputLabel for="image_url" :value="$t('Ссылка на изображение')" />
+                        <TextInput
+                            id="image_url"
+                            v-model="imageUrl"
+                            type="url"
+                            class="mt-1 block w-full"
+                            placeholder="https://example.com/image.jpg"
+                            autocomplete="off"
+                            @keydown.enter.prevent="uploadUrl"
+                            @paste="onUrlPaste"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-green-first px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        :disabled="urlUploading || imageUrl.trim() === ''"
+                        @click="uploadUrl"
+                    >
+                        <svg v-if="urlUploading" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                        </svg>
+                        {{ urlUploading ? $t('Загрузка...') : $t('Загрузить по ссылке') }}
+                    </button>
+                </div>
+
+                <p v-if="urlError" class="mt-2 text-sm text-red-600">{{ urlError }}</p>
+            </div>
+
+            <p class="text-xs font-medium text-amber-700">{{ $t('Не воруйте изображения, это грех.') }}</p>
 
             <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFileInput" />
 
             <div :class="[dropzone, errors.images ? 'border-red-500' : '']" @click="openFileDialog" @dragover.prevent @drop.prevent="onDropzone">
-                <p>{{ $t('Перетащите изображения сюда или нажмите, чтобы выбрать') }}</p>
-                <p class="mt-1 text-xs">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
+                <span class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-green-700 shadow-xs ring-1 ring-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                </span>
+                <p class="font-medium text-gray-700">{{ $t('Перетащите изображения сюда или нажмите, чтобы выбрать') }}</p>
+                <p class="mt-1 text-xs text-gray-500">{{ $t('До 15 изображений. Перетащите, чтобы изменить порядок.') }}</p>
             </div>
 
             <p v-if="uploadError" class="text-sm text-red-600">{{ uploadError }}</p>
@@ -543,7 +710,7 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                         @dragstart="startDrag(index, $event)"
                         @dragend="dragEnd"
                     >
-                        <img :src="image.thumb630Url ?? image.url" :alt="`${$t('Изображения')} ${index + 1}`" class="h-40 w-full object-cover" />
+                        <img :src="image.thumb630Url ?? image.url" :alt="`${$t('Изображения')} ${index + 1}`" class="aspect-[630/467] h-auto w-full object-cover" />
 
                         <div v-if="image.uploading" class="absolute inset-0 flex flex-col items-center justify-center bg-black/50 px-4 text-white">
                             <span class="text-sm">{{ $t('Загрузка...') }} {{ image.progress }}%</span>
@@ -556,7 +723,7 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
 
                         <div class="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">{{ index + 1 }}</div>
 
-                        <div class="absolute right-2 top-2 flex gap-1">
+                        <div v-if="!image.uploading" class="absolute right-2 top-2 flex gap-1">
                             <button type="button" :class="[smallButton, 'cursor-pointer bg-white/90']" :title="$t('Переместить влево')" @click="moveImage(index, index - 1)">←</button>
                             <button type="button" :class="[smallButton, 'cursor-pointer bg-white/90']" :title="$t('Переместить вправо')" @click="moveImage(index, index + 1)">→</button>
                             <button type="button" :class="[smallButton, 'cursor-pointer bg-white/90 text-red-600']" :title="$t('Удалить')" @click="removeImage(index)">×</button>
@@ -566,9 +733,9 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             </div>
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900">{{ $t('Видео') }}</h2>
+                <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Видео') }}</h2>
                 <p :class="hint">{{ $t('Ссылка на YouTube') }}</p>
             </div>
 
@@ -576,12 +743,26 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
                 <InputLabel for="video" :value="$t('Ссылка на YouTube')" :invalid="!!form.errors.video" />
                 <TextInput id="video" v-model="form.video" type="url" class="mt-1 block w-full" :placeholder="$t('Например, https://youtube.com/watch?v=...')" :invalid="!!form.errors.video" />
                 <InputError class="mt-2" :message="form.errors.video" />
+
+                <div v-if="youtubeEmbedUrl" class="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-black shadow-sm">
+                    <div class="aspect-video">
+                        <iframe
+                            :src="youtubeEmbedUrl"
+                            class="h-full w-full"
+                            :title="$t('Предпросмотр видео')"
+                            loading="lazy"
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <h2 class="text-lg font-semibold" :class="form.errors.regions ? 'text-red-600' : 'text-gray-900'">{{ $t('Регионы') }} <span class="text-red-600">*</span></h2>
+                <h2 :class="[formTitle, form.errors.regions ? 'text-red-600' : 'text-gray-900']">{{ $t('Регионы') }} <span class="text-red-600">*</span></h2>
                 <p :class="hint">{{ $t('Выберите регионы, в которых показывать товар/услугу.') }}</p>
             </div>
 
@@ -589,9 +770,9 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             <InputError :message="form.errors.regions" />
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <h2 class="text-lg font-semibold" :class="form.errors.filters ? 'text-red-600' : 'text-gray-900'">{{ $t('Параметры фильтров') }}</h2>
+                <h2 :class="[formTitle, form.errors.filters ? 'text-red-600' : 'text-gray-900']">{{ $t('Параметры фильтров') }}</h2>
             </div>
 
             <p v-if="!form.category_id" :class="hint">{{ $t('Выберите категорию, чтобы загрузить фильтры.') }}</p>
@@ -660,9 +841,10 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             <InputError :message="form.errors.filters" />
         </section>
 
-        <section :class="section">
+        <section :class="formCard">
             <div>
-                <InputLabel for="is_active" :value="$t('Отображать на сайте')" required :invalid="!!form.errors.is_active" />
+                <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Публикация') }}</h2>
+                <InputLabel for="is_active" :value="$t('Отображать на сайте')" required :invalid="!!form.errors.is_active" class="mt-4" />
                 <select
                     id="is_active"
                     v-model="form.is_active"
@@ -676,16 +858,28 @@ const dropzone = 'flex min-h-28 cursor-pointer flex-col items-center justify-cen
             </div>
         </section>
 
-        <div class="flex flex-wrap items-center gap-4">
-            <PrimaryButton :disabled="form.processing || isUploading || filtersLoading">{{ $t('Сохранить') }}</PrimaryButton>
-            <Link
-                v-if="copyUrl"
-                :href="copyUrl"
-                class="inline-flex items-center rounded-full border border-green-first px-4 py-2 text-xs font-semibold uppercase tracking-widest text-green-first transition hover:bg-green-first/10"
-            >
-                {{ $t('Добавить похожее') }}
-            </Link>
-            <a :href="route('account.ads.index')" class="text-sm text-gray-600 underline hover:text-gray-900">{{ $t('К списку') }}</a>
-        </div>
-    </form>
+        <AccountFormActions
+            :processing="form.processing"
+            :disabled="isUploading || filtersLoading"
+            :success="form.recentlySuccessful"
+        >
+            <template #actions>
+                <Link
+                    v-if="copyUrl"
+                    :href="copyUrl"
+                    class="inline-flex items-center justify-center rounded-full border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-medium text-green-800 transition hover:bg-green-100"
+                >
+                    {{ $t('Добавить похожее') }}
+                </Link>
+                <Link
+                    :href="route('account.ads.index')"
+                    class="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:text-gray-900"
+                >
+                    {{ $t('К списку') }}
+                </Link>
+            </template>
+        </AccountFormActions>
+        </form>
+
+    </div>
 </template>

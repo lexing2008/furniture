@@ -1,15 +1,43 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { setLocale } from '@/common/i18n';
+import type { PageProps } from '@/account/types';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 // Булево состояние видимости меню профиля
 const isMenuOpen = ref<boolean>(false);
+const page = usePage<PageProps>();
 
 // Ссылка на DOM-элемент контейнера для проверки клика извне
 const profileContainer = ref<HTMLDivElement | null>(null);
 
 const toggleMenu = (): void => {
     isMenuOpen.value = !isMenuOpen.value;
+};
+
+const setLanguage = (lang: 'ru' | 'en'): void => {
+    if (page.props.locale === lang) {
+        isMenuOpen.value = false;
+
+        return;
+    }
+
+    const previousLocale = page.props.locale;
+
+    router.patch(
+        route('account.language.update'),
+        { lang },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                setLocale(lang);
+                isMenuOpen.value = false;
+            },
+            onError: () => {
+                setLocale(previousLocale);
+            },
+        },
+    );
 };
 
 const closeMenuOnClickOutside = (event: MouseEvent): void => {
@@ -81,6 +109,32 @@ onUnmounted(() => {
                     </svg>
                     {{ $t('Изменить пароль') }}
                 </Link>
+
+                <div class="mt-1 rounded-md px-3 py-2">
+                    <p class="text-xs font-medium text-green-950/60">{{ $t('Язык интерфейса') }}</p>
+                    <div class="mt-2 grid grid-cols-2 gap-1 rounded-lg bg-green-50 p-1">
+                        <button
+                            type="button"
+                            class="cursor-pointer rounded-md px-2 py-1.5 text-xs font-semibold transition"
+                            :class="page.props.locale === 'ru' ? 'bg-white text-green-950 shadow-sm' : 'text-green-950/60 hover:text-green-950'"
+                            :aria-pressed="page.props.locale === 'ru'"
+                            :title="$t('Русский')"
+                            @click="setLanguage('ru')"
+                        >
+                            RU
+                        </button>
+                        <button
+                            type="button"
+                            class="cursor-pointer rounded-md px-2 py-1.5 text-xs font-semibold transition"
+                            :class="page.props.locale === 'en' ? 'bg-white text-green-950 shadow-sm' : 'text-green-950/60 hover:text-green-950'"
+                            :aria-pressed="page.props.locale === 'en'"
+                            :title="$t('English')"
+                            @click="setLanguage('en')"
+                        >
+                            EN
+                        </button>
+                    </div>
+                </div>
 
                 <hr class="my-1 border-green-950/10">
 

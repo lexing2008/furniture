@@ -13,10 +13,12 @@ use App\Http\Controllers\Account\CompanyGeneralController;
 use App\Http\Controllers\Account\CompanyPaymentController;
 use App\Http\Controllers\Account\CompanyRegistrationController;
 use App\Http\Controllers\Account\CompanyScheduleController;
+use App\Http\Controllers\Account\LanguageController;
 use App\Http\Controllers\Account\CompanySocialsController;
 use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\RegionPageController;
 use App\Http\Middleware\HandleInertiaAccountRequests;
+use App\Http\Middleware\SetLocaleFromUser;
 use App\Http\Middleware\HandleInertiaAdminRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -54,9 +56,10 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         // - - - end Auth
     });
 
-    Route::prefix('account')->middleware(['auth', 'role:customer', HandleInertiaAccountRequests::class])->group(function () {
+    Route::prefix('account')->middleware(['auth', 'role:customer', SetLocaleFromUser::class, HandleInertiaAccountRequests::class])->group(function () {
         // Main page of the account (empty for now)
         Route::get('/', [CompanyController::class, 'index'])->name('account.index');
+        Route::patch('language', [LanguageController::class, 'update'])->name('account.language.update');
 
         // Products and services
         Route::get('ads', [AdController::class, 'index'])->name('account.ads.index');
@@ -64,13 +67,17 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         Route::post('ads', [AdController::class, 'store'])->name('account.ads.store');
         Route::get('ads/filters', [AdController::class, 'filters'])->name('account.ads.filters');
         Route::post('ads/images', [AdImageController::class, 'store'])->name('account.ads.images.store');
+        Route::post('ads/images/url', [AdImageController::class, 'storeUrl'])->name('account.ads.images.url');
         Route::delete('ads/images/{tmpFile}', [AdImageController::class, 'destroy'])->name('account.ads.images.destroy');
         Route::get('ads/{ad}/edit', [AdController::class, 'edit'])->name('account.ads.edit');
         Route::put('ads/{ad}', [AdController::class, 'update'])->name('account.ads.update');
+        Route::patch('ads/{ad}/price', [AdController::class, 'updatePrice'])->name('account.ads.price.update');
+        Route::patch('ads/{ad}/actualize', [AdController::class, 'actualize'])->name('account.ads.actualize');
 
         // General information about the company
         Route::get('general', [CompanyGeneralController::class, 'edit'])->name('account.general');
         Route::put('general', [CompanyGeneralController::class, 'update'])->name('account.general.update');
+        Route::put('website', [CompanyGeneralController::class, 'updateWebsite'])->name('account.website.update');
 
         // Working hours of the company and its non-working days
         Route::get('schedule', [CompanyScheduleController::class, 'edit'])->name('account.schedule');

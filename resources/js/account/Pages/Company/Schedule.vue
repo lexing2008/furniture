@@ -2,7 +2,9 @@
 import AccountLayout from '@/account/Layouts/AccountLayout.vue';
 import InputError from '@/account/Components/InputError.vue';
 import InputLabel from '@/account/Components/InputLabel.vue';
-import PrimaryButton from '@/account/Components/PrimaryButton.vue';
+import AccountFormActions from '@/account/Components/Forms/AccountFormActions.vue';
+import AccountPageHeader from '@/account/Components/Forms/AccountPageHeader.vue';
+import { formCard, formTitle } from '@/account/Components/Forms/formStyles';
 import TextInput from '@/account/Components/TextInput.vue';
 import type { ScheduleDay, ScheduleException, ScheduleFormData } from '@/account/Components/Company/scheduleForm';
 import { dayNames } from '@/account/Components/Company/scheduleForm';
@@ -38,22 +40,37 @@ const submit = () => {
     form.put(route('account.schedule.update'), { preserveScroll: true });
 };
 
-const section = 'space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-xs';
 const checkbox = 'rounded-sm border-gray-300 text-green-first shadow-xs focus:ring-green-first';
-const smallButton = 'cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50';
-const hint = 'text-xs text-gray-500';
+const smallButton =
+    'inline-flex cursor-pointer items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-green-first hover:text-green-800';
+const addButton =
+    'inline-flex cursor-pointer items-center gap-1 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-800 transition hover:bg-green-100';
+const hint = 'text-sm leading-6 text-gray-500';
 </script>
 
 <template>
     <Head :title="$t('График работы')" />
 
     <AccountLayout>
-        <h1 class="text-2xl font-bold text-gray-900">{{ $t('График работы') }}</h1>
+        <AccountPageHeader
+            icon="schedule"
+            :title="$t('График работы')"
+            :description="$t('Укажите часы работы и нерабочие дни.')"
+        >
+            <template v-if="timezone" #actions>
+                <span class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    {{ timezone }}
+                </span>
+            </template>
+        </AccountPageHeader>
 
         <form class="space-y-6" @submit.prevent="submit">
-            <section :class="section">
+            <section :class="formCard">
                 <div>
-                    <h2 class="text-lg font-semibold" :class="errors.schedule ? 'text-red-600' : 'text-gray-900'">{{ $t('Рабочие часы') }}</h2>
+                    <h2 :class="[formTitle, errors.schedule ? 'text-red-600' : 'text-gray-900']">{{ $t('Рабочие часы') }}</h2>
                     <p :class="hint">
                         {{ $t('Время работы компании по дням недели.') }}
                         <template v-if="timezone">{{ $t('Часовой пояс: :timezone.', { timezone }) }}</template>
@@ -66,10 +83,10 @@ const hint = 'text-xs text-gray-500';
                     <div
                         v-for="(day, index) in form.schedule"
                         :key="day.day_of_week"
-                        class="rounded-md border border-gray-200 p-4"
+                        class="rounded-xl border border-gray-200/80 bg-gray-50/50 p-4"
                     >
                         <div class="flex flex-wrap items-end gap-4">
-                            <div class="min-w-32 text-sm pb-2 font-semibold text-gray-900">
+                            <div class="inline-flex w-fit rounded-full border border-gray-200 bg-white px-3 py-1 pb-1 mb-1 text-xs font-semibold text-gray-700 shadow-xs">
                                 {{ $t(dayNames[day.day_of_week]) }}
                             </div>
 
@@ -144,9 +161,9 @@ const hint = 'text-xs text-gray-500';
                 </div>
             </section>
 
-            <section :class="section">
+            <section id="exceptions" :class="formCard">
                 <div>
-                    <h2 class="text-lg font-semibold" :class="errors.exceptions ? 'text-red-600' : 'text-gray-900'">{{ $t('Нерабочие и праздничные дни') }}</h2>
+                    <h2 :class="[formTitle, errors.exceptions ? 'text-red-600' : 'text-gray-900']">{{ $t('Нерабочие и праздничные дни') }}</h2>
                     <p :class="hint">{{ $t('В эти даты компания закрыта, даже если день недели рабочий.') }}</p>
                 </div>
 
@@ -160,7 +177,7 @@ const hint = 'text-xs text-gray-500';
                     <div
                         v-for="(exception, index) in form.exceptions"
                         :key="index"
-                        class="flex flex-wrap items-end gap-3 rounded-md border border-gray-200 p-4"
+                        class="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200/80 bg-gray-50/50 p-4"
                     >
                         <div class="w-48">
                             <InputLabel :for="`exception_date_${index}`" :value="$t('Дата')" required :invalid="!!exceptionError(index, 'date')" />
@@ -193,13 +210,10 @@ const hint = 'text-xs text-gray-500';
                     </div>
                 </div>
 
-                <button type="button" :class="smallButton" @click="addException">{{ $t('+ Добавить день') }}</button>
+                <button type="button" :class="addButton" @click="addException">{{ $t('+ Добавить день') }}</button>
             </section>
 
-            <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">{{ $t('Сохранить') }}</PrimaryButton>
-                <span v-if="form.recentlySuccessful" class="text-sm text-green-700">{{ $t('Сохранено') }}</span>
-            </div>
+            <AccountFormActions :processing="form.processing" :success="form.recentlySuccessful" />
         </form>
     </AccountLayout>
 </template>

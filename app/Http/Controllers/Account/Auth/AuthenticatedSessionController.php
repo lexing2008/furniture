@@ -22,7 +22,7 @@ class AuthenticatedSessionController extends Controller
         Inertia::setRootView('guest');
 
         return Inertia::render('Auth/Login', [
-            'canResetPassword' => Route::has('password.request'),
+            'canResetPassword' => Route::has('account.password.request'),
             'status' => session('status'),
         ]);
     }

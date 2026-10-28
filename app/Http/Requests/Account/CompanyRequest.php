@@ -35,9 +35,11 @@ abstract class CompanyRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'legal_name' => trim((string) $this->input('legal_name', '')),
-            'tax_id' => trim((string) $this->input('tax_id', '')),
-            'display_name' => trim((string) $this->input('display_name', '')),
+            'legal_name' => $this->plainText($this->input('legal_name', '')),
+            'tax_id' => $this->plainText($this->input('tax_id', '')),
+            'legal_address' => $this->plainText($this->input('legal_address', '')),
+            'actual_address' => $this->plainText($this->input('actual_address', '')) ?: null,
+            'display_name' => $this->plainText($this->input('display_name', '')),
             'is_online_store' => $this->boolean('is_online_store'),
             'website' => $this->normalizeUrl($this->input('website')),
             'phones' => $this->normalizePhones($this->input('phones', [])),
@@ -70,6 +72,8 @@ abstract class CompanyRequest extends FormRequest
         return [
             'legal_name' => ['required', 'string', 'max:255'],
             'tax_id' => ['required', 'string', 'max:50'/* , Rule::unique('companies', 'tax_id')->ignore($company?->id) */],
+            'legal_address' => ['required', 'string', 'max:255'],
+            'actual_address' => ['nullable', 'string', 'max:255'],
             'display_name' => ['required', 'string', 'max:255'],
             'region_id' => ['required', 'integer', $this->regionRule($company)],
             // Cleaned on save: App\Casts\PurifiedHtml, profile "company"
@@ -166,6 +170,8 @@ abstract class CompanyRequest extends FormRequest
         return [
             'legal_name' => __('официальное название'),
             'tax_id' => 'Tax ID',
+            'legal_address' => __('юридический адрес'),
+            'actual_address' => __('фактический адрес'),
             'display_name' => __('отображаемое название'),
             'region_id' => __('регион'),
             'description' => __('описание'),
@@ -190,7 +196,7 @@ abstract class CompanyRequest extends FormRequest
     public function companyData(): array
     {
         return $this->safe()->only([
-            'region_id', 'legal_name', 'tax_id', 'display_name', 'description', 'is_online_store', 'website',
+            'region_id', 'legal_name', 'tax_id', 'legal_address', 'actual_address', 'display_name', 'description', 'is_online_store', 'website',
         ]);
     }
 }

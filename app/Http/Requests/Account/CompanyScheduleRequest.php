@@ -44,7 +44,7 @@ class CompanyScheduleRequest extends FormRequest
 
                 return [
                     'date' => trim((string) ($exception['date'] ?? '')),
-                    'name' => trim((string) ($exception['name'] ?? '')) ?: null,
+                    'name' => trim(strip_tags((string) ($exception['name'] ?? ''))) ?: null,
                 ];
             })
             // A blank new row is not an exception

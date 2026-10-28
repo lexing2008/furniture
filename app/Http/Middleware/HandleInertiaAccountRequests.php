@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Ad;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -45,6 +46,13 @@ class HandleInertiaAccountRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'ad_counts' => function () use ($request): array {
+                $companyId = $request->user()?->company()->value('id');
+
+                return $companyId === null
+                    ? Ad::emptyCounts()
+                    : Ad::countsForCompany((int) $companyId);
+            },
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
