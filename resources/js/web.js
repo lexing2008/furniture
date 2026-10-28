@@ -255,6 +255,102 @@
         });
     });
 
+    // Подсказки категорий в поиске: debounce 350 мс.
+    document.querySelectorAll('[data-category-search]').forEach(function (input) {
+        var box = input.closest('[data-search-box]');
+        var suggestions = box ? box.querySelector('[data-search-suggestions]') : null;
+
+        if (!box || !suggestions) {
+            return;
+        }
+
+        var timer = null;
+        var requestVersion = 0;
+
+        var hide = function () {
+            suggestions.classList.add('hidden');
+            suggestions.replaceChildren();
+        };
+
+        var render = function (categories, filterVariants) {
+            suggestions.replaceChildren();
+            var items = (Array.isArray(categories) ? categories : [])
+                .concat(Array.isArray(filterVariants) ? filterVariants : []);
+
+            if (items.length === 0) {
+                hide();
+
+                return;
+            }
+
+            items.forEach(function (category) {
+                var link = document.createElement('a');
+                link.href = category.url;
+                link.className = 'flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-green-first/10 hover:text-green-first';
+
+                var label = document.createElement('span');
+                label.textContent = category.name;
+                link.appendChild(label);
+
+                var arrow = document.createElement('span');
+                arrow.className = 'text-gray-300';
+                arrow.textContent = '→';
+                link.appendChild(arrow);
+
+                suggestions.appendChild(link);
+            });
+
+            suggestions.classList.remove('hidden');
+        };
+
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            var query = input.value.trim();
+
+            if (query.length < 2) {
+                hide();
+
+                return;
+            }
+
+            timer = setTimeout(function () {
+                var version = ++requestVersion;
+
+                fetch(input.dataset.categorySearchUrl + '?query=' + encodeURIComponent(query), {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                    .then(function (response) {
+                        return response.ok ? response.json() : { categories: [] };
+                    })
+                    .then(function (data) {
+                        if (version === requestVersion) {
+                            render(data.categories, data.filter_variants);
+                        }
+                    })
+                    .catch(function () {
+                        if (version === requestVersion) {
+                            hide();
+                        }
+                    });
+            }, 350);
+        });
+
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                hide();
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!box.contains(event.target)) {
+                hide();
+            }
+        });
+    });
+
     // Сброс всех фильтров категории.
     document.querySelectorAll('[data-filter-reset]').forEach(function (link) {
         link.addEventListener('click', function (event) {

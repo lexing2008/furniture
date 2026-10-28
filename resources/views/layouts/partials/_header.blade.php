@@ -41,7 +41,7 @@
 
             <div class="hidden w-full md:mx-auto md:flex md:flex-1">
                 <!-- Search form -->
-                <form action="#" method="GET"
+                <form action="#" method="GET" data-search-box
                       class="relative w-full flex justify-between items-center flex-row gap-0 bg-white p-1.5 border border-gray-200 rounded-2xl shadow-sm focus-within:border-green-first focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all duration-200">
 
                     <div
@@ -56,6 +56,9 @@
                     <input
                         type="text"
                         name="query"
+                        autocomplete="off"
+                        data-category-search
+                        data-category-search-url="{{ route('region.categories.search', ['region' => $region->subdomain]) }}"
                         placeholder="{{ __('Поиск по мебели и услугам') }}"
                         class="min-w-0 flex-1 h-11 pl-3 sm:pl-11 pr-4 bg-gray-55/50 bg-transparent border border-gray-200 border-none rounded-xl sm:rounded-none text-gray-800 placeholder-gray-300 outline-none focus:border-brand-blue  focus:ring-brand-blue/10 focus:ring-0 transition-all duration-200"
                         required
@@ -74,6 +77,7 @@
                         </svg>
                     </button>
 
+                    <div data-search-suggestions class="absolute left-0 right-0 top-full z-50 mt-2 hidden overflow-hidden rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl"></div>
                 </form>
                 <!-- - - - end Search form -->
             </div>
@@ -156,12 +160,14 @@
             </button>
 
             <form action="#" method="GET" class="mt-4">
-                <div class="relative flex items-center rounded-2xl border border-gray-200 bg-gray-50/70 p-1 shadow-sm focus-within:border-green-first/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-green-first/10">
+                <div data-search-box class="relative flex items-center rounded-2xl border border-gray-200 bg-gray-50/70 p-1 shadow-sm focus-within:border-green-first/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-green-first/10">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="pointer-events-none absolute left-3.5 h-5 w-5 text-gray-400">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.604 10.604Z" />
                     </svg>
-                    <input type="text" name="query" placeholder="{{ __('Поиск по мебели и услугам') }}" class="h-10 min-w-0 flex-1 border-0 bg-transparent pl-10 pr-3 text-sm text-gray-800 placeholder-gray-400 focus:ring-0" required>
+                    <input type="text" name="query" autocomplete="off" data-category-search data-category-search-url="{{ route('region.categories.search', ['region' => $region->subdomain]) }}" placeholder="{{ __('Поиск по мебели и услугам') }}" class="h-10 min-w-0 flex-1 border-0 bg-transparent pl-10 pr-3 text-sm text-gray-800 placeholder-gray-400 focus:ring-0" required>
                     <button type="submit" class="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-green-first px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-green-second">{{ __('Найти') }}</button>
+
+                    <div data-search-suggestions class="absolute left-0 right-0 top-full z-50 mt-2 hidden overflow-hidden rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl"></div>
                 </div>
             </form>
 

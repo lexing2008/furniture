@@ -453,6 +453,52 @@ class AccountPagesTest extends TestCase
             ->assertSee('Статья о купить диваны в Минск.');
     }
 
+    public function test_category_search_returns_matching_categories(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $this->get('http://minsk.furniture.test/categories/search?query=Див')
+            ->assertOk()
+            ->assertJsonCount(1, 'categories')
+            ->assertJsonPath('categories.0.name', 'Диваны')
+            ->assertJsonPath('categories.0.url', 'http://minsk.furniture.test/divany');
+
+        $filter = Filter::create([
+            'category_id' => $this->category->id,
+            'type' => 'checkbox',
+            'order' => 0,
+            'is_active' => true,
+        ]);
+        $variant = FilterVariant::create(['filter_id' => $filter->id, 'order' => 0]);
+        $variant->translations()->create([
+            'lang' => 'ru',
+            'name_in_filter' => 'Угловой',
+            'name_full' => 'Угловой диван',
+            'name_buy' => 'Купить угловой диван',
+            'slug' => 'uglovoy',
+            'is_active' => true,
+        ]);
+
+        $this->get('http://minsk.furniture.test/categories/search?query=Угловой')
+            ->assertOk()
+            ->assertJsonCount(0, 'categories')
+            ->assertJsonCount(1, 'filter_variants')
+            ->assertJsonPath('filter_variants.0.name_full', 'Угловой диван')
+            ->assertJsonPath('filter_variants.0.url', 'http://minsk.furniture.test/divany/uglovoy/');
+
+        $this->get('http://minsk.furniture.test/categories/search?query=zzz')
+            ->assertOk()
+            ->assertJsonCount(0, 'categories')
+            ->assertJsonCount(0, 'filter_variants');
+    }
+
     public function test_variant_seo_uses_its_template_placeholders(): void
     {
         Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);

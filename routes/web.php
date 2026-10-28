@@ -109,6 +109,9 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
     });
     // - - - end Account
 
+    Route::get('categories/search', [RegionCategoryController::class, 'searchCategories'])
+        ->name('region.categories.search');
+
     // Placeholder category page and lazy-loaded category menu.
     Route::get('categories/{category}/children', [RegionCategoryController::class, 'children'])
         ->whereNumber('category')

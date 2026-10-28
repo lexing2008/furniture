@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ad;
 use App\Models\Category;
 use App\Models\FilterVariant;
+use App\Models\FilterVariantTranslation;
 use App\Models\Region;
 use App\Services\AdFilterService;
 use App\Services\CategorySeoService;
@@ -230,6 +231,81 @@ class RegionCategoryController extends Controller
             'sortUrls' => $sortUrls,
             'perPage' => $perPage,
             'perPageUrls' => $perPageUrls,
+        ]);
+    }
+
+    public function searchCategories(Region $region, Request $request): JsonResponse
+    {
+        $query = trim((string) $request->input('query', ''));
+
+        if (mb_strlen($query) < 2) {
+            return response()->json(['categories' => []]);
+        }
+
+        $locale = app()->getLocale();
+        $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query).'%';
+
+        $categories = Category::query()
+            ->with('translations')
+            ->where('is_active', true)
+            ->whereHas('translations', function (Builder $translationQuery) use ($locale, $like) {
+                $translationQuery->where('lang', $locale)
+                    ->where(function (Builder $query) use ($like) {
+                        $query->where('name', 'like', $like)
+                            ->orWhere('menu_name', 'like', $like);
+                    });
+            })
+            ->get();
+
+        $categories = Category::sortForDisplay($categories)
+            ->take(10)
+            ->map(fn (Category $category) => [
+                'id' => $category->id,
+                'name' => $category->nameIn($locale),
+                'url' => route('region.category', [
+                    'region' => $region->subdomain,
+                    'categorySlug' => $category->slugIn($locale),
+                ]),
+            ])
+            ->filter(fn (array $category) => $category['url'] !== '')
+            ->values();
+
+        $filterVariants = FilterVariantTranslation::query()
+            ->with(['variant.filter.category.translations'])
+            ->where('lang', $locale)
+            ->where('is_active', true)
+            ->where('name_full', 'like', $like)
+            ->whereHas('variant.filter', fn (Builder $filterQuery) => $filterQuery->where('is_active', true))
+            ->whereHas('variant.filter.category', fn (Builder $categoryQuery) => $categoryQuery->where('is_active', true))
+            ->orderBy('id')
+            ->take(10)
+            ->get()
+            ->map(function (FilterVariantTranslation $translation) use ($locale, $region): ?array {
+                $category = $translation->variant?->filter?->category;
+                $categorySlug = $category?->slugIn($locale);
+                $variantSlug = $translation->slug;
+
+                if ($category === null || $categorySlug === '' || $variantSlug === '') {
+                    return null;
+                }
+
+                return [
+                    'id' => $translation->id,
+                    'name' => $translation->name_full,
+                    'name_full' => $translation->name_full,
+                    'url' => route('region.category', [
+                        'region' => $region->subdomain,
+                        'categorySlug' => $categorySlug,
+                        'filterSlugs' => $variantSlug,
+                    ]).'/',
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return response()->json([
+            'categories' => $categories,
+            'filter_variants' => $filterVariants,
         ]);
     }
 
