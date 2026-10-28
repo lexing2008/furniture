@@ -111,7 +111,7 @@
 <div id="header-mobile-menu" data-header-mobile-menu class="fixed inset-0 z-[60] hidden overflow-hidden bg-[#f4f7f1] md:hidden">
     <div class="flex h-full flex-col bg-white">
         <div class="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
-            <a href="{{ $country->url() }}" class="flex min-w-0 items-center gap-2.5">
+            <a href="{{ route('region.show') }}" class="flex min-w-0 items-center gap-2.5">
                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-green-first to-green-second text-white shadow-md shadow-green-first/20">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5M5.25 9.75V21h4.5v-5.25h4.5V21h4.5V9.75" />
@@ -205,7 +205,10 @@
                     <a href="{{ route('admin.index') }}" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">{{ __('Панель админа') }}</a>
                 @else
                     <a href="{{ route('account.login') }}" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">{{ __('Вход') }}</a>
-                    <a href="{{ route('account.register') }}" class="block rounded-xl px-3 py-2 text-sm font-semibold text-green-first transition hover:bg-green-first/10">{{ __('Разместить мебель') }}</a>
+                    <a href="{{ route('account.register') }}" class="flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-green-first transition hover:bg-green-first/10">
+                        <span>{{ __('Разместить мебель') }}</span>
+                        <span class="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">{{ __('бесплатно') }}</span>
+                    </a>
                 @endif
                 <a href="#" class="block rounded-xl px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50">{{ __('О проекте') }}</a>
                 <a href="#" class="block rounded-xl px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50">{{ __('Пользовательское соглашение') }}</a>
