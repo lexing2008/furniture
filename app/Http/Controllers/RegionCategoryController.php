@@ -210,6 +210,7 @@ class RegionCategoryController extends Controller
         return view('region.category.show', [
             'category' => $category,
             'categoryName' => $categoryName,
+            'activeMenuCategorySlug' => $root->slugIn($locale) ?: $categorySlug,
             'pageHeading' => $pageHeading,
             'pageTitle' => $pageTitle,
             'pageDescription' => $pageDescription,

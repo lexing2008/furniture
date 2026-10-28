@@ -1,5 +1,6 @@
 @php
     $locale = app()->getLocale();
+    $activeCategorySlug = $activeMenuCategorySlug ?? request()->route('categorySlug');
     $regionLabel = $locale === 'en' ? $region->name_en : $region->name;
     $regionNameIn = $locale === 'en' ? $region->name_en : $region->name_in;
     $countryLabel = $locale === 'en' ? $country->name_en : $country->name;
@@ -103,8 +104,15 @@
         <div
             class="max-md:hidden mt-4 bg-linear-to-b from-green-first to-green-second text-white py-4 px-5 rounded-xl flex flex-wrap">
             @foreach ($menuCategories as $category)
-                <a href="{{ $category['url'] }}"
-                   class="px-3 py-1 active:bg-white/10 hover:bg-white/10 rounded-full">{{ $category['menu_name'] }}</a>
+                <a
+                    href="{{ $category['url'] }}"
+                    @class([
+                        'rounded-full px-3 py-1 transition',
+                        'bg-white/10 font-semibold mx-1' => $activeCategorySlug === $category['slug'],
+                        'hover:bg-white/10' => true,
+                    ])
+                    @if($activeCategorySlug === $category['slug']) aria-current="page" @endif
+                >{{ $category['menu_name'] }}</a>
             @endforeach
         </div>
         <!-- end Menu -->
@@ -177,9 +185,15 @@
                     @foreach ($menuCategories as $category)
                         <li data-category-item>
                             <div class="flex items-center gap-1">
-                                <a href="{{ $category['url'] }}" class="min-w-0 flex-1 rounded-xl px-2 py-3 text-sm font-medium text-gray-800 transition hover:text-green-first">
-                                    {{ $category['menu_name'] }}
-                                </a>
+                                <a
+                                    href="{{ $category['url'] }}"
+                                    @class([
+                                        'min-w-0 flex-1 rounded-xl px-2 py-3 text-sm transition',
+                                        'bg-green-first/10 font-semibold text-green-first' => $activeCategorySlug === $category['slug'],
+                                        'font-medium text-gray-800 hover:text-green-first' => $activeCategorySlug !== $category['slug'],
+                                    ])
+                                    @if($activeCategorySlug === $category['slug']) aria-current="page" @endif
+                                >{{ $category['menu_name'] }}</a>
                                 @if(!empty($category['has_children']))
                                     <button
                                         type="button"
