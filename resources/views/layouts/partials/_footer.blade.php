@@ -14,7 +14,7 @@
     <div class="pointer-events-none absolute -bottom-40 left-1/4 h-80 w-80 rounded-full bg-white/10 blur-3xl"></div>
 
     <div class="relative border-b border-white/15">
-        <div class="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div class="container mx-auto flex flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-3">
                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/15">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" class="h-5 w-5">
@@ -39,7 +39,7 @@
         </div>
     </div>
 
-    <div class="relative mx-auto max-w-[1600px] px-4 py-10 sm:px-6 lg:px-8">
+    <div class="relative container mx-auto px-4 py-10">
         <div class="grid gap-10 md:grid-cols-2 xl:grid-cols-[1.5fr_1.2fr_0.8fr_0.9fr]">
             <!-- Brand -->
             <div>
@@ -140,7 +140,7 @@
     </div>
 
     <div class="relative border-t border-white/15">
-        <div class="mx-auto flex max-w-[1600px] flex-col gap-2 px-4 py-5 text-xs text-white/65 sm:flex-row sm:items-center sm:justify-center sm:px-6 lg:px-8">
+        <div class="container mx-auto flex flex-col gap-2 px-4 py-5 text-xs text-white/65 sm:flex-row sm:items-center sm:justify-center">
             {{ __('© :year Мебельный портал :domain', ['year' => date('Y'), 'domain' => $region->subdomain.'.'.config('app.domain')]) }}
         </div>
     </div>
