@@ -417,6 +417,11 @@ class AccountPagesTest extends TestCase
         $this->get('http://minsk.furniture.test/divany?sort=price_asc')
             ->assertOk()
             ->assertSeeInOrder(['Дешёвый товар', 'Товар в категории']);
+
+        $this->get('http://minsk.furniture.test/divany?price_from=100')
+            ->assertOk()
+            ->assertSee('Товар в категории')
+            ->assertDontSee('Дешёвый товар');
     }
 
     public function test_category_seo_uses_template_placeholders(): void

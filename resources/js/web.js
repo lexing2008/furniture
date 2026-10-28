@@ -246,6 +246,15 @@
         });
     });
 
+    // Количество товаров на странице.
+    document.querySelectorAll('[data-per-page-select]').forEach(function (select) {
+        select.addEventListener('change', function () {
+            if (select.value) {
+                window.location.href = select.value;
+            }
+        });
+    });
+
     // Сброс всех фильтров категории.
     document.querySelectorAll('[data-filter-reset]').forEach(function (link) {
         link.addEventListener('click', function (event) {

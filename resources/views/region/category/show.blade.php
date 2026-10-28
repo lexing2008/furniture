@@ -60,20 +60,22 @@
                     </nav>
                 </section>
 
-                @if($filters !== [])
-                    <section class="rounded-2xl border border-gray-200/80 bg-white p-4">
-                        <h2 class="text-sm font-bold uppercase tracking-wide text-gray-900">{{ __('Фильтры') }}</h2>
+                <section class="rounded-2xl border border-gray-200/80 bg-white p-4">
+                    <h2 class="text-sm font-bold uppercase tracking-wide text-gray-900">{{ __('Фильтры') }}</h2>
 
-                            <form method="GET" action="{{ $currentUrl }}" data-filter-base-url="{{ $categoryUrl }}" class="mt-4 space-y-5">
-                                @if($sort !== 'published')
-                                    <input type="hidden" name="sort" value="{{ $sort }}">
-                                @endif
-                                @foreach($filters as $filter)
+                    <form method="GET" action="{{ $currentUrl }}" data-filter-base-url="{{ $categoryUrl }}" class="mt-4 space-y-5">
+                        @if($sort !== 'published')
+                            <input type="hidden" name="sort" value="{{ $sort }}">
+                        @endif
+                        @if($perPage !== 20)
+                            <input type="hidden" name="per_page" value="{{ $perPage }}">
+                        @endif
+
+
+                        @foreach($filters as $filter)
                                     @php
                                         $selected = is_array($filterValues[$filter['id']] ?? null) ? $filterValues[$filter['id']] : [];
-                                        $selectedVariants = $filter['type'] === 'radio'
-                                            ? [$selected['values'] ?? null]
-                                            : (is_array($selected['values'] ?? null) ? $selected['values'] : []);
+                                        $selectedVariants = is_array($selected['values'] ?? null) ? $selected['values'] : [];
                                     @endphp
 
                                     <fieldset>
@@ -89,16 +91,14 @@
                                                 @foreach($filter['variants'] as $variant)
                                                     <label class="flex cursor-pointer items-center gap-2 text-xs text-gray-600">
                                                         <input
-                                                            type="{{ $filter['type'] === 'radio' ? 'radio' : 'checkbox' }}"
-                                                            name="{{ $filter['type'] === 'radio' ? 'filters['.$filter['id'].'][values]' : 'filters['.$filter['id'].'][values][]' }}"
+                                                            type="checkbox"
+                                                            name="filters[{{ $filter['id'] }}][values][]"
                                                             value="{{ $variant['id'] }}"
                                                             @if(!empty($variant['slug']))
                                                                 data-filter-variant
                                                                 data-filter-slug="{{ $variant['slug'] }}"
                                                             @endif
-                                                            @checked($filter['type'] === 'radio'
-                                                                ? (string) ($selected['values'] ?? '') === (string) $variant['id']
-                                                                : in_array((string) $variant['id'], array_map('strval', $selectedVariants), true))
+                                                            @checked(in_array((string) $variant['id'], array_map('strval', $selectedVariants), true))
                                                             class="rounded-sm border-gray-300 text-green-first focus:ring-green-first"
                                                         >
                                                         {{ $variant['name'] }}
@@ -132,6 +132,36 @@
                                     </fieldset>
                                 @endforeach
 
+                        <fieldset>
+                            <legend class="text-xs font-semibold text-gray-700">{{ __('Цена') }}</legend>
+                            <div class="mt-2 grid grid-cols-2 gap-2">
+                                <label class="block">
+                                    <span class="mb-1 block text-[10px] text-gray-400">{{ __('От') }}</span>
+                                    <input
+                                        type="number"
+                                        name="price_from"
+                                        value="{{ $priceFrom ?? '' }}"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="{{ __('От') }}"
+                                        class="block w-full rounded-lg border-gray-300 px-2 py-1.5 text-xs text-gray-800 placeholder-gray-300 focus:border-green-first focus:ring-green-first"
+                                    >
+                                </label>
+                                <label class="block">
+                                    <span class="mb-1 block text-[10px] text-gray-400">{{ __('До') }}</span>
+                                    <input
+                                        type="number"
+                                        name="price_to"
+                                        value="{{ $priceTo ?? '' }}"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="{{ __('До') }}"
+                                        class="block w-full rounded-lg border-gray-300 px-2 py-1.5 text-xs text-gray-800 placeholder-gray-300 focus:border-green-first focus:ring-green-first"
+                                    >
+                                </label>
+                            </div>
+                        </fieldset>
+
                                 <div class="flex flex-wrap gap-2 border-t border-gray-100 pt-4">
                                     <button type="submit" class="cursor-pointer rounded-full bg-green-first px-4 py-2 text-xs font-semibold text-white transition hover:bg-green-second">
                                         {{ __('Применить') }}
@@ -140,15 +170,35 @@
                                         {{ __('Сбросить') }}
                                     </a>
                                 </div>
-                            </form>
-                    </section>
-                @endif
+                    </form>
+                </section>
             </aside>
 
             <section class="min-w-0">
                 @if($ads->total() > 0)
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2  opacity-40 hover:opacity-100 transition duration-500">
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-2 opacity-40 transition duration-500 hover:opacity-100">
                     <p class="text-sm text-gray-500">{{ __('Найдено: :count', ['count' => $ads->total()]) }}</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                    <label class="flex items-center gap-2 text-xs text-gray-500">
+                        <span class="hidden sm:inline">{{ __('Отображать по') }}:</span>
+                        <span class="relative inline-flex">
+                            <select
+                                data-per-page-select
+                                class="h-9 cursor-pointer appearance-none rounded-full border border-gray-200/90 bg-white py-0 pl-3 pr-8 text-xs font-semibold text-gray-600 shadow-sm transition hover:border-green-first/40 hover:text-green-first focus:border-green-first focus:outline-none focus:ring-4 focus:ring-green-first/10"
+                                aria-label="{{ __('Количество товаров на странице') }}"
+                            >
+                                @foreach([10, 20, 50, 100] as $option)
+                                    <option value="{{ $perPageUrls[$option] }}" @selected($perPage === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3.5 w-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </span>
+                        </span>
+                    </label>
+
                     <label class="group flex items-center gap-2" aria-label="{{ __('Сортировка') }}">
                         <span class="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 sm:inline">{{ __('Сортировка') }}</span>
                         <span class="relative inline-flex">
@@ -173,6 +223,7 @@
                         </span>
                     </label>
                     </div>
+                </div>
                 @endif
 
                 <div data-ads-list class="divide-y divide-gray-200/80">

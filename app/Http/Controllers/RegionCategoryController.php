@@ -48,6 +48,24 @@ class RegionCategoryController extends Controller
         $filters = $filterService->forCategory($category->id, null, $locale);
         $filterValues = $request->input('filters', []);
         $filterValues = is_array($filterValues) ? $filterValues : [];
+        $priceFrom = $request->filled('price_from') && is_numeric($request->input('price_from'))
+            ? max(0, (float) $request->input('price_from'))
+            : null;
+        $priceTo = $request->filled('price_to') && is_numeric($request->input('price_to'))
+            ? max(0, (float) $request->input('price_to'))
+            : null;
+        $requestedPerPage = $request->integer('per_page');
+        $perPage = in_array($requestedPerPage, [10, 20, 50, 100], true)
+            ? $requestedPerPage
+            : (int) $request->session()->get('category_per_page', 20);
+
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 20;
+        }
+
+        if (in_array($requestedPerPage, [10, 20, 50, 100], true)) {
+            $request->session()->put('category_per_page', $perPage);
+        }
         $categoryUrl = route('region.category', [
             'region' => $region->subdomain,
             'categorySlug' => $categorySlug,
@@ -104,7 +122,7 @@ class RegionCategoryController extends Controller
                 $ids = $group->pluck('id')->map(fn ($id) => (int) $id)->unique()->values();
 
                 $filterValues[$filterId] = [
-                    'values' => $type === 'radio' ? $ids->first() : $ids->all(),
+                    'values' => $ids->all(),
                 ];
             }
         }
@@ -119,6 +137,14 @@ class RegionCategoryController extends Controller
             $this->applyFilter($adsQuery, $filter, $filterValues[$filter['id']] ?? null);
         }
 
+        if ($priceFrom !== null) {
+            $adsQuery->where('price', '>=', $priceFrom);
+        }
+
+        if ($priceTo !== null) {
+            $adsQuery->where('price', '<=', $priceTo);
+        }
+
         $sort = $request->string('sort')->toString();
         $sort = in_array($sort, ['published', 'price_asc', 'price_desc'], true) ? $sort : 'published';
 
@@ -128,7 +154,14 @@ class RegionCategoryController extends Controller
             default => $adsQuery->orderByDesc('published_at')->orderByDesc('id'),
         };
 
-        $ads = $adsQuery->paginate(20)->withQueryString();
+        $ads = $adsQuery->paginate($perPage)->withQueryString();
+
+        $perPageUrls = [];
+
+        foreach ([10, 20, 50, 100] as $perPageOption) {
+            $query = array_merge($request->except(['page', 'per_page']), ['per_page' => $perPageOption]);
+            $perPageUrls[$perPageOption] = url()->current().'?'.http_build_query($query);
+        }
 
         $sortUrls = [];
         $sortOptions = [
@@ -168,12 +201,16 @@ class RegionCategoryController extends Controller
             'sidebarCategories' => $sidebarCategories,
             'filters' => $filters,
             'filterValues' => $filterValues,
+            'priceFrom' => $priceFrom,
+            'priceTo' => $priceTo,
             'categoryUrl' => $categoryUrl,
             'ads' => $ads,
             'seo' => $seo,
             'sort' => $sort,
             'sortOptions' => $sortOptions,
             'sortUrls' => $sortUrls,
+            'perPage' => $perPage,
+            'perPageUrls' => $perPageUrls,
         ]);
     }
 
@@ -256,9 +293,7 @@ class RegionCategoryController extends Controller
         }
 
         if (in_array($filter['type'], ['checkbox', 'radio'], true)) {
-            $rawValues = $filter['type'] === 'radio'
-                ? [$value['values'] ?? null]
-                : ($value['values'] ?? []);
+            $rawValues = $value['values'] ?? [];
             $variantIds = collect(is_array($rawValues) ? $rawValues : [$rawValues])
                 ->filter(fn ($id) => is_numeric($id))
                 ->map(fn ($id) => (int) $id)
