@@ -286,6 +286,62 @@ class AccountPagesTest extends TestCase
                 ->has('recent_ads', 4));
     }
 
+    public function test_header_and_footer_show_categories_with_menu_name(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+        $withoutMenu = Category::create(['is_active' => true]);
+        $withoutMenu->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Столы',
+            'slug' => 'stoly',
+        ]);
+
+        $vitebskArea = Region::create([
+            'name' => 'Витебская область',
+            'name_en' => 'Vitebsk region',
+            'name_in' => 'Витебской области',
+            'subdomain' => 'vitebsk-region',
+            'parent_id' => $this->country->id,
+            'is_active' => true,
+        ]);
+        Region::create([
+            'name' => 'Витебск',
+            'name_en' => 'Vitebsk',
+            'name_in' => 'Витебске',
+            'subdomain' => 'vitebsk',
+            'parent_id' => $vitebskArea->id,
+            'is_capital' => true,
+            'is_active' => true,
+        ]);
+
+        $this->get('http://minsk.furniture.test/')
+            ->assertOk()
+            ->assertSee('Диваны в меню')
+            ->assertSee('Диваны в Минске')
+            ->assertSee('Мебель в Витебске')
+            ->assertSee('vitebsk.furniture.test')
+            ->assertDontSee('Столы');
+
+        $this->get('http://minsk.furniture.test/divany')
+            ->assertOk()
+            ->assertSee('Диваны в меню')
+            ->assertSee('Диваны в Минске');
+
+        $this->category->translations()->firstOrFail()->update(['menu_name' => 'Диваны обновлённые']);
+
+        $this->get('http://minsk.furniture.test/')
+            ->assertOk()
+            ->assertSee('Диваны обновлённые')
+            ->assertDontSee('Диваны в меню');
+    }
+
     public function test_account_language_is_saved_and_used(): void
     {
         $this->actingAs($this->user)->patch($this->url('/language'), ['lang' => 'en'])

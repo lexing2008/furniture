@@ -154,21 +154,10 @@
         <!-- Menu -->
         <div
             class="mt-4 bg-linear-to-b from-green-first to-green-second text-white py-5 px-5 rounded-xl flex flex-wrap gap-x-5">
-            <a href="#"
-               class="hover:text-black/80 border-b-gray-200/15 border-b hover:border-b-transparent">{{ __('Гостиная') }}</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Кухня') }}</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Спальня') }}</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Детская') }}</a>
-            <a href="#"
-               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Гардеробная') }}</a>
-            <a href="#"
-               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Прихожая') }}</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Ванная и туалет') }}</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Офис') }}</a>
-            <a href="#"
-               class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Текстиль') }}</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Услуги') }}</a>
-            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">{{ __('Отдых') }}</a>
+            @foreach ($menuCategories as $category)
+                <a href="{{ $category['url'] }}"
+                   class="hover:text-black/80 border-b-gray-200/15 border-b hover:border-b-transparent">{{ $category['menu_name'] }}</a>
+            @endforeach
         </div>
         <!-- end Menu -->
     </div>

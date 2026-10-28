@@ -8,9 +8,11 @@ use App\Models\Category;
 use App\Models\CategoryTranslation;
 use App\Models\Language;
 use App\Models\SeoTemplate;
+use App\Services\MenuCategoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -80,6 +82,8 @@ class CategoryController extends Controller
             $category->translations()->createMany($request->filledTranslations());
         });
 
+        MenuCategoryService::clear();
+
         return redirect()
             ->route('admin.categories.index')
             ->with('success', 'Категория добавлена.');
@@ -125,6 +129,8 @@ class CategoryController extends Controller
             $category->translations()->whereIn('lang', $request->clearedLanguageCodes())->delete();
         });
 
+        MenuCategoryService::clear();
+
         return redirect()
             ->route('admin.categories.index')
             ->with('success', 'Категория сохранена.');
@@ -163,11 +169,13 @@ class CategoryController extends Controller
             }
         });
 
+        MenuCategoryService::clear();
+
         return back();
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, array{id: int, code: string, name: string}>
+     * @return Collection<int, array{id: int, code: string, name: string}>
      */
     private function languages()
     {
@@ -177,7 +185,7 @@ class CategoryController extends Controller
     /**
      * Possible parents: the whole tree, except the category itself and its subcategories.
      *
-     * @return \Illuminate\Support\Collection<int, array{id: int, name: string, depth: int}>
+     * @return Collection<int, array{id: int, name: string, depth: int}>
      */
     private function parentOptions(?Category $category = null)
     {

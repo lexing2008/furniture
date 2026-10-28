@@ -13,13 +13,14 @@ use App\Http\Controllers\Account\CompanyGeneralController;
 use App\Http\Controllers\Account\CompanyPaymentController;
 use App\Http\Controllers\Account\CompanyRegistrationController;
 use App\Http\Controllers\Account\CompanyScheduleController;
-use App\Http\Controllers\Account\LanguageController;
 use App\Http\Controllers\Account\CompanySocialsController;
+use App\Http\Controllers\Account\LanguageController;
 use App\Http\Controllers\Account\PasswordController;
+use App\Http\Controllers\RegionCategoryController;
 use App\Http\Controllers\RegionPageController;
 use App\Http\Middleware\HandleInertiaAccountRequests;
-use App\Http\Middleware\SetLocaleFromUser;
 use App\Http\Middleware\HandleInertiaAdminRequests;
+use App\Http\Middleware\SetLocaleFromUser;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -106,6 +107,11 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
             ->name('account.logout');
     });
     // - - - end Account
+
+    // Placeholder category page: the content will be added later.
+    Route::get('/{categorySlug}', [RegionCategoryController::class, 'show'])
+        ->where('categorySlug', '[a-z0-9-]+')
+        ->name('region.category');
 });
 
 Route::get('/', function () {

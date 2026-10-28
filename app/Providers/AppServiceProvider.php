@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\Services\RegionService;
 use App\Models\Region;
+use App\Services\MenuCategoryService;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -55,21 +56,37 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // pass data to template
-        View::composer(['layouts.site', 'region.*', 'guest'], function ($view) use ($regionService) {
-            // Получаем модель Region из текущего маршрута
-            $region = request()->route('region');
-            if (! $region) {
-                return;
-            }
-            $country = $region->root();
+        View::composer(
+            ['layouts.site', 'region.*', 'guest', 'layouts.partials._header', 'layouts.partials._footer'],
+            function ($view) use ($regionService) {
+                // Получаем модель Region из текущего маршрута
+                $region = request()->route('region');
+                if (! $region) {
+                    return;
+                }
+                $country = $region->root();
 
-            $view->with([
-                'region' => $region,
-                'country' => $country,
-                'areas' => $regionService->getRegionsTreeForPopup($country),
-                // The locale is set by App\Http\Middleware\SetLocaleFromRegion
-                'language' => app()->getLocale(),
-            ]);
-        });
+                $locale = app()->getLocale();
+                $menuCategories = MenuCategoryService::forLocale($locale)
+                    ->map(function (array $category) use ($region) {
+                        return [
+                            ...$category,
+                            'url' => route('region.category', [
+                                'region' => $region->subdomain,
+                                'categorySlug' => $category['slug'],
+                            ]),
+                        ];
+                    })
+                    ->values();
+
+                $view->with([
+                    'region' => $region,
+                    'country' => $country,
+                    'areas' => $regionService->getRegionsTreeForPopup($country),
+                    // The locale is set by App\Http\Middleware\SetLocaleFromRegion
+                    'language' => $locale,
+                    'menuCategories' => $menuCategories,
+                ]);
+            });
     }
 }

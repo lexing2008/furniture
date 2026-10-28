@@ -2,22 +2,10 @@
     @php
         $locale = app()->getLocale();
         $regionName = $locale === 'en' ? $region->name_en : $region->name_in;
-        $catalog = [
-            'Мебель в гостиную в :city',
-            'Кухонная мебель в :city',
-            'Мебель для спальни в :city',
-            'Детская мебель в :city',
-            'Гардеробная мебель в :city',
-            'Мебель в прихожую в :city',
-            'Мебель в ванную и туалет в :city',
-            'Офисная мебель в :city',
-            'Текстиль в :city',
-            'Услуги в :city',
-            'Мебель для отдыха в :city',
-        ];
-        $otherCities = $locale === 'en'
-            ? ['Brest', 'Vitebsk', 'Gomel', 'Grodno', 'Minsk', 'Mogilev']
-            : ['Бресте', 'Витебске', 'Гомеле', 'Гродно', 'Минске', 'Могилеве'];
+        $capitalCities = collect($areas)
+            ->flatMap(fn ($area) => $area['cities'])
+            ->filter(fn ($city) => $city->is_capital)
+            ->values();
     @endphp
 
     <div class="container mx-auto py-3 px-4 pt-5">
@@ -54,10 +42,10 @@
                     <div class="h-0.5 w-7 bg-white/90"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-1 gap-x-6 text-white/80 text-xs">
-                    @foreach ($catalog as $key)
+                    @foreach ($menuCategories as $category)
                         <div>
-                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">
-                                {{ __($key, ['city' => $regionName]) }}
+                            <a href="{{ $category['url'] }}" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">
+                                {{ __(':name в :region', ['name' => $category['name'], 'region' => $regionName]) }}
                             </a>
                         </div>
                     @endforeach
@@ -70,10 +58,10 @@
                     <div class="h-0.5 w-7 bg-white/90"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-1 gap-x-6 text-white/80 text-xs">
-                    @foreach ($otherCities as $city)
+                    @foreach ($capitalCities as $city)
                         <div>
-                            <a href="#" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">
-                                {{ __('Мебель в :city', ['city' => $city]) }}
+                            <a href="{{ $city->url() }}" class="hover:text-black/80 border-b-gray-200/20 border-b hover:border-b-transparent">
+                                {{ __('Мебель в :city', ['city' => $locale === 'en' ? $city->name_en : $city->name_in]) }}
                             </a>
                         </div>
                     @endforeach

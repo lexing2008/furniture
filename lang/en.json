@@ -558,5 +558,6 @@
     "Русский": "Russian",
     "English": "English",
     "Выберите язык интерфейса.": "Choose the interface language.",
-    "Выберите поддерживаемый язык.": "Choose a supported language."
+    "Выберите поддерживаемый язык.": "Choose a supported language.",
+    ":name в :region": ":name in :region"
 }

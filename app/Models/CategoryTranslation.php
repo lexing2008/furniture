@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\PurifiedHtml;
+use App\Services\MenuCategoryService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CategoryTranslation extends Model
 {
     public const SEO_FIELDS = ['seo_title', 'seo_description', 'seo_block'];
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => MenuCategoryService::clear());
+        static::deleted(fn () => MenuCategoryService::clear());
+    }
 
     protected function casts(): array
     {
