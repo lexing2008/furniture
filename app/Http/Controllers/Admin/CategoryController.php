@@ -39,6 +39,7 @@ class CategoryController extends Controller
                 ->map(fn (CategoryTranslation $t) => [
                     'code' => $t->lang,
                     'slug' => $t->slug,
+                    'name_buy' => $t->name_buy,
                 ])
                 ->sortBy('code')
                 ->values(),

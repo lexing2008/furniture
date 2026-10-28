@@ -114,6 +114,16 @@ const inputClass =
                         Оставьте название пустым, если категория на этом языке не нужна.
                     </p>
 
+                    <div class="rounded-lg border border-indigo-100 bg-indigo-50/60 px-4 py-3 text-xs text-indigo-900">
+                        <p class="font-semibold">В SEO-полях можно подставлять:</p>
+                        <ul class="mt-1.5 space-y-1">
+                            <li><code class="rounded-sm bg-white/70 px-1 font-mono">{name}</code> — название категории;</li>
+                            <li><code class="rounded-sm bg-white/70 px-1 font-mono">{name_buy}</code> — название для покупки;</li>
+                            <li><code class="rounded-sm bg-white/70 px-1 font-mono">{region}</code> — название текущего региона;</li>
+                            <li><code class="rounded-sm bg-white/70 px-1 font-mono">{region_in}</code> — название текущего региона в предложном падеже.</li>
+                        </ul>
+                    </div>
+
                     <div>
                         <InputLabel :for="`name_${index}`" value="Название" />
                         <TextInput :id="`name_${index}`" type="text" class="mt-1 block w-full" v-model="translation.name" />
@@ -124,6 +134,12 @@ const inputClass =
                         <InputLabel :for="`menu_name_${index}`" value="Название в меню (Если заполнено, будет отображаться в меню)" />
                         <TextInput :id="`menu_name_${index}`" type="text" class="mt-1 block w-full" v-model="translation.menu_name" />
                         <InputError class="mt-2" :message="error(index, 'menu_name')" />
+                    </div>
+
+                    <div>
+                        <InputLabel :for="`name_buy_${index}`" value="Название для покупки" />
+                        <TextInput :id="`name_buy_${index}`" type="text" class="mt-1 block w-full" maxlength="255" v-model="translation.name_buy" />
+                        <InputError class="mt-2" :message="error(index, 'name_buy')" />
                     </div>
 
                     <div>

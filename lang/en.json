@@ -581,5 +581,15 @@
     "Цена: по убыванию": "Price: high to low",
     "Юридическое название": "Legal name",
     "Скрыть": "Hide",
-    ":category в :region": ":category in :region"
+    ":category в :region": ":category in :region",
+    "Назад": "Back",
+    "Вперёд": "Next",
+    "Пагинация": "Pagination",
+    "Показано :first–:last из :total": "Showing :first–:last of :total",
+    "Страница :page": "Page :page",
+    "Вы можете стать первым. Разместите мебель/услуги, пока другие спят.": "You can be the first. List your furniture or services while others are asleep.",
+    "Нет фото": "No photo",
+    ":names в :region": ":names in :region",
+    "Показать ещё": "Show more",
+    "Загрузка товаров...": "Loading products..."
 }

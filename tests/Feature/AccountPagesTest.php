@@ -11,6 +11,7 @@ use App\Models\FilterVariant;
 use App\Models\Language;
 use App\Models\Region;
 use App\Models\RegionCountry;
+use App\Models\SeoTemplate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -400,6 +401,93 @@ class AccountPagesTest extends TestCase
         $this->get('http://minsk.furniture.test/divany?sort=price_asc')
             ->assertOk()
             ->assertSeeInOrder(['Дешёвый товар', 'Товар в категории']);
+    }
+
+    public function test_category_seo_uses_template_placeholders(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $template = SeoTemplate::create(['name' => 'Категория — диваны']);
+        $template->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'seo_title' => 'Купить {name} в {region_in}',
+            'seo_description' => 'Описание {name_buy} в {region_in}',
+            'seo_block' => '<p>Статья о {name_buy} в {region}.</p>',
+        ]);
+
+        $this->category->update(['seo_template_id' => $template->id]);
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'name_buy' => 'Купить диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany')
+            ->assertOk()
+            ->assertSee('Купить диваны в Минске')
+            ->assertSee('Описание купить диваны в Минске')
+            ->assertSee('Статья о купить диваны в Минск.');
+    }
+
+    public function test_variant_seo_uses_its_template_placeholders(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'name_buy' => 'Купить диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+        $filter = Filter::create([
+            'category_id' => $this->category->id,
+            'type' => 'checkbox',
+            'order' => 0,
+            'is_active' => true,
+        ]);
+        $variant = FilterVariant::create(['filter_id' => $filter->id, 'order' => 0]);
+        $variantTranslation = $variant->translations()->create([
+            'lang' => 'ru',
+            'name_in_filter' => 'Угловой',
+            'name_full' => 'Угловой диван',
+            'name_buy' => 'Купить угловой диван',
+            'slug' => 'uglovoy',
+            'is_active' => true,
+        ]);
+
+        $template = SeoTemplate::create(['name' => 'Угловые диваны']);
+        $template->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Угловые диваны',
+            'seo_title' => '{name} в {region_in}',
+            'seo_description' => '{name_buy} в {region_in}',
+            'seo_block' => '<p>{name_buy} — статья для {region_in}.</p>',
+        ]);
+        $variantTranslation->update(['seo_template_id' => $template->id]);
+
+        $secondVariant = FilterVariant::create(['filter_id' => $filter->id, 'order' => 1]);
+        $secondVariant->translations()->create([
+            'lang' => 'ru',
+            'name_in_filter' => 'Диван-шкаф',
+            'name_full' => 'Диван-шкаф',
+            'name_buy' => 'Купить диван-шкаф',
+            'slug' => 'divan-shkaf',
+            'is_active' => true,
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany/uglovoy/')
+            ->assertOk()
+            ->assertSee('угловой диван в Минске')
+            ->assertSee('купить угловой диван в Минске')
+            ->assertSee('купить угловой диван — статья для Минске.');
+
+        $this->get('http://minsk.furniture.test/divany/uglovoy;divan-shkaf/')
+            ->assertOk()
+            ->assertSee('Угловой диван, Диван-шкаф в Минске');
     }
 
     public function test_category_filter_variant_slug_filters_ads(): void

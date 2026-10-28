@@ -145,3 +145,10 @@
     overflow: visible;
     -webkit-line-clamp: unset;
 }
+
+
+/* List markers inside the SEO article use the brand green */
+.seo-block ul li::marker,
+.seo-block ol li::marker {
+    color: var(--color-green-first);
+}

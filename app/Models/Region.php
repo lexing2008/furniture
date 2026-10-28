@@ -256,6 +256,7 @@ class Region extends Model
 
         foreach (self::SEO_FIELDS as $field) {
             $value = filled($this->{$field}) ? $this->{$field} : $root->{$field};
+            $value = str_replace('{region}', $this->name, $value);
             $value = str_replace('{region_in}', $this->name_in, $value);
             $result[$field] = $value;
         }

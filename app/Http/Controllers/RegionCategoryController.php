@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\FilterVariant;
 use App\Models\Region;
 use App\Services\AdFilterService;
+use App\Services\CategorySeoService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ use Illuminate\View\View;
  */
 class RegionCategoryController extends Controller
 {
-    public function show(Request $request, AdFilterService $filterService, Region $region, string $categorySlug, ?string $filterSlugs = null): View
+    public function show(Request $request, AdFilterService $filterService, CategorySeoService $seoService, Region $region, string $categorySlug, ?string $filterSlugs = null): View
     {
         $locale = app()->getLocale();
 
@@ -56,6 +57,8 @@ class RegionCategoryController extends Controller
         $selectedVariantSlugs = $filterSlugs === null
             ? []
             : array_values(array_filter(array_unique(explode(';', $filterSlugs))));
+        $selectedVariant = null;
+        $selectedVariantNames = [];
 
         if ($selectedVariantSlugs !== []) {
             $variants = FilterVariant::query()
@@ -73,6 +76,28 @@ class RegionCategoryController extends Controller
             if ($variants->count() !== count($selectedVariantSlugs)) {
                 abort(404);
             }
+
+            if ($variants->count() === 1) {
+                $selectedVariant = $variants->first();
+            }
+
+            $variantsBySlug = [];
+
+            foreach ($variants as $variant) {
+                foreach ($variant->translations as $variantTranslation) {
+                    if ($variantTranslation->lang === $locale && in_array($variantTranslation->slug, $selectedVariantSlugs, true)) {
+                        $variantsBySlug[$variantTranslation->slug] = $variant;
+                    }
+                }
+            }
+
+            foreach ($selectedVariantSlugs as $selectedSlug) {
+                $variant = $variantsBySlug[$selectedSlug] ?? null;
+                $variantTranslation = $variant?->translations->firstWhere('lang', $locale);
+                $selectedVariantNames[] = $variantTranslation?->name_full ?: $variant?->nameIn($locale);
+            }
+
+            $selectedVariantNames = array_values(array_filter($selectedVariantNames));
 
             foreach ($variants->groupBy('filter_id') as $filterId => $group) {
                 $type = $group->first()->filter->type->value;
@@ -118,12 +143,25 @@ class RegionCategoryController extends Controller
         }
 
         $translation = $category->translations->firstWhere('lang', $locale);
-        $seo = $translation?->seo() ?? [];
+        $seo = $selectedVariant === null
+            ? $seoService->forCategory($category, $translation, $region)
+            : $seoService->forVariant(
+                $selectedVariant,
+                $selectedVariant->translations->firstWhere('lang', $locale),
+                $category,
+                $translation,
+                $region,
+            );
         $categoryName = $category->nameIn($locale);
+        $regionNameIn = $locale === 'en' ? $region->name_en : $region->name_in;
+        $pageHeading = $selectedVariantNames === []
+            ? __(':category в :region', ['category' => $categoryName, 'region' => $regionNameIn])
+            : __(':names в :region', ['names' => implode(', ', $selectedVariantNames), 'region' => $regionNameIn]);
 
         return view('region.category.show', [
             'category' => $category,
             'categoryName' => $categoryName,
+            'pageHeading' => $pageHeading,
             'root' => $root,
             'rootName' => $root->nameIn($locale),
             'sidebarCategories' => $sidebarCategories,

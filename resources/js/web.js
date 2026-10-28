@@ -316,57 +316,125 @@
     });
 
     // Полное описание товара и скрытые данные компании.
-    document.querySelectorAll('[data-ad-expand]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            var article = button.closest('article');
+    // Делегирование позволяет раскрывать и карточки, загруженные кнопкой «Показать ещё».
+    document.addEventListener('click', function (event) {
+        var expand = event.target.closest('[data-ad-expand]');
+
+        if (expand) {
+            var article = expand.closest('article');
 
             if (!article) {
                 return;
             }
 
-            var description = article.querySelector('[data-ad-description]');
-            var gradient = article.querySelector('[data-ad-gradient]');
-            var details = article.querySelector('[data-ad-company-details]');
+            article.querySelector('[data-ad-description]')?.classList.add('is-expanded');
+            article.querySelector('[data-ad-gradient]')?.classList.remove('hidden');
+            article.querySelector('[data-ad-company-details]')?.classList.remove('hidden');
 
-            if (description) {
-                description.classList.add('is-expanded');
-            }
+            expand.setAttribute('aria-expanded', 'true');
+            expand.classList.add('hidden');
+            expand.style.display = 'none';
+            article.querySelector('[data-ad-company-details] [data-ad-collapse]')?.focus();
 
-            if (gradient) {
-                gradient.classList.remove('hidden');
-            }
+            return;
+        }
 
-            if (details) {
-                details.classList.remove('hidden');
-            }
+        var collapse = event.target.closest('[data-ad-collapse]');
 
-            button.setAttribute('aria-expanded', 'true');
-            button.classList.add('hidden');
-            button.style.display = 'none';
-            details?.querySelector('[data-ad-collapse]')?.focus();
-        });
+        if (!collapse) {
+            return;
+        }
+
+        var card = collapse.closest('article');
+
+        if (!card) {
+            return;
+        }
+
+        card.querySelector('[data-ad-description]')?.classList.remove('is-expanded');
+        card.querySelector('[data-ad-gradient]')?.classList.add('hidden');
+        card.querySelector('[data-ad-company-details]')?.classList.add('hidden');
+
+        var expandButton = card.querySelector('[data-ad-expand]');
+
+        if (expandButton) {
+            expandButton.setAttribute('aria-expanded', 'false');
+            expandButton.classList.remove('hidden');
+            expandButton.style.display = '';
+            expandButton.focus();
+        }
     });
 
-    document.querySelectorAll('[data-ad-collapse]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            var article = button.closest('article');
+    // Подгрузка следующей страницы товаров без перезагрузки.
+    var loadMoreButton = document.querySelector('[data-load-more-url]');
 
-            if (!article) {
+    if (loadMoreButton) {
+        loadMoreButton.addEventListener('click', function () {
+            if (loadMoreButton.disabled || !loadMoreButton.dataset.loadMoreUrl) {
                 return;
             }
 
-            article.querySelector('[data-ad-description]')?.classList.remove('is-expanded');
-            article.querySelector('[data-ad-gradient]')?.classList.add('hidden');
-            article.querySelector('[data-ad-company-details]')?.classList.add('hidden');
+            var label = loadMoreButton.querySelector('[data-load-more-label]');
+            var originalLabel = loadMoreButton.dataset.label || '';
+            var loadingLabel = loadMoreButton.dataset.loadingLabel || originalLabel;
 
-            var expand = article.querySelector('[data-ad-expand]');
+            loadMoreButton.disabled = true;
 
-            if (expand) {
-                expand.setAttribute('aria-expanded', 'false');
-                expand.classList.remove('hidden');
-                expand.style.display = '';
-                expand.focus();
+            if (label) {
+                label.textContent = loadingLabel;
             }
+
+            fetch(loadMoreButton.dataset.loadMoreUrl, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Load more failed');
+                    }
+
+                    return response.text();
+                })
+                .then(function (html) {
+                    var doc = new DOMParser().parseFromString(html, 'text/html');
+                    var list = document.querySelector('[data-ads-list]');
+                    var incomingList = doc.querySelector('[data-ads-list]');
+
+                    if (list && incomingList) {
+                        Array.from(incomingList.children).forEach(function (item) {
+                            list.appendChild(item);
+                        });
+                    }
+
+                    var pagination = document.querySelector('[data-pagination]');
+                    var incomingPagination = doc.querySelector('[data-pagination]');
+
+                    if (pagination && incomingPagination) {
+                        pagination.innerHTML = incomingPagination.innerHTML;
+                    }
+
+                    var nextButton = doc.querySelector('[data-load-more-url]');
+                    var wrapper = loadMoreButton.closest('[data-load-more-wrapper]');
+
+                    if (nextButton) {
+                        loadMoreButton.dataset.loadMoreUrl = nextButton.dataset.loadMoreUrl;
+                        loadMoreButton.dataset.label = nextButton.dataset.label || originalLabel;
+                        loadMoreButton.dataset.loadingLabel = nextButton.dataset.loadingLabel || loadingLabel;
+                    } else if (wrapper) {
+                        wrapper.remove();
+                    }
+
+                    if (label) {
+                        label.textContent = loadMoreButton.dataset.label || originalLabel;
+                    }
+                })
+                .catch(function () {
+                    if (label) {
+                        label.textContent = originalLabel;
+                    }
+                })
+                .finally(function () {
+                    loadMoreButton.disabled = false;
+                });
         });
-    });
+    }
 })();

@@ -1,7 +1,7 @@
 @extends('layouts.site')
 
-@section('title', $seo['seo_title'] ?? $categoryName)
-@section('description', $seo['seo_description'] ?? '')
+@section('title', $seo['seo_title'] ?: $categoryName)
+@section('description', $seo['seo_description'] ?: '')
 
 @section('content')
     @php
@@ -25,7 +25,7 @@
                     @endif
                 </nav>
 
-                <h1 class="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">{{ __(':category в :region', ['category' => $categoryName, 'region' => $regionNameIn]) }}</h1>
+                <h1 class="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">{{ $pageHeading }}</h1>
             </div>
         </section>
 
@@ -142,6 +142,7 @@
             </aside>
 
             <section class="min-w-0">
+                @if($ads->total() > 0)
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2  opacity-40 hover:opacity-100 transition duration-500">
                     <p class="text-sm text-gray-500">{{ __('Найдено: :count', ['count' => $ads->total()]) }}</p>
                     <label class="group flex items-center gap-2" aria-label="{{ __('Сортировка') }}">
@@ -167,9 +168,10 @@
                             </span>
                         </span>
                     </label>
-                </div>
+                    </div>
+                @endif
 
-                <div class="divide-y divide-gray-200/80">
+                <div data-ads-list class="divide-y divide-gray-200/80">
                     @forelse($ads as $ad)
                         @php
                             $company = $ad->company;
@@ -185,10 +187,8 @@
                                     @if($image)
                                         <img src="{{ $image->thumbnailUrl(630) }}" alt="{{ $ad->title }}" loading="lazy" class="h-full w-full object-contain">
                                     @else
-                                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 text-gray-300">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-10 w-10">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-                                            </svg>
+                                        <div class="flex h-full w-full items-center justify-center bg-[#f5f5f2]">
+                                            <span class="text-xs font-medium uppercase tracking-[0.12em] text-gray-300">{{ __('Нет фото') }}</span>
                                         </div>
                                     @endif
                                 </div>
@@ -255,22 +255,58 @@
                             <div data-ad-gradient class="pointer-events-none mt-2 hidden h-10 w-full bg-gradient-to-t from-gray-100/80 via-gray-50/50 to-transparent"></div>
                         </article>
                     @empty
-                        <div class="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-14 text-center shadow-sm">
-                            <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-first/10 text-green-first">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.1-5.4a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
+                        <div class="relative overflow-hidden rounded-3xl border border-green-first/15 bg-gradient-to-br from-green-first/[0.04] via-white to-green-second/[0.08] px-6 py-14 text-center shadow-sm">
+                            <div class="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-green-first/10 blur-2xl"></div>
+                            <div class="pointer-events-none absolute -bottom-16 -left-12 h-44 w-44 rounded-full bg-green-second/10 blur-2xl"></div>
+
+                            <span class="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-green-first shadow-sm ring-1 ring-green-first/15">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" class="h-7 w-7">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
                             </span>
-                            <p class="mt-3 text-sm font-semibold text-gray-800">{{ __('Нет товаров/услуг.') }}</p>
-                            <p class="mt-1 text-xs text-gray-400">{{ __('Попробуйте изменить фильтры или выбрать другую категорию.') }}</p>
+
+                            <h2 class="relative mt-4 text-lg font-bold tracking-tight text-gray-900">{{ __('Нет товаров/услуг.') }}</h2>
+                            <p class="relative mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500">{{ __('Вы можете стать первым. Разместите мебель/услуги, пока другие спят.') }}</p>
+
+                            <div class="relative mt-6">
+                                <a href="{{ route('account.register', ['region' => $region->subdomain]) }}" class="inline-flex items-center gap-2 rounded-full bg-green-first px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-green-first/20 transition hover:bg-green-second hover:shadow-lg">
+                                    {{ __('Регистрация') }}
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                    </svg>
+                                </a>
+                            </div>
                         </div>
                     @endforelse
                 </div>
 
                 @if($ads->hasPages())
-                    <div class="mt-6">
-                        {{ $ads->links() }}
+                    <div data-pagination class="mt-6">
+                        {{ $ads->links('region.category.pagination') }}
                     </div>
+                @endif
+
+                @if($ads->hasMorePages())
+                    <div data-load-more-wrapper class="mt-4 flex justify-center">
+                        <button
+                            type="button"
+                            data-load-more-url="{{ $ads->nextPageUrl() }}"
+                            data-label="{{ __('Показать ещё') }}"
+                            data-loading-label="{{ __('Загрузка товаров...') }}"
+                            class="group inline-flex cursor-pointer items-center gap-2 rounded-full border border-green-first/25 bg-white px-5 py-2.5 text-sm font-semibold text-green-first shadow-sm transition hover:border-green-first/50 hover:bg-green-first hover:text-white disabled:cursor-wait disabled:opacity-60"
+                        >
+                            <span data-load-more-label>{{ __('Показать ещё') }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4 transition group-hover:translate-y-0.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25 12 15.75 4.5 8.25" />
+                            </svg>
+                        </button>
+                    </div>
+                @endif
+
+                @if(!empty($seo['seo_block']))
+                    <article class="seo-block rich-text mt-8 border-t border-gray-100 pt-7 text-sm leading-6 text-gray-600">
+                        {!! $seo['seo_block'] !!}
+                    </article>
                 @endif
             </section>
         </div>

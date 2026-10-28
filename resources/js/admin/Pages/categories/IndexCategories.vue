@@ -13,7 +13,7 @@ interface Category {
     is_last: boolean;
     is_active: boolean;
     filters_count: number;
-    translations: { code: string; slug: string }[];
+    translations: { code: string; slug: string; name_buy: string | null }[];
 }
 
 interface PaginationLink {
@@ -88,6 +88,7 @@ const toggleShowAll = () => {
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Порядок</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Название</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Назв. в меню</th>
+                            <th class="px-4 py-3 text-left font-medium text-gray-500">Назв. для покупки</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Slug</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Языки</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Фильтры</th>
@@ -121,6 +122,11 @@ const toggleShowAll = () => {
                             </td>
                             <td class="px-4 py-3 font-mono text-gray-600">
                                 {{ category.menu_name }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-600">
+                                <div v-for="t in category.translations" :key="t.code">
+                                    <span class="uppercase text-gray-400">{{ t.code }}:</span> {{ t.name_buy || '—' }}
+                                </div>
                             </td>
                             <td class="px-4 py-3 font-mono text-gray-600">
                                 <div v-for="t in category.translations" :key="t.code">
