@@ -351,6 +351,212 @@
         });
     });
 
+    // Галерея изображений товара.
+    var galleryModal = document.querySelector('[data-gallery-modal]');
+
+    if (galleryModal) {
+        var galleryImage = galleryModal.querySelector('[data-gallery-image]');
+        var galleryCounter = galleryModal.querySelector('[data-gallery-counter]');
+        var galleryPrev = galleryModal.querySelector('[data-gallery-prev]');
+        var galleryNext = galleryModal.querySelector('[data-gallery-next]');
+        var galleryClose = galleryModal.querySelector('[data-gallery-close]');
+        var galleryStage = galleryModal.querySelector('[data-gallery-stage]');
+        var galleryItems = [];
+        var galleryIndex = 0;
+        var galleryTitle = '';
+        var galleryTrigger = null;
+        var galleryTouchStartX = null;
+        var galleryTouchStartY = null;
+        var cardSwipeStartX = null;
+        var cardSwipeStartY = null;
+        var cardSwipeTrigger = null;
+        var suppressGalleryClick = false;
+
+        var showGalleryItem = function (index) {
+            if (galleryItems.length === 0) {
+                return;
+            }
+
+            galleryIndex = (index + galleryItems.length) % galleryItems.length;
+            var item = galleryItems[galleryIndex];
+
+            galleryImage.src = item.url;
+            galleryImage.alt = item.alt || galleryTitle;
+
+            if (item.width && item.height) {
+                galleryImage.setAttribute('width', item.width);
+                galleryImage.setAttribute('height', item.height);
+            } else {
+                galleryImage.removeAttribute('width');
+                galleryImage.removeAttribute('height');
+            }
+
+            galleryCounter.textContent = (galleryIndex + 1) + ' / ' + galleryItems.length;
+            galleryPrev.style.display = galleryItems.length < 2 ? 'none' : '';
+            galleryNext.style.display = galleryItems.length < 2 ? 'none' : '';
+        };
+
+        var openGallery = function (button, initialIndex = 0) {
+            try {
+                galleryItems = JSON.parse(button.dataset.galleryImages || '[]');
+            } catch (error) {
+                galleryItems = [];
+            }
+
+            if (!Array.isArray(galleryItems) || galleryItems.length === 0) {
+                return;
+            }
+
+            galleryTitle = button.dataset.galleryTitle || '';
+            galleryTrigger = button;
+            galleryModal.classList.remove('hidden');
+            galleryModal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+            showGalleryItem(initialIndex);
+            galleryClose.focus({ preventScroll: true });
+        };
+
+        var closeGallery = function () {
+            galleryModal.classList.add('hidden');
+            galleryModal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+            galleryImage.removeAttribute('src');
+            galleryTrigger?.focus({ preventScroll: true });
+        };
+
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-gallery-open]');
+
+            if (button) {
+                event.preventDefault();
+
+                if (suppressGalleryClick) {
+                    suppressGalleryClick = false;
+
+                    return;
+                }
+
+                openGallery(button);
+            }
+        });
+
+        galleryClose.addEventListener('click', closeGallery);
+        galleryPrev.addEventListener('click', function () {
+            showGalleryItem(galleryIndex - 1);
+        });
+        galleryNext.addEventListener('click', function () {
+            showGalleryItem(galleryIndex + 1);
+        });
+
+        galleryModal.addEventListener('click', function (event) {
+            if (event.target === galleryModal) {
+                closeGallery();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (galleryModal.classList.contains('hidden')) {
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                closeGallery();
+            } else if (event.key === 'ArrowLeft') {
+                showGalleryItem(galleryIndex - 1);
+            } else if (event.key === 'ArrowRight') {
+                showGalleryItem(galleryIndex + 1);
+            }
+        });
+
+        var resetGalleryTouch = function () {
+            galleryTouchStartX = null;
+            galleryTouchStartY = null;
+        };
+
+        galleryStage?.addEventListener('touchstart', function (event) {
+            if (event.touches.length !== 1) {
+                resetGalleryTouch();
+
+                return;
+            }
+
+            galleryTouchStartX = event.touches[0].clientX;
+            galleryTouchStartY = event.touches[0].clientY;
+        }, { passive: true });
+
+        galleryStage?.addEventListener('touchmove', function (event) {
+            if (galleryTouchStartX === null || event.touches.length !== 1) {
+                return;
+            }
+
+            var deltaX = event.touches[0].clientX - galleryTouchStartX;
+            var deltaY = event.touches[0].clientY - galleryTouchStartY;
+
+            // Horizontal swipe belongs to the gallery; vertical keeps scrolling.
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        galleryStage?.addEventListener('touchend', function (event) {
+            if (galleryTouchStartX === null) {
+                return;
+            }
+
+            var deltaX = event.changedTouches[0].clientX - galleryTouchStartX;
+            var deltaY = event.changedTouches[0].clientY - galleryTouchStartY;
+            resetGalleryTouch();
+
+            if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+                return;
+            }
+
+            showGalleryItem(galleryIndex + (deltaX < 0 ? 1 : -1));
+        }, { passive: true });
+
+        galleryStage?.addEventListener('touchcancel', resetGalleryTouch, { passive: true });
+
+        // Swipe left on the card image opens the gallery at the next photo.
+        document.addEventListener('touchstart', function (event) {
+            var button = event.target.closest('[data-gallery-open]');
+
+            if (!button || event.touches.length !== 1) {
+                cardSwipeTrigger = null;
+
+                return;
+            }
+
+            cardSwipeTrigger = button;
+            cardSwipeStartX = event.touches[0].clientX;
+            cardSwipeStartY = event.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', function (event) {
+            if (cardSwipeTrigger === null || cardSwipeStartX === null) {
+                return;
+            }
+
+            var deltaX = event.changedTouches[0].clientX - cardSwipeStartX;
+            var deltaY = event.changedTouches[0].clientY - cardSwipeStartY;
+            var button = cardSwipeTrigger;
+
+            cardSwipeTrigger = null;
+            cardSwipeStartX = null;
+            cardSwipeStartY = null;
+
+            if (deltaX > -50 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+                return;
+            }
+
+            suppressGalleryClick = true;
+            window.setTimeout(function () {
+                suppressGalleryClick = false;
+            }, 600);
+
+            openGallery(button, 1);
+        }, { passive: true });
+    }
+
     // Избранное: сердечко на карточке товара.
     var favoriteCsrfToken = function () {
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
@@ -484,6 +690,55 @@
         });
     });
 
+    // На десктопе подгоняем количество строк описания под высоту фото.
+    var alignAdDescriptions = function () {
+        if (window.innerWidth < 1024) {
+            document.querySelectorAll('[data-ad-description]').forEach(function (description) {
+                description.style.removeProperty('-webkit-line-clamp');
+                description.style.removeProperty('max-height');
+                description.style.removeProperty('line-height');
+            });
+
+            return;
+        }
+
+        document.querySelectorAll('[data-ads-list] article').forEach(function (article) {
+            var description = article.querySelector('[data-ad-description]');
+            var image = article.querySelector('[data-gallery-open]') || article.querySelector('[data-ad-image]');
+
+            if (!description || !image) {
+                return;
+            }
+
+            if (description.classList.contains('is-expanded')) {
+                description.style.removeProperty('-webkit-line-clamp');
+                description.style.removeProperty('max-height');
+                description.style.removeProperty('line-height');
+
+                return;
+            }
+
+            var imageBottom = image.getBoundingClientRect().bottom;
+            var descriptionTop = description.getBoundingClientRect().top;
+            var lineHeight = parseFloat(window.getComputedStyle(description).lineHeight) || 24;
+            var available = Math.max(0, imageBottom - descriptionTop);
+            var lines = Math.max(3, Math.ceil(available / lineHeight));
+            var fittedLineHeight = lines > 0 ? available / lines : lineHeight;
+
+            description.style.setProperty('-webkit-line-clamp', String(lines));
+            description.style.maxHeight = available + 'px';
+            description.style.lineHeight = fittedLineHeight + 'px';
+        });
+    };
+
+    var scheduleDescriptionAlignment = function () {
+        window.requestAnimationFrame(alignAdDescriptions);
+    };
+
+    alignAdDescriptions();
+    window.addEventListener('resize', scheduleDescriptionAlignment);
+    window.addEventListener('load', scheduleDescriptionAlignment);
+
     // Полное описание товара и скрытые данные компании.
     // Делегирование позволяет раскрывать и карточки, загруженные кнопкой «Показать ещё».
     document.addEventListener('click', function (event) {
@@ -496,7 +751,12 @@
                 return;
             }
 
-            article.querySelector('[data-ad-description]')?.classList.add('is-expanded');
+            var description = article.querySelector('[data-ad-description]');
+            description?.classList.add('is-expanded');
+            description?.style.removeProperty('-webkit-line-clamp');
+            description?.style.removeProperty('max-height');
+            description?.style.removeProperty('line-height');
+            article.querySelector('[data-ad-description-fade]')?.classList.add('hidden');
             article.querySelector('[data-ad-gradient]')?.classList.remove('hidden');
 
             var details = article.querySelector('[data-ad-company-details]');
@@ -526,7 +786,9 @@
         }
 
         card.querySelector('[data-ad-description]')?.classList.remove('is-expanded');
+        card.querySelector('[data-ad-description-fade]')?.classList.remove('hidden');
         card.querySelector('[data-ad-gradient]')?.classList.add('hidden');
+        scheduleDescriptionAlignment();
 
         var details = card.querySelector('[data-ad-company-details]');
 
@@ -606,6 +868,8 @@
                     if (label) {
                         label.textContent = loadMoreButton.dataset.label || originalLabel;
                     }
+
+                    scheduleDescriptionAlignment();
                 })
                 .catch(function () {
                     if (label) {

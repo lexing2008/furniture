@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Roles;
 use App\Models\Ad;
+use App\Models\AdImage;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Favorite;
@@ -16,6 +17,7 @@ use App\Models\SeoTemplate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -423,6 +425,53 @@ class AccountPagesTest extends TestCase
             ->assertOk()
             ->assertSee('Товар в категории')
             ->assertDontSee('Дешёвый товар');
+    }
+
+    public function test_lcp_image_uses_first_ad_with_a_photo(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Без фото',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $withPhoto = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'С фото',
+            'price' => 200,
+            'currency' => 'BYN',
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now()->subMinute(),
+        ]);
+
+        $image = AdImage::create([
+            'ad_id' => $withPhoto->id,
+            'path' => 'furniture/manual/divany/lcp-test.webp',
+            'uuid' => (string) Str::uuid(),
+            'order' => 0,
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany')
+            ->assertOk()
+            ->assertSee('rel="preload" as="image" href="'.$image->thumbnailUrl(325).'"', false)
+            ->assertSeeInOrder(['alt="С фото"', 'loading="eager"', 'fetchpriority="high"'], false);
     }
 
     public function test_category_seo_uses_template_placeholders(): void

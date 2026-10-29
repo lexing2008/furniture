@@ -132,6 +132,7 @@ class AdTest extends TestCase
         $this->assertStringEndsWith('.webp', $tmp->path);
         Storage::disk('public')->assertExists($tmp->path);
         Storage::disk('public')->assertExists(AdImagePath::medium($tmp->path));
+        Storage::disk('public')->assertExists(AdImagePath::listing($tmp->path));
         Storage::disk('public')->assertExists(AdImagePath::small($tmp->path));
 
         [$imageWidth, $imageHeight] = getimagesize(Storage::disk('public')->path($tmp->path));
@@ -141,6 +142,10 @@ class AdTest extends TestCase
         [$mediumWidth, $mediumHeight] = getimagesize(Storage::disk('public')->path(AdImagePath::medium($tmp->path)));
         $this->assertLessThanOrEqual(630, $mediumWidth);
         $this->assertLessThanOrEqual(467, $mediumHeight);
+
+        [$listingWidth, $listingHeight] = getimagesize(Storage::disk('public')->path(AdImagePath::listing($tmp->path)));
+        $this->assertLessThanOrEqual(325, $listingWidth);
+        $this->assertLessThanOrEqual(237, $listingHeight);
 
         [$smallWidth, $smallHeight] = getimagesize(Storage::disk('public')->path(AdImagePath::small($tmp->path)));
         $this->assertLessThanOrEqual(100, $smallWidth);
@@ -197,11 +202,26 @@ class AdTest extends TestCase
             AdImagePath::medium($image->path),
         );
         $this->assertSame(
+            'furniture/manual/divany/325/divan-oslo.'.$image->uuid.'.webp',
+            AdImagePath::listing($image->path),
+        );
+        $this->assertSame(
             'furniture/manual/divany/100/divan-oslo.'.$image->uuid.'.webp',
             AdImagePath::small($image->path),
         );
         Storage::disk('public')->assertExists(AdImagePath::medium($image->path));
+        Storage::disk('public')->assertExists(AdImagePath::listing($image->path));
         Storage::disk('public')->assertExists(AdImagePath::small($image->path));
+
+        $image->refresh();
+        $this->assertSame($imageWidth, $image->width);
+        $this->assertSame($imageHeight, $image->height);
+        $this->assertSame($mediumWidth, $image->thumb_630_width);
+        $this->assertSame($mediumHeight, $image->thumb_630_height);
+        $this->assertSame($listingWidth, $image->thumb_325_width);
+        $this->assertSame($listingHeight, $image->thumb_325_height);
+        $this->assertSame($smallWidth, $image->thumb_100_width);
+        $this->assertSame($smallHeight, $image->thumb_100_height);
 
         $this->actingAs($this->user)
             ->get($this->url("/ads/{$ad->id}/edit"))

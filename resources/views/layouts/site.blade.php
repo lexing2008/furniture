@@ -12,6 +12,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     @vite(['resources/css/app.css'])
+    @stack('head')
 </head>
 <body class="flex flex-col min-h-screen">
 
@@ -24,6 +25,7 @@
     </main>
 
     @include('layouts.partials._footer')
+    @include('layouts.partials._gallery-modal')
 
     @vite(['resources/js/web.js'])
 </body>

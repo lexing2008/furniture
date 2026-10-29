@@ -3,7 +3,17 @@
 @php
     $pageNumber = $items->currentPage();
     $pageSuffix = $pageNumber > 1 ? __(' — Страница :page', ['page' => $pageNumber]) : '';
+    $lcpFavorite = $pageNumber === 1
+        ? $items->getCollection()->first(fn ($favorite) => $favorite->ad?->images->isNotEmpty())
+        : null;
+    $lcpImage = $lcpFavorite?->ad?->images->first();
 @endphp
+
+@if($lcpImage)
+    @push('head')
+        <link rel="preload" as="image" href="{{ $lcpImage->thumbnailUrl(325) }}" fetchpriority="high">
+    @endpush
+@endif
 
 @section('title', __('Избранное').$pageSuffix)
 @section('description', __('Товары и услуги, которые вы сохранили.').$pageSuffix)
@@ -22,7 +32,7 @@
         @if($items->total() > 0)
             <p class="text-sm text-gray-500">{{ __('Найдено: :count', ['count' => $items->total()]) }}</p>
 
-            <x-ads-list :items="$items" :region="$region" removable />
+            <x-ads-list :items="$items" :region="$region" removable :eager-first="$pageNumber === 1" />
 
             @if($items->hasPages())
                 <div class="mt-6">

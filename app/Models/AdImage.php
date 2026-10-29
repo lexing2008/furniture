@@ -7,13 +7,34 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['ad_id', 'path', 'uuid', 'order'])]
+#[Fillable([
+    'ad_id',
+    'path',
+    'uuid',
+    'order',
+    'width',
+    'height',
+    'thumb_100_width',
+    'thumb_100_height',
+    'thumb_325_width',
+    'thumb_325_height',
+    'thumb_630_width',
+    'thumb_630_height',
+])]
 class AdImage extends Model
 {
     protected function casts(): array
     {
         return [
             'order' => 'integer',
+            'width' => 'integer',
+            'height' => 'integer',
+            'thumb_100_width' => 'integer',
+            'thumb_100_height' => 'integer',
+            'thumb_325_width' => 'integer',
+            'thumb_325_height' => 'integer',
+            'thumb_630_width' => 'integer',
+            'thumb_630_height' => 'integer',
         ];
     }
 

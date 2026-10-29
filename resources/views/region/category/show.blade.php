@@ -3,6 +3,19 @@
 @section('title', $pageTitle)
 @section('description', $pageDescription)
 
+@php
+    $lcpAd = $ads->currentPage() === 1
+        ? $ads->getCollection()->first(fn ($ad) => $ad->images->isNotEmpty())
+        : null;
+    $lcpImage = $lcpAd?->images->first();
+@endphp
+
+@if($lcpImage)
+    @push('head')
+        <link rel="preload" as="image" href="{{ $lcpImage->thumbnailUrl(325) }}" fetchpriority="high">
+    @endpush
+@endif
+
 @section('content')
     @php
         $locale = app()->getLocale();
@@ -259,6 +272,7 @@
                         :region="$region"
                         :favorite-ids="$favoriteIds"
                         :active-category-id="$category->id"
+                        :eager-first="$ads->currentPage() === 1"
                     />
                 @endif
 

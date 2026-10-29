@@ -132,18 +132,50 @@
     background: #e0e7ff;
 }
 
+[data-gallery-stage] {
+    touch-action: pan-y;
+}
+
+/* Magnifier overlay on the ad image (desktop hover/focus only) */
+.gallery-zoom {
+    display: none;
+    opacity: 0;
+}
+
+@media (min-width: 768px) {
+    [data-gallery-open] .gallery-zoom {
+        display: flex;
+    }
+
+    [data-gallery-open]:hover .gallery-zoom,
+    [data-gallery-open]:focus-visible .gallery-zoom {
+        opacity: 1;
+    }
+}
+
 /* Clamped ad description on category pages */
 .ad-description {
     display: -webkit-box;
+    max-height: 4.5rem;
     overflow: hidden;
+    overflow-y: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
 }
 
 .ad-description.is-expanded {
     display: block;
+    max-height: none;
     overflow: visible;
+    overflow-y: visible;
     -webkit-line-clamp: unset;
+}
+
+@media (min-width: 1024px) {
+    .ad-description {
+        max-height: 9rem;
+        -webkit-line-clamp: 6;
+    }
 }
 
 /* Smooth reveal of company details in ad cards */

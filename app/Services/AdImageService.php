@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Ad;
+use App\Models\AdImage;
 use App\Models\TmpFile;
 use App\Support\AdImagePath;
 use App\Support\Slug;
@@ -37,16 +38,19 @@ class AdImageService
         $uuid = Str::uuid()->toString();
         $path = AdImagePath::main($uuid);
         $medium = AdImagePath::medium($path);
+        $listing = AdImagePath::listing($path);
         $small = AdImagePath::small($path);
         $disk = Storage::disk('public');
 
         $disk->makeDirectory(AdImagePath::DIRECTORY);
         $disk->makeDirectory(AdImagePath::DIRECTORY.'/'.AdImagePath::MEDIUM_SIZE);
+        $disk->makeDirectory(AdImagePath::DIRECTORY.'/'.AdImagePath::LISTING_SIZE);
         $disk->makeDirectory(AdImagePath::DIRECTORY.'/'.AdImagePath::SMALL_SIZE);
 
         try {
             $this->convertToWebp($sourcePath, $disk->path($path), self::MAX_SIDE, self::MAX_SIDE, self::WEBP_QUALITY);
             $this->convertToWebp($sourcePath, $disk->path($medium), 630, 467, 80);
+            $this->convertToWebp($sourcePath, $disk->path($listing), 325, 237, 80);
             $this->convertToWebp($sourcePath, $disk->path($small), 100, 100, 75);
         } catch (Throwable $exception) {
             $disk->delete(AdImagePath::variants($path));
@@ -89,6 +93,7 @@ class AdImageService
 
         $disk = Storage::disk('public');
         $disk->makeDirectory(AdImagePath::DIRECTORY.'/'.AdImagePath::MEDIUM_SIZE);
+        $disk->makeDirectory(AdImagePath::DIRECTORY.'/'.AdImagePath::LISTING_SIZE);
         $disk->makeDirectory(AdImagePath::DIRECTORY.'/'.AdImagePath::SMALL_SIZE);
 
         foreach ($deleted as $id) {
@@ -117,6 +122,7 @@ class AdImageService
                 'uuid' => $uuid,
                 'order' => (int) $item['order'],
             ]);
+            $this->ensureVariants($image);
         }
 
         $usedTmpFiles = [];
@@ -132,11 +138,12 @@ class AdImageService
             $target = AdImagePath::forAd($slug, $nameSlug, $uuid);
             $this->moveVariants($tmp->path, $target);
 
-            $ad->images()->create([
+            $image = $ad->images()->create([
                 'path' => $target,
                 'uuid' => $uuid,
                 'order' => (int) $item['order'],
             ]);
+            $this->ensureVariants($image);
 
             $usedTmpFiles[] = $tmp->id;
         }
@@ -146,6 +153,61 @@ class AdImageService
         }
 
         return $pathsToDelete;
+    }
+
+    /**
+     * Generate the listing preview when missing and persist dimensions of every variant.
+     */
+    public function ensureVariants(AdImage $image): void
+    {
+        $disk = Storage::disk('public');
+        $listingPath = AdImagePath::listing($image->path);
+        $mainPath = $image->path;
+        $sourcePath = $mainPath;
+
+        if (! $disk->exists($listingPath)) {
+            if (! $disk->exists($sourcePath)) {
+                $sourcePath = AdImagePath::medium($mainPath);
+            }
+
+            if ($disk->exists($sourcePath)) {
+                try {
+                    $disk->makeDirectory(dirname($listingPath));
+                    $this->convertToWebp($disk->path($sourcePath), $disk->path($listingPath), 325, 237, 80);
+                } catch (Throwable) {
+                    // Existing legacy images may not be readable; keep the original without a preview.
+                }
+            }
+        }
+
+        $dimensions = [];
+
+        foreach ([
+            [null, 'width', 'height'],
+            [AdImagePath::SMALL_SIZE, 'thumb_100_width', 'thumb_100_height'],
+            [AdImagePath::LISTING_SIZE, 'thumb_325_width', 'thumb_325_height'],
+            [AdImagePath::MEDIUM_SIZE, 'thumb_630_width', 'thumb_630_height'],
+        ] as [$size, $widthColumn, $heightColumn]) {
+            $path = $size === null ? $image->path : AdImagePath::thumbnail($image->path, $size);
+            $fullPath = $disk->path($path);
+
+            if (! is_file($fullPath)) {
+                continue;
+            }
+
+            $sizeInfo = @getimagesize($fullPath);
+
+            if ($sizeInfo === false) {
+                continue;
+            }
+
+            $dimensions[$widthColumn] = $sizeInfo[0];
+            $dimensions[$heightColumn] = $sizeInfo[1];
+        }
+
+        if ($dimensions !== []) {
+            $image->forceFill($dimensions)->save();
+        }
     }
 
     private function uuidFromPath(string $path): string
@@ -190,22 +252,26 @@ class AdImageService
         }
     }
 
-    private function convertToWebp(string $source, string $destination, int $maxWidth, int $maxHeight, int $quality): void
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function convertToWebp(string $source, string $destination, int $maxWidth, int $maxHeight, int $quality): array
     {
         if (class_exists(\Imagick::class)) {
             try {
-                $this->convertWithImagick($source, $destination, $maxWidth, $maxHeight, $quality);
-
-                return;
+                return $this->convertWithImagick($source, $destination, $maxWidth, $maxHeight, $quality);
             } catch (Throwable) {
                 // GD is the fallback for installations without WebP support in Imagick
             }
         }
 
-        $this->convertWithGd($source, $destination, $maxWidth, $maxHeight, $quality);
+        return $this->convertWithGd($source, $destination, $maxWidth, $maxHeight, $quality);
     }
 
-    private function convertWithImagick(string $source, string $destination, int $maxWidth, int $maxHeight, int $quality): void
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function convertWithImagick(string $source, string $destination, int $maxWidth, int $maxHeight, int $quality): array
     {
         $image = new \Imagick($source);
         $image->autoOrient();
@@ -226,10 +292,16 @@ class AdImageService
         $image->setImageCompressionQuality($quality);
         $image->stripImage();
         $image->writeImage($destination);
+        $result = [$image->getImageWidth(), $image->getImageHeight()];
         $image->clear();
+
+        return $result;
     }
 
-    private function convertWithGd(string $source, string $destination, int $maxWidth, int $maxHeight, int $quality): void
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function convertWithGd(string $source, string $destination, int $maxWidth, int $maxHeight, int $quality): array
     {
         $contents = file_get_contents($source);
         $image = $contents === false ? false : @imagecreatefromstring($contents);
@@ -257,5 +329,7 @@ class AdImageService
 
         imagedestroy($canvas);
         imagedestroy($image);
+
+        return [$targetWidth, $targetHeight];
     }
 }

@@ -4,6 +4,7 @@
     'favoriteIds' => null,
     'activeCategoryId' => null,
     'removable' => false,
+    'eagerFirst' => false,
 ])
 
 @php
@@ -11,6 +12,10 @@
 @endphp
 
 <div data-ads-list class="divide-y divide-gray-200/80">
+    @php
+        $lcpImageAssigned = false;
+    @endphp
+
     @foreach($items as $item)
         @php
             $favorite = $item instanceof \App\Models\Favorite ? $item : null;
@@ -24,19 +29,69 @@
             $publishedAt = $ad->published_at?->copy()->timezone($company->timezone())->format('d.m.Y H:i');
             $isRecent = $ad->published_at !== null && $ad->published_at->gt(now()->subDays(3));
             $image = $ad->images->first();
+            $galleryImages = $ad->images
+                ->map(fn ($adImage) => [
+                    'url' => $adImage->url(),
+                    'alt' => $ad->title,
+                    'width' => $adImage->width,
+                    'height' => $adImage->height,
+                ])
+                ->values()
+                ->all();
+            $imageWidth = $image?->thumb_325_width ?: 325;
+            $imageHeight = $image?->thumb_325_height ?: 237;
             $hasDetails = $ad->description || $company->legal_name || $company->tax_id || $company->phones->isNotEmpty();
             $isFavorite = $favorite !== null || ($favoriteIds?->contains($ad->id) ?? false);
             $savedRegionName = $favorite?->region
                 ? ($locale === 'en' ? $favorite->region->name_en : $favorite->region->name)
                 : null;
+            $isLcpImage = (bool) $eagerFirst && ! $lcpImageAssigned && $image !== null;
+
+            if ($isLcpImage) {
+                $lcpImageAssigned = true;
+            }
         @endphp
 
         <article @if($removable) data-favorite-card @endif class="py-6 first:pt-0 last:pb-0">
             <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-7">
-                <div class="relative flex aspect-[630/467] w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2] lg:w-60">
+                <div data-ad-image class="relative flex h-[237px] w-[325px] max-w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2]">
 
                     @if($image)
-                        <img src="{{ $image->thumbnailUrl(630) }}" alt="{{ $ad->title }}" loading="lazy" class="h-full w-full object-contain">
+                        <button
+                            type="button"
+                            data-gallery-open
+                            data-gallery-images="{{ json_encode($galleryImages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}"
+                            data-gallery-title="{{ $ad->title }}"
+                            aria-label="{{ __('Открыть галерею: :title', ['title' => $ad->title]) }}"
+                            class="group relative flex h-full w-full cursor-pointer items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-green-first"
+                        >
+                            <img
+                                src="{{ $image->thumbnailUrl(325) }}"
+                                alt="{{ $ad->title }}"
+                                width="{{ $imageWidth }}"
+                                height="{{ $imageHeight }}"
+                                loading="{{ $isLcpImage ? 'eager' : 'lazy' }}"
+                                @if($isLcpImage) fetchpriority="high" @endif
+                                decoding="async"
+                                class="max-h-full max-w-full object-contain"
+                            >
+
+                            <span class="gallery-zoom pointer-events-none absolute inset-0 items-center justify-center">
+                                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white/30 text-gray-700 shadow-lg backdrop-blur-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m1.85-5.15a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                                    </svg>
+                                </span>
+                            </span>
+
+                            <span class="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3 w-3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+                                </svg>
+                                {{ count($galleryImages) }}
+                            </span>
+                        </button>
                     @else
                         <div class="flex h-full w-full items-center justify-center bg-[#f5f5f2]">
                             <span class="text-xs font-medium uppercase tracking-[0.12em] text-gray-300">{{ __('Нет фото') }}</span>
@@ -94,7 +149,10 @@
                     @endif
 
                     @if($ad->description)
-                        <div data-ad-description class="ad-description rich-text mt-2 text-sm leading-6 text-gray-600">{!! $ad->description !!}</div>
+                        <div class="relative">
+                            <div data-ad-description class="ad-description rich-text mt-2 text-sm leading-6 text-gray-600">{!! $ad->description !!}</div>
+                            <div data-ad-description-fade class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white via-white/90 to-transparent"></div>
+                        </div>
                     @endif
                 </div>
 
