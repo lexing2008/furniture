@@ -498,12 +498,17 @@
 
             article.querySelector('[data-ad-description]')?.classList.add('is-expanded');
             article.querySelector('[data-ad-gradient]')?.classList.remove('hidden');
-            article.querySelector('[data-ad-company-details]')?.classList.remove('hidden');
+
+            var details = article.querySelector('[data-ad-company-details]');
+
+            if (details) {
+                details.classList.add('is-expanded');
+                details.setAttribute('aria-hidden', 'false');
+            }
 
             expand.setAttribute('aria-expanded', 'true');
             expand.classList.add('hidden');
             expand.style.display = 'none';
-            article.querySelector('[data-ad-company-details] [data-ad-collapse]')?.focus();
 
             return;
         }
@@ -522,7 +527,13 @@
 
         card.querySelector('[data-ad-description]')?.classList.remove('is-expanded');
         card.querySelector('[data-ad-gradient]')?.classList.add('hidden');
-        card.querySelector('[data-ad-company-details]')?.classList.add('hidden');
+
+        var details = card.querySelector('[data-ad-company-details]');
+
+        if (details) {
+            details.classList.remove('is-expanded');
+            details.setAttribute('aria-hidden', 'true');
+        }
 
         var expandButton = card.querySelector('[data-ad-expand]');
 
@@ -530,7 +541,7 @@
             expandButton.setAttribute('aria-expanded', 'false');
             expandButton.classList.remove('hidden');
             expandButton.style.display = '';
-            expandButton.focus();
+            expandButton.focus({ preventScroll: true });
         }
     });
 

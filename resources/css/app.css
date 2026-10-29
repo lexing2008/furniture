@@ -146,6 +146,29 @@
     -webkit-line-clamp: unset;
 }
 
+/* Smooth reveal of company details in ad cards */
+[data-ad-company-details] {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: max-height 300ms ease, opacity 250ms ease, visibility 0s linear 300ms;
+}
+
+[data-ad-company-details].is-expanded {
+    max-height: 800px;
+    opacity: 1;
+    visibility: visible;
+    transition: max-height 300ms ease, opacity 250ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-ad-company-details],
+    [data-ad-company-details].is-expanded {
+        transition: none;
+    }
+}
+
 
 /* List markers inside the SEO article use the brand green */
 .seo-block ul li::marker,

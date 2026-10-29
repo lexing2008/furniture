@@ -98,16 +98,16 @@
                     @endif
                 </div>
 
-                <div class="shrink-0 border-t border-gray-100 pt-4 lg:w-64 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+                <div class="-mt-5 shrink-0 lg:mt-0 lg:w-64 lg:border-l lg:border-gray-100 lg:pl-6">
                     <p class="text-2xl font-bold tracking-tight text-gray-900">{{ number_format((float) $ad->price, 2, ',', ' ') }} <span class="text-sm font-semibold text-gray-500">{{ $ad->currency }}</span></p>
 
                     @if($favorite)
                         <p class="mt-1 text-[11px] text-gray-400">{{ __('Добавлено') }} {{ $favorite->created_at?->format('d.m.Y') }}</p>
                     @elseif($publishedAt)
-                        <p class="mt-1 text-[11px] {{ $isRecent ? 'font-semibold text-green-third' : 'text-gray-400' }}">{{ __('Актуален на') }} {{ $publishedAt }}</p>
+                        <p class="mt-1 text-[11px] {{ $isRecent ? 'text-green-third' : 'text-gray-400' }}">{{ __('Актуален на') }} {{ $publishedAt }}</p>
                     @endif
 
-                    <div class="mt-4 border-t border-gray-100 pt-3">
+                    <div class="lg:mt-4 lg:border-t lg:border-gray-100 lg:pt-3">
                         <p class="truncate text-sm font-semibold text-gray-800">{{ $company->display_name }}</p>
 
                         @if($hasDetails)
@@ -124,7 +124,7 @@
                             </button>
                         @endif
 
-                        <div data-ad-company-details class="hidden">
+                        <div data-ad-company-details aria-hidden="true">
                             @if($company->legal_name)
                                 <p class="mt-1 text-[11px] leading-5 text-gray-500">{{ $company->legal_name }}</p>
                             @endif
