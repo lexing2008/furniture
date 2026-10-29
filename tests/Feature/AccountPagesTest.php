@@ -502,6 +502,90 @@ class AccountPagesTest extends TestCase
         $this->assertSame(0, Favorite::query()->count());
     }
 
+    public function test_favorite_toggle_is_rate_limited_to_two_requests_per_second(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Лимитируемый диван',
+            'price' => 500,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertOk();
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertOk();
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertStatus(429);
+    }
+
+    public function test_favorites_above_250_drop_the_oldest_item(): void
+    {
+        $now = now();
+        $ads = [];
+
+        for ($i = 1; $i <= 250; $i++) {
+            $ads[] = [
+                'company_id' => $this->company->id,
+                'category_id' => $this->category->id,
+                'title' => 'Товар '.$i,
+                'number' => 'limit-'.$i,
+                'price' => 100,
+                'currency' => 'BYN',
+                'warranty_unit' => 'months',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        Ad::insert($ads);
+
+        $adIds = Ad::query()->orderBy('id')->pluck('id');
+        $oldestAdId = $adIds->first();
+
+        $favorites = $adIds->values()->map(fn ($adId, $index) => [
+            'ad_id' => $adId,
+            'region_id' => $this->city->id,
+            'user_id' => $this->user->id,
+            'visitor_token' => null,
+            'created_at' => $now->copy()->subMinutes(250 - $index),
+        ])->all();
+
+        Favorite::insert($favorites);
+
+        $newAd = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Новый товар',
+            'price' => 500,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($newAd))
+            ->assertOk();
+
+        $this->assertSame(250, Favorite::query()->count());
+        $this->assertDatabaseMissing('favorites', ['ad_id' => $oldestAdId]);
+        $this->assertDatabaseHas('favorites', ['ad_id' => $newAd->id]);
+    }
+
     private function favoriteUrl(Ad $ad): string
     {
         return 'http://minsk.furniture.test/favorites/'.$ad->id;

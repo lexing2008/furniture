@@ -30,6 +30,45 @@
 
 ---
 
+## 2026-10-29 — удалён updated_at из favorites
+
+- Из таблицы `favorites` удалена колонка `updated_at`.
+- В модели `Favorite` установлено `UPDATED_AT = null`, `created_at` продолжает заполняться.
+- Добавлена миграция удаления колонки.
+
+**Проверка**
+
+- Колонки: `id`, `ad_id`, `region_id`, `user_id`, `visitor_token`, `created_at`.
+- `php artisan test`: 65 passed, 893 assertions.
+
+---
+
+## 2026-10-29 — лимит избранного 250
+
+- В `FavoriteService` добавлен лимит `MAX_FAVORITES = 250`.
+- После добавления нового товара лишние избранные удаляются начиная с самых старых.
+- Сортировка для удаления: `created_at` desc, затем `id` desc.
+- Добавлен тест переполнения.
+
+**Проверка**
+
+- `php artisan test`: 65 passed, 893 assertions.
+
+---
+
+## 2026-10-29 — rate limiting избранного
+
+- Для `POST /favorites/{ad}` добавлен именованный limiter `favorite-toggle`.
+- Не более 2 переключений в секунду на пользователя или IP.
+- При превышении возвращается 429.
+- Добавлен тест лимита.
+
+**Проверка**
+
+- `php artisan test`: 64 passed, 889 assertions.
+
+---
+
 ## 2026-10-29 — компонент списка товаров
 
 - Разметка карточек товаров/услуг вынесена в `resources/views/components/ads-list.blade.php`.

@@ -34,26 +34,6 @@
         <article @if($removable) data-favorite-card @endif class="py-6 first:pt-0 last:pb-0">
             <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-7">
                 <div class="relative flex aspect-[630/467] w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2] lg:w-60">
-                    <button
-                        type="button"
-                        data-favorite-toggle
-                        @if($removable) data-favorite-remove @endif
-                        data-favorite-url="{{ route('favorites.toggle', ['region' => $region->subdomain, 'ad' => $ad->id]) }}"
-                        data-ad-id="{{ $ad->id }}"
-                        data-add-label="{{ __('Добавить в избранное') }}"
-                        data-remove-label="{{ __('Убрать из избранного') }}"
-                        aria-pressed="{{ $isFavorite ? 'true' : 'false' }}"
-                        aria-label="{{ $isFavorite ? __('Убрать из избранного') : __('Добавить в избранное') }}"
-                        @class([
-                            'absolute right-2 top-2 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-wait disabled:opacity-50',
-                            'bg-green-first/10 text-green-first' => $isFavorite,
-                            'bg-white/90 text-gray-500 hover:text-green-first' => ! $isFavorite,
-                        ])
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="{{ $isFavorite ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                        </svg>
-                    </button>
 
                     @if($image)
                         <img src="{{ $image->thumbnailUrl(630) }}" alt="{{ $ad->title }}" loading="lazy" class="h-full w-full object-contain">
@@ -65,30 +45,51 @@
                 </div>
 
                 <div class="min-w-0 flex-1">
-                    <h2 class="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{{ $ad->title }}</h2>
+                    <div class="flex items-start justify-between gap-3">
+                        <h2 class="min-w-0 text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{{ $ad->title }}</h2>
+                        <button
+                            type="button"
+                            data-favorite-toggle
+                            @if($removable) data-favorite-remove @endif
+                            data-favorite-url="{{ route('favorites.toggle', ['region' => $region->subdomain, 'ad' => $ad->id]) }}"
+                            data-ad-id="{{ $ad->id }}"
+                            data-add-label="{{ __('Добавить в избранное') }}"
+                            data-remove-label="{{ __('Убрать из избранного') }}"
+                            aria-pressed="{{ $isFavorite ? 'true' : 'false' }}"
+                            aria-label="{{ $isFavorite ? __('Убрать из избранного') : __('Добавить в избранное') }}"
+                            @class([
+                                'mt-0.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-wait disabled:opacity-50',
+                                'bg-green-first/5 text-green-first/70' => $isFavorite,
+                                'bg-white/70 text-gray-300 hover:text-green-first' => ! $isFavorite,
+                            ])
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="{{ $isFavorite ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                            </svg>
+                        </button>
+                    </div>
 
-                    @if($favorite?->region)
-                        <div class="mt-2 flex flex-wrap gap-1.5">
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-green-first/5 px-2.5 py-1 text-[11px] font-medium text-green-first ring-1 ring-green-first/10">
-                                {{ $ad->category->nameIn($locale) }}
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3 w-3">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                                </svg>
-                                {{ __('Добавлено в :region', ['region' => $savedRegionName]) }}
-                            </span>
-                        </div>
-                    @elseif($activeCategoryId === null || $ad->category_id !== $activeCategoryId)
-                        <div class="mt-2">
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-green-first/5 px-2.5 py-1 text-[11px] font-medium text-green-first ring-1 ring-green-first/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3 w-3">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-                                </svg>
-                                {{ $ad->category->nameIn($locale) }}
-                            </span>
+                    @if($favorite?->region || $activeCategoryId === null || $ad->category_id !== $activeCategoryId)
+                        <div class="flex flex-wrap gap-1.5">
+                            @if($activeCategoryId === null || $ad->category_id !== $activeCategoryId)
+                                <a href="{{ route('region.category', ['region' => $region->subdomain, 'categorySlug' => $ad->category->slugIn($locale)]) }}" class="inline-flex items-center gap-1.5 rounded-full bg-green-first/5 px-2.5 py-1 text-[11px] font-medium text-green-first ring-1 ring-green-first/10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3 w-3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                                    </svg>
+                                    {{ $ad->category->nameIn($locale) }}
+                                </a>
+                            @endif
+
+                            @if($favorite?->region)
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3 w-3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                    </svg>
+                                    {{ __('Добавлено в :region', ['region' => $savedRegionName]) }}
+                                </span>
+                            @endif
                         </div>
                     @endif
 

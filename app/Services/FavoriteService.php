@@ -14,6 +14,8 @@ class FavoriteService
 {
     private const COOKIE = 'favorite_visitor';
 
+    public const MAX_FAVORITES = 250;
+
     /**
      * IDs of the ads favorited by the current visitor.
      *
@@ -83,7 +85,26 @@ class FavoriteService
             'visitor_token' => $token,
         ]);
 
+        $this->trimOverflow();
+
         return true;
+    }
+
+    /**
+     * Keep only the newest favorites; drop the oldest ones above the limit.
+     */
+    private function trimOverflow(): void
+    {
+        $overflowIds = $this->query()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->pluck('id')
+            ->slice(self::MAX_FAVORITES)
+            ->values();
+
+        if ($overflowIds->isNotEmpty()) {
+            $this->query()->whereIn('id', $overflowIds)->delete();
+        }
     }
 
     private function guestToken(): ?string

@@ -362,10 +362,10 @@
             ? (button.dataset.removeLabel || 'Убрать из избранного')
             : (button.dataset.addLabel || 'Добавить в избранное'));
 
-        button.classList.toggle('bg-green-first/10', active);
-        button.classList.toggle('text-green-first', active);
-        button.classList.toggle('bg-white/90', !active);
-        button.classList.toggle('text-gray-500', !active);
+        button.classList.toggle('bg-green-first/5', active);
+        button.classList.toggle('text-green-first/70', active);
+        button.classList.toggle('bg-white/70', !active);
+        button.classList.toggle('text-gray-300', !active);
         button.classList.toggle('hover:text-green-first', !active);
 
         var icon = button.querySelector('svg');

@@ -116,6 +116,7 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
     Route::get('favorites', [FavoriteController::class, 'index'])
         ->name('favorites.index');
     Route::post('favorites/{ad}', [FavoriteController::class, 'toggle'])
+        ->middleware('throttle:favorite-toggle')
         ->name('favorites.toggle');
 
     // Placeholder category page and lazy-loaded category menu.

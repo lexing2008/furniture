@@ -1,6 +1,12 @@
 @extends('layouts.site')
 
-@section('title', __('Избранное'))
+@php
+    $pageNumber = $items->currentPage();
+    $pageSuffix = $pageNumber > 1 ? __(' — Страница :page', ['page' => $pageNumber]) : '';
+@endphp
+
+@section('title', __('Избранное').$pageSuffix)
+@section('description', __('Товары и услуги, которые вы сохранили.').$pageSuffix)
 
 @section('content')
     <div class="space-y-6 pb-10">
@@ -8,7 +14,7 @@
             <div class="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl"></div>
             <div class="relative">
                 <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">{{ __('Личный список') }}</p>
-                <h1 class="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Избранное') }}</h1>
+                <h1 class="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Избранное') }}{{ $pageSuffix }}</h1>
                 <p class="mt-2 text-sm text-white/80">{{ __('Товары и услуги, которые вы сохранили.') }}</p>
             </div>
         </section>

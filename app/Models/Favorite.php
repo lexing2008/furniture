@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['ad_id', 'region_id', 'user_id', 'visitor_token'])]
 class Favorite extends Model
 {
+    public const UPDATED_AT = null;
+
     public function ad(): BelongsTo
     {
         return $this->belongsTo(Ad::class);

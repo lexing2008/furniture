@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Http\Services\RegionService;
 use App\Models\Region;
 use App\Services\MenuCategoryService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -27,6 +30,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(RegionService $regionService): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Не более двух переключений избранного в секунду на пользователя/IP.
+        RateLimiter::for('favorite-toggle', function (Request $request) {
+            return Limit::perSecond(2)->by(
+                $request->user()?->getAuthIdentifier() ?: 'ip:'.$request->ip()
+            );
+        });
 
         // Указываем Laravel, что параметр subdomain {region} — это модель Region,
         // и искать её нужно по полю 'subdomain'
