@@ -5,10 +5,17 @@
     aria-modal="true"
     aria-label="{{ __('Галерея изображений') }}"
 >
+    <div class="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-4 pb-10 pt-4 sm:px-8">
+        <div class="max-w-[calc(100%-4rem)]">
+            <p data-gallery-title class="truncate text-sm font-semibold text-white sm:text-base"></p>
+            <p data-gallery-price class="mt-1 text-xs font-medium text-white/75 sm:text-sm"></p>
+        </div>
+    </div>
+
     <button
         type="button"
         data-gallery-close
-        class="absolute right-4 top-4 z-10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-6 sm:top-6"
+        class="absolute right-4 top-4 z-20 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-6 sm:top-6"
         aria-label="{{ __('Закрыть') }}"
     >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5">
@@ -28,7 +35,7 @@
     </button>
 
     <div data-gallery-stage class="flex max-h-full max-w-full items-center justify-center">
-        <img data-gallery-image alt="" class="max-h-[80vh] max-w-[90vw] select-none object-contain sm:max-w-[80vw]">
+        <img data-gallery-image alt="" class="max-h-[80vh] max-w-[90vw] cursor-pointer select-none object-contain sm:max-w-[80vw]">
     </div>
 
     <button

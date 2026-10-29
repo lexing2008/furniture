@@ -62,6 +62,7 @@
                             data-gallery-open
                             data-gallery-images="{{ json_encode($galleryImages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}"
                             data-gallery-title="{{ $ad->title }}"
+                            data-gallery-price="{{ number_format((float) $ad->price, 2, ',', ' ') }} {{ $ad->currency }}"
                             aria-label="{{ __('Открыть галерею: :title', ['title' => $ad->title]) }}"
                             class="group relative flex h-full w-full cursor-pointer items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-green-first"
                         >
@@ -205,7 +206,7 @@
                             <button
                                 type="button"
                                 data-ad-collapse
-                                class="mt-3 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-gray-500 transition hover:text-green-first"
+                                class="mt-3 hidden cursor-pointer items-center gap-1 text-xs font-semibold text-gray-500 transition hover:text-green-first lg:inline-flex"
                             >
                                 {{ __('Скрыть') }}
                             </button>
