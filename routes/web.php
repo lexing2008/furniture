@@ -16,6 +16,7 @@ use App\Http\Controllers\Account\CompanyScheduleController;
 use App\Http\Controllers\Account\CompanySocialsController;
 use App\Http\Controllers\Account\LanguageController;
 use App\Http\Controllers\Account\PasswordController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\RegionCategoryController;
 use App\Http\Controllers\RegionPageController;
 use App\Http\Middleware\HandleInertiaAccountRequests;
@@ -111,6 +112,11 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
 
     Route::get('categories/search', [RegionCategoryController::class, 'searchCategories'])
         ->name('region.categories.search');
+
+    Route::get('favorites', [FavoriteController::class, 'index'])
+        ->name('favorites.index');
+    Route::post('favorites/{ad}', [FavoriteController::class, 'toggle'])
+        ->name('favorites.toggle');
 
     // Placeholder category page and lazy-loaded category menu.
     Route::get('categories/{category}/children', [RegionCategoryController::class, 'children'])

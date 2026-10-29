@@ -599,5 +599,15 @@
     "Отображать по": "Show",
     "Количество товаров на странице": "Products per page",
     " — Страница :page": " — Page :page",
-    " , страница :page": " , page :page"
+    " , страница :page": " , page :page",
+    "Избранное": "Favorites",
+    "Добавить в избранное": "Add to favorites",
+    "Убрать из избранного": "Remove from favorites",
+    "Личный список": "Personal list",
+    "Товары и услуги, которые вы сохранили.": "Products and services you saved.",
+    "Добавлено в :region": "Added in :region",
+    "Добавлено": "Added",
+    "В избранном пока пусто.": "Your favorites are empty.",
+    "Нажимайте на сердечко у товара или услуги, чтобы сохранить их здесь.": "Tap the heart on a product or service to save it here.",
+    "Вернуться в каталог": "Back to catalog"
 }

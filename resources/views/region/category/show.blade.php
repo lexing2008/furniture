@@ -230,106 +230,7 @@
                 </div>
                 @endif
 
-                <div data-ads-list class="divide-y divide-gray-200/80">
-                    @forelse($ads as $ad)
-                        @php
-                            $company = $ad->company;
-                            $publishedAt = $ad->published_at?->copy()->timezone($company->timezone())->format('d.m.Y H:i');
-                            $isRecent = $ad->published_at !== null && $ad->published_at->gt(now()->subDays(3));
-                            $image = $ad->images->first();
-                            $hasDetails = $ad->description || $company->legal_name || $company->phones->isNotEmpty();
-                        @endphp
-
-                        <article class="py-6 first:pt-0 last:pb-0">
-                            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-7">
-                                <div class="relative flex aspect-[630/467] w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2] lg:w-60">
-                                    @if($image)
-                                        <img src="{{ $image->thumbnailUrl(630) }}" alt="{{ $ad->title }}" loading="lazy" class="h-full w-full object-contain">
-                                    @else
-                                        <div class="flex h-full w-full items-center justify-center bg-[#f5f5f2]">
-                                            <span class="text-xs font-medium uppercase tracking-[0.12em] text-gray-300">{{ __('Нет фото') }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <div class="min-w-0 flex-1">
-                                    <h2 class="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{{ $ad->title }}</h2>
-
-                                    @if($ad->category_id !== $category->id)
-                                        <div class="mt-2">
-                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-green-first/5 px-2.5 py-1 text-[11px] font-medium text-green-first ring-1 ring-green-first/10">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3 w-3">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-                                                </svg>
-                                                {{ $ad->category->nameIn($locale) }}
-                                            </span>
-                                        </div>
-                                    @endif
-
-                                    @if($ad->description)
-                                        <div data-ad-description class="ad-description rich-text mt-2 text-sm leading-6 text-gray-600">{!! $ad->description !!}</div>
-                                    @endif
-                                </div>
-
-                                <div class="shrink-0 border-t border-gray-100 pt-4 lg:w-64 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-                                    <p class="text-2xl font-bold tracking-tight text-gray-900">{{ number_format((float) $ad->price, 2, ',', ' ') }} <span class="text-sm font-semibold text-gray-500">{{ $ad->currency }}</span></p>
-
-                                    @if($publishedAt)
-                                        <p class="mt-1 text-[11px] {{ $isRecent ? 'font-semibold text-green-third' : 'text-gray-400' }}">{{ __('Актуален на') }} {{ $publishedAt }}</p>
-                                    @endif
-
-                                    <div class="mt-4 border-t border-gray-100 pt-3">
-                                        <p class="truncate text-sm font-semibold text-gray-800">{{ $company->display_name }}</p>
-
-                                        @if($hasDetails)
-                                            <button
-                                                type="button"
-                                                data-ad-expand
-                                                aria-expanded="false"
-                                                class="mt-2 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-green-first transition hover:text-green-second"
-                                            >
-                                                {{ __('Подробнее') }}
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3.5 w-3.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                                                </svg>
-                                            </button>
-                                        @endif
-
-                                        <div data-ad-company-details class="hidden">
-                                            @if($company->legal_name)
-                                                <p class="mt-1 text-[11px] leading-5 text-gray-500">{{ $company->legal_name }}</p>
-                                            @endif
-
-                                            @if($company->tax_id)
-                                                <p class="mt-2 text-[11px] leading-5 text-gray-500">{{ $company->country?->countryData?->tax_id_label ?: 'Tax ID' }} {{ $company->tax_id }}</p>
-                                            @endif
-
-                                            @if($company->phones->isNotEmpty())
-                                                <p class="mt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">{{ __('Телефоны') }}</p>
-                                                <div class="mt-1 space-y-1">
-                                                    @foreach($company->phones as $phone)
-                                                        <a href="tel:{{ str_replace([' ', '(', ')', '-'], '', $phone->code.$phone->number) }}" class="block text-sm font-medium text-gray-700 transition hover:text-green-first">
-                                                            {{ $phone->code }} {{ $phone->number }}
-                                                        </a>
-                                                    @endforeach
-                                                </div>
-                                            @endif
-
-                                            <button
-                                                type="button"
-                                                data-ad-collapse
-                                                class="mt-3 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-gray-500 transition hover:text-green-first"
-                                            >
-                                                {{ __('Скрыть') }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div data-ad-gradient class="pointer-events-none mt-2 hidden h-10 w-full bg-gradient-to-t from-gray-100/80 via-gray-50/50 to-transparent"></div>
-                        </article>
-                    @empty
+                @if($ads->isEmpty())
                         <div class="relative overflow-hidden rounded-3xl border border-green-first/15 bg-gradient-to-br from-green-first/[0.04] via-white to-green-second/[0.08] px-6 py-14 text-center shadow-sm">
                             <div class="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-green-first/10 blur-2xl"></div>
                             <div class="pointer-events-none absolute -bottom-16 -left-12 h-44 w-44 rounded-full bg-green-second/10 blur-2xl"></div>
@@ -352,8 +253,14 @@
                                 </a>
                             </div>
                         </div>
-                    @endforelse
-                </div>
+                @else
+                    <x-ads-list
+                        :items="$ads"
+                        :region="$region"
+                        :favorite-ids="$favoriteIds"
+                        :active-category-id="$category->id"
+                    />
+                @endif
 
                 @if($ads->hasPages())
                     <div data-pagination class="mt-6">

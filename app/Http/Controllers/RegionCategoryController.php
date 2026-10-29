@@ -9,6 +9,7 @@ use App\Models\FilterVariantTranslation;
 use App\Models\Region;
 use App\Services\AdFilterService;
 use App\Services\CategorySeoService;
+use App\Services\FavoriteService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ use Illuminate\View\View;
  */
 class RegionCategoryController extends Controller
 {
-    public function show(Request $request, AdFilterService $filterService, CategorySeoService $seoService, Region $region, string $categorySlug, ?string $filterSlugs = null): View
+    public function show(Request $request, AdFilterService $filterService, CategorySeoService $seoService, FavoriteService $favoriteService, Region $region, string $categorySlug, ?string $filterSlugs = null): View
     {
         $locale = app()->getLocale();
 
@@ -46,6 +47,7 @@ class RegionCategoryController extends Controller
         )->filter(fn (Category $item) => $item->slugIn($locale) !== '')->values();
 
         $categoryIds = $this->categoryIdsWithDescendants($category);
+        $favoriteIds = $favoriteService->adIds();
         $filters = $filterService->forCategory($category->id, null, $locale);
         $filterValues = $request->input('filters', []);
         $filterValues = is_array($filterValues) ? $filterValues : [];
@@ -226,6 +228,7 @@ class RegionCategoryController extends Controller
             'priceTo' => $priceTo,
             'categoryUrl' => $categoryUrl,
             'ads' => $ads,
+            'favoriteIds' => $favoriteIds,
             'seo' => $seo,
             'sort' => $sort,
             'sortOptions' => $sortOptions,

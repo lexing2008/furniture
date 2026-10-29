@@ -12,6 +12,7 @@
     <div class="container mx-auto py-2 px-4">
         <div class="hidden w-full flex gap-5 text-xs justify-between sm:justify-end mb-2 pr-0.5 md:flex">
             <a href="#" class="link">{{ __('Каталог мебели') }}</a>
+            <a href="{{ route('favorites.index', ['region' => $region->subdomain]) }}" class="link">{{ __('Избранное') }}</a>
             @if(!request()->user())
                 <a href="{{route('account.register')}}" class="link relative">{{ __('Разместить мебель') }}
                     <span
@@ -230,6 +231,7 @@
                         <span class="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">{{ __('бесплатно') }}</span>
                     </a>
                 @endif
+                <a href="{{ route('favorites.index', ['region' => $region->subdomain]) }}" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">{{ __('Избранное') }}</a>
                 <a href="#" class="block rounded-xl px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50">{{ __('О проекте') }}</a>
                 <a href="#" class="block rounded-xl px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50">{{ __('Пользовательское соглашение') }}</a>
             </div>

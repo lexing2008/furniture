@@ -6,6 +6,7 @@ use App\Enums\Roles;
 use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Favorite;
 use App\Models\Filter;
 use App\Models\FilterVariant;
 use App\Models\Language;
@@ -451,6 +452,59 @@ class AccountPagesTest extends TestCase
             ->assertSee('Купить диваны в Минске')
             ->assertSee('Описание купить диваны в Минске')
             ->assertSee('Статья о купить диваны в Минск.');
+    }
+
+    public function test_ad_can_be_added_to_favorites_with_its_region(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Избранный диван',
+            'price' => 500,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertOk()
+            ->assertJson(['favorited' => true]);
+
+        $this->assertDatabaseHas('favorites', [
+            'ad_id' => $ad->id,
+            'region_id' => $this->city->id,
+            'user_id' => $this->user->id,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get('http://minsk.furniture.test/favorites')
+            ->assertOk()
+            ->assertSee('Избранный диван')
+            ->assertSee('Минск');
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertOk()
+            ->assertJson(['favorited' => false]);
+
+        $this->assertSame(0, Favorite::query()->count());
+    }
+
+    private function favoriteUrl(Ad $ad): string
+    {
+        return 'http://minsk.furniture.test/favorites/'.$ad->id;
     }
 
     public function test_category_search_returns_matching_categories(): void

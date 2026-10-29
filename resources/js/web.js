@@ -351,6 +351,70 @@
         });
     });
 
+    // Избранное: сердечко на карточке товара.
+    var favoriteCsrfToken = function () {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+    };
+
+    var setFavoriteState = function (button, active) {
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        button.setAttribute('aria-label', active
+            ? (button.dataset.removeLabel || 'Убрать из избранного')
+            : (button.dataset.addLabel || 'Добавить в избранное'));
+
+        button.classList.toggle('bg-green-first/10', active);
+        button.classList.toggle('text-green-first', active);
+        button.classList.toggle('bg-white/90', !active);
+        button.classList.toggle('text-gray-500', !active);
+        button.classList.toggle('hover:text-green-first', !active);
+
+        var icon = button.querySelector('svg');
+
+        if (icon) {
+            icon.setAttribute('fill', active ? 'currentColor' : 'none');
+        }
+    };
+
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-favorite-toggle]');
+
+        if (!button || button.disabled) {
+            return;
+        }
+
+        event.preventDefault();
+        button.disabled = true;
+
+        fetch(button.dataset.favoriteUrl, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': favoriteCsrfToken(),
+            },
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Favorite request failed');
+                }
+
+                return response.json();
+            })
+            .then(function (data) {
+                var active = Boolean(data.favorited);
+                setFavoriteState(button, active);
+
+                if (!active && button.hasAttribute('data-favorite-remove')) {
+                    button.closest('[data-favorite-card]')?.remove();
+                }
+            })
+            .catch(function () {
+                // Keep the previous state when the request fails.
+            })
+            .finally(function () {
+                button.disabled = false;
+            });
+    });
+
     // Сброс всех фильтров категории.
     document.querySelectorAll('[data-filter-reset]').forEach(function (link) {
         link.addEventListener('click', function (event) {
