@@ -11,7 +11,13 @@
 
 @if($lcpImage)
     @push('head')
-        <link rel="preload" as="image" href="{{ $lcpImage->thumbnailUrl(325) }}" fetchpriority="high">
+        <link
+            rel="preload"
+            as="image"
+            href="{{ $lcpImage->thumbnailUrl(325) }}"
+            imagesrcset="{{ $lcpImage->thumbnailUrl(325) }} 1x, {{ $lcpImage->thumbnailUrl(630) }} 2x"
+            fetchpriority="high"
+        >
     @endpush
 @endif
 

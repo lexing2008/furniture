@@ -68,6 +68,7 @@
                         >
                             <img
                                 src="{{ $image->thumbnailUrl(325) }}"
+                                srcset="{{ $image->thumbnailUrl(325) }} 1x, {{ $image->thumbnailUrl(630) }} 2x"
                                 alt="{{ $ad->title }}"
                                 width="{{ $imageWidth }}"
                                 height="{{ $imageHeight }}"

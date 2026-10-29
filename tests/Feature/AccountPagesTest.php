@@ -470,7 +470,8 @@ class AccountPagesTest extends TestCase
 
         $this->get('http://minsk.furniture.test/divany')
             ->assertOk()
-            ->assertSee('rel="preload" as="image" href="'.$image->thumbnailUrl(325).'"', false)
+            ->assertSee('href="'.$image->thumbnailUrl(325).'"', false)
+            ->assertSee('imagesrcset="'.$image->thumbnailUrl(325).' 1x, '.$image->thumbnailUrl(630).' 2x"', false)
             ->assertSeeInOrder(['alt="С фото"', 'loading="eager"', 'fetchpriority="high"'], false);
     }
 
