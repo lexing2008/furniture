@@ -9,7 +9,7 @@
 @endphp
 
 <header class="max-md:sticky max-md:top-0 max-md:z-30 max-md:bg-white pb-2 pt-2">
-    <div class="container mx-auto py-2 px-4">
+    <div class="mx-auto w-full max-w-[1550px] py-2 px-4">
         <div class="hidden w-full flex gap-5 text-xs justify-between sm:justify-end mb-2 pr-0.5 md:flex">
             <a href="#" class="link">{{ __('Каталог мебели') }}</a>
             <a href="{{ route('favorites.index', ['region' => $region->subdomain]) }}" class="link">{{ __('Избранное') }}</a>

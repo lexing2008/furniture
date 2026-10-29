@@ -19,7 +19,7 @@
     @include('layouts.partials._header')
 
     <main class="grow">
-        <div class="container mx-auto py-3 px-4">
+        <div class="mx-auto w-full max-w-[1550px] py-3 px-4">
             @yield('content')
         </div>
     </main>

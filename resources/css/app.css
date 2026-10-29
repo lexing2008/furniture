@@ -191,7 +191,7 @@
     -webkit-line-clamp: unset;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
     .ad-description {
         max-height: 9rem;
         -webkit-line-clamp: 6;

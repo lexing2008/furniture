@@ -731,7 +731,7 @@
 
     // На десктопе подгоняем количество строк описания под высоту фото.
     var alignAdDescriptions = function () {
-        if (window.innerWidth < 1024) {
+        if (window.innerWidth < 1280) {
             document.querySelectorAll('[data-ad-description]').forEach(function (description) {
                 description.style.removeProperty('-webkit-line-clamp');
                 description.style.removeProperty('max-height');

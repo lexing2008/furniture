@@ -56,8 +56,8 @@
             </div>
         </section>
 
-        <div class="grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-            <aside class="space-y-4">
+        <div class="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+            <aside class="space-y-4 lg:max-w-[240px]">
                 <section class="rounded-2xl border border-gray-200/80 bg-white p-4">
                     <h2 class="text-sm font-bold uppercase tracking-wide text-gray-900">{{ __('Категории') }}</h2>
 

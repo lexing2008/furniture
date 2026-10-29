@@ -53,8 +53,8 @@
         @endphp
 
         <article @if($removable) data-favorite-card @endif class="py-6 first:pt-0 last:pb-0">
-            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-7">
-                <div data-ad-image class="relative flex h-[237px] w-[325px] max-w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2]">
+            <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-7">
+                <div data-ad-image class="relative flex aspect-[630/467] h-auto w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2] md:aspect-auto md:h-[237px] xl:w-[325px]">
 
                     @if($image)
                         <button
@@ -158,7 +158,7 @@
                     @endif
                 </div>
 
-                <div class="-mt-5 shrink-0 lg:mt-0 lg:w-64 lg:border-l lg:border-gray-100 lg:pl-6">
+                <div class="-mt-5 shrink-0 xl:mt-0 xl:w-64 xl:border-l xl:border-gray-100 xl:pl-6">
                     <p class="text-2xl font-bold tracking-tight text-gray-900">{{ number_format((float) $ad->price, 2, ',', ' ') }} <span class="text-sm font-semibold text-gray-500">{{ $ad->currency }}</span></p>
 
                     @if($favorite)
@@ -167,7 +167,7 @@
                         <p class="mt-1 text-[11px] {{ $isRecent ? 'text-green-third' : 'text-gray-400' }}">{{ __('Актуален на') }} {{ $publishedAt }}</p>
                     @endif
 
-                    <div class="lg:mt-4 lg:border-t lg:border-gray-100 lg:pt-3">
+                    <div class="xl:mt-4 xl:border-t xl:border-gray-100 xl:pt-3">
                         <p class="truncate text-sm font-semibold text-gray-800">{{ $company->display_name }}</p>
 
                         @if($hasDetails)
