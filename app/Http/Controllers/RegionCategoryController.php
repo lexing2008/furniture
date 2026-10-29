@@ -247,17 +247,35 @@ class RegionCategoryController extends Controller
         }
 
         $locale = app()->getLocale();
-        $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query).'%';
+        $terms = [];
+
+        foreach (preg_split('/\s+/u', $query, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $word) {
+            if (mb_strlen($word) < 2) {
+                continue;
+            }
+
+            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $word);
+            $terms[] = '%'.$escaped.'%';
+        }
+
+        $terms = array_slice($terms, 0, 8);
+
+        if ($terms === []) {
+            return response()->json(['categories' => [], 'filter_variants' => []]);
+        }
 
         $categories = Category::query()
             ->with('translations')
             ->where('is_active', true)
-            ->whereHas('translations', function (Builder $translationQuery) use ($locale, $like) {
-                $translationQuery->where('lang', $locale)
-                    ->where(function (Builder $query) use ($like) {
-                        $query->where('name', 'like', $like)
-                            ->orWhere('menu_name', 'like', $like);
+            ->whereHas('translations', function (Builder $translationQuery) use ($locale, $terms) {
+                $translationQuery->where('lang', $locale);
+
+                foreach ($terms as $term) {
+                    $translationQuery->where(function (Builder $query) use ($term) {
+                        $query->where('name', 'like', $term)
+                            ->orWhere('menu_name', 'like', $term);
                     });
+                }
             })
             ->get();
 
@@ -278,7 +296,11 @@ class RegionCategoryController extends Controller
             ->with(['variant.filter.category.translations'])
             ->where('lang', $locale)
             ->where('is_active', true)
-            ->where('name_full', 'like', $like)
+            ->where(function (Builder $query) use ($terms) {
+                foreach ($terms as $term) {
+                    $query->where('name_full', 'like', $term);
+                }
+            })
             ->whereHas('variant.filter', fn (Builder $filterQuery) => $filterQuery->where('is_active', true))
             ->whereHas('variant.filter.category', fn (Builder $categoryQuery) => $categoryQuery->where('is_active', true))
             ->orderBy('id')

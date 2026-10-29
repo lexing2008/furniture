@@ -631,6 +631,12 @@ class AccountPagesTest extends TestCase
             ->assertJsonPath('filter_variants.0.name_full', 'Угловой диван')
             ->assertJsonPath('filter_variants.0.url', 'http://minsk.furniture.test/divany/uglovoy/');
 
+        $this->get('http://minsk.furniture.test/categories/search?query='.urlencode('диван Угловой'))
+            ->assertOk()
+            ->assertJsonCount(0, 'categories')
+            ->assertJsonCount(1, 'filter_variants')
+            ->assertJsonPath('filter_variants.0.name_full', 'Угловой диван');
+
         $this->get('http://minsk.furniture.test/categories/search?query=zzz')
             ->assertOk()
             ->assertJsonCount(0, 'categories')
