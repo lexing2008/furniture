@@ -21,7 +21,7 @@
 - Laravel **13**.
 - MySQL, база `furnituredb` (см. `.env`, секреты в документацию не переносить).
 - Inertia.js 2 + Vue 3 + TypeScript.
-- Tailwind CSS 4.
+- Tailwind CSS 4; отдельные CSS-бандлы для сайта, кабинета и админки (`site.css`, `account.css`, `admin.css`, общий `base.css`).
 - Vite 8.
 - Тесты — PHPUnit; тестовая БД SQLite `:memory:`.
 
@@ -92,6 +92,12 @@ resources/js/
   admin/                Vue-приложение админки
   common/               общие компоненты и i18n
   web.js                скрипты сайта
+
+resources/css/
+  base.css              общие Tailwind-тема и стили
+  site.css              публичный сайт
+  account.css           кабинет
+  admin.css             админка
 
 app/Http/Controllers/Account/   кабинет
 app/Http/Controllers/Admin/     админка

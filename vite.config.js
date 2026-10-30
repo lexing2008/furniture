@@ -9,6 +9,7 @@ export default defineConfig({
         tailwindcss(),
         laravel({
             input: [
+                'resources/css/site.css',
                 'resources/js/admin/app.ts',
                 'resources/js/account/app.ts'
             ],
