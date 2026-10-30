@@ -613,5 +613,7 @@
     "Галерея изображений": "Image gallery",
     "Предыдущее фото": "Previous photo",
     "Следующее фото": "Next photo",
-    "Открыть галерею: :title": "Open gallery: :title"
+    "Открыть галерею: :title": "Open gallery: :title",
+    "Описание должно содержать не менее :min символов без учёта HTML-тегов.": "The description must contain at least :min characters excluding HTML tags.",
+    "минимум :min символов": "minimum :min characters"
 }

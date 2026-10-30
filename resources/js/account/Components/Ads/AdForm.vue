@@ -196,6 +196,8 @@ const uploadUrl = async () => {
     }
 };
 
+const minDescriptionLength = 20;
+
 const descriptionLength = computed(() => {
     const html = form.description ?? '';
 
@@ -524,6 +526,18 @@ const dropAt = (index: number) => {
 };
 
 const submit = () => {
+    if (!form.description || descriptionLength.value < minDescriptionLength) {
+        form.setError(
+            'description',
+            translate('Описание должно содержать не менее :min символов без учёта HTML-тегов.', {
+                min: minDescriptionLength,
+            }),
+        );
+
+        return;
+    }
+
+    form.clearErrors('description');
     form.existing_images = images.value
         .filter((image) => image.id !== undefined)
         .map((image, order) => ({ id: image.id as number, order }));
@@ -616,7 +630,7 @@ const dropzone =
 
 
             <div>
-                <InputLabel for="description" :value="$t('Описание')" :invalid="!!form.errors.description" />
+                <InputLabel for="description" :value="$t('Описание')" required :invalid="!!form.errors.description" />
                 <WysiwygEditor
                     v-model="form.description"
                     profile="company"
@@ -625,7 +639,7 @@ const dropzone =
                     :invalid="!!errors.description"
                     resizable
                 />
-                <p :class="hint">{{ descriptionLength }} / 15000</p>
+                <p :class="[hint, descriptionLength < minDescriptionLength ? 'text-red-500' : '']">{{ descriptionLength }} / 15000 · {{ $t('минимум :min символов', { min: minDescriptionLength }) }}</p>
                 <InputError class="mt-2" :message="form.errors.description" />
             </div>
         </section>

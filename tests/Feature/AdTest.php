@@ -156,7 +156,7 @@ class AdTest extends TestCase
             'number' => 'SKU-1',
             'article' => 'ART-1',
             'category_id' => $this->category->id,
-            'description' => 'Удобный диван',
+            'description' => 'Описание товара для теста',
             'price' => '1999.90',
             'warranty_value' => 12,
             'warranty_unit' => 'months',
@@ -385,6 +385,33 @@ class AdTest extends TestCase
         $this->assertStringContainsString('<p>Описание</p>', $ad->description);
     }
 
+    public function test_ad_description_is_required_and_has_a_minimum_plain_text_length(): void
+    {
+        $payload = [
+            'title' => 'Без описания',
+            'number' => null,
+            'category_id' => $this->category->id,
+            'description' => '<p></p>',
+            'price' => '100',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'video' => null,
+            'regions' => [$this->city->id],
+            'filters' => [],
+            'existing_images' => [],
+            'new_images' => [],
+            'deleted_image_ids' => [],
+        ];
+
+        $this->actingAs($this->user)
+            ->post($this->url('/ads'), $payload)
+            ->assertSessionHasErrors('description');
+
+        $this->actingAs($this->user)
+            ->post($this->url('/ads'), [...$payload, 'description' => '<p>Короткий текст</p>'])
+            ->assertSessionHasErrors('description');
+    }
+
     public function test_ad_name_slug_is_transliterated_and_limited(): void
     {
         $this->assertSame('divan-oslo', Slug::makeLimited('Диван Осло', 150));
@@ -432,7 +459,7 @@ class AdTest extends TestCase
             'title' => 'Без номера',
             'number' => '',
             'category_id' => $this->category->id,
-            'description' => '',
+            'description' => 'Описание товара для теста',
             'price' => '10',
             'warranty_value' => null,
             'warranty_unit' => 'months',
@@ -476,7 +503,7 @@ class AdTest extends TestCase
                 'number' => null,
                 'article' => null,
                 'category_id' => $this->category->id,
-                'description' => '',
+                'description' => 'Описание товара для теста',
                 'price' => '100',
                 'warranty_value' => null,
                 'warranty_unit' => 'months',
@@ -590,7 +617,7 @@ class AdTest extends TestCase
             'category_id' => $this->category->id,
             'title' => 'Диван',
             'number' => 'MOD-1',
-            'description' => '<p>Описание</p>',
+            'description' => '<p>Описание товара для теста</p>',
             'price' => 100,
             'currency' => 'BYN',
             'warranty_value' => null,
@@ -602,7 +629,7 @@ class AdTest extends TestCase
             'title' => 'Диван',
             'number' => 'MOD-1',
             'category_id' => $this->category->id,
-            'description' => '<p>Описание</p>',
+            'description' => '<p>Описание товара для теста</p>',
             'price' => '120',
             'warranty_value' => null,
             'warranty_unit' => 'months',
@@ -764,7 +791,7 @@ class AdTest extends TestCase
             'title' => 'Угловой диван',
             'number' => 'SKU-RADIO',
             'category_id' => $this->category->id,
-            'description' => '',
+            'description' => 'Описание товара для теста',
             'price' => '100',
             'warranty_value' => null,
             'warranty_unit' => 'months',
@@ -815,7 +842,7 @@ class AdTest extends TestCase
                 'title' => 'Стол',
                 'number' => 'SKU-2',
                 'category_id' => $this->category->id,
-                'description' => '',
+                'description' => 'Описание товара для теста',
                 'price' => '100',
                 'warranty_value' => 1,
                 'warranty_unit' => 'years',
