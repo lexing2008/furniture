@@ -40,7 +40,16 @@
                 ->all();
             $imageWidth = $image?->thumb_325_width ?: 325;
             $imageHeight = $image?->thumb_325_height ?: 237;
-            $hasDetails = $ad->description || $company->legal_name || $company->tax_id || $company->phones->isNotEmpty();
+            $hasSchedule = $company->schedules->isNotEmpty();
+            $hasPayment = filled($company->payment);
+            $hasDelivery = filled($company->delivery);
+            $hasWarranty = filled($ad->warranty_value);
+            $warrantyUnit = match ($ad->warranty_unit) {
+                'days' => trans_choice('день|дня|дней', (int) $ad->warranty_value),
+                'years' => trans_choice('год|года|лет', (int) $ad->warranty_value),
+                default => trans_choice('месяц|месяца|месяцев', (int) $ad->warranty_value),
+            };
+            $hasDetails = $ad->description || $company->legal_name || $company->tax_id || $company->phones->isNotEmpty() || $hasSchedule || $hasPayment || $hasDelivery || $hasWarranty;
             $isFavorite = $favorite !== null || ($favoriteIds?->contains($ad->id) ?? false);
             $savedRegionName = $favorite?->region
                 ? ($locale === 'en' ? $favorite->region->name_en : $favorite->region->name)
@@ -194,6 +203,17 @@
                                 <p class="mt-2 text-[11px] leading-5 text-gray-500">{{ $company->country?->countryData?->tax_id_label ?: 'Tax ID' }} {{ $company->tax_id }}</p>
                             @endif
 
+                            @if($hasWarranty)
+                                <div class="mt-3 flex items-center gap-2">
+                                    <span class="text-xs font-medium text-gray-500">{{ __('Гарантия') }} {{ $ad->warranty_value }} {{ $warrantyUnit }}</span>
+                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-first/10 text-green-first">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0 1 12 2.714Z" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            @endif
+
                             @if($company->phones->isNotEmpty())
                                 <p class="mt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">{{ __('Телефоны') }}</p>
                                 <div class="mt-1 space-y-1">
@@ -202,6 +222,53 @@
                                             {{ $phone->code }} {{ $phone->number }}
                                         </a>
                                     @endforeach
+                                </div>
+                            @endif
+
+                            @if($hasSchedule || $hasPayment || $hasDelivery)
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @if($hasSchedule)
+                                        <button
+                                            type="button"
+                                            data-company-info-open="schedule"
+                                            data-company-info-title="{{ __('График работы') }}"
+                                            data-company-info-url="{{ route('region.company.info', ['region' => $region->subdomain, 'company' => $company->id, 'type' => 'schedule']) }}"
+                                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-green-first/15 bg-green-first/5 px-3 py-1.5 text-[11px] font-semibold text-green-first transition hover:border-green-first/30 hover:bg-green-first/10"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                            {{ __('График работы') }}
+                                        </button>
+                                    @endif
+                                    @if($hasPayment)
+                                        <button
+                                            type="button"
+                                            data-company-info-open="payment"
+                                            data-company-info-title="{{ __('Оплата') }}"
+                                            data-company-info-url="{{ route('region.company.info', ['region' => $region->subdomain, 'company' => $company->id, 'type' => 'payment']) }}"
+                                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-green-first/15 bg-green-first/5 px-3 py-1.5 text-[11px] font-semibold text-green-first transition hover:border-green-first/30 hover:bg-green-first/10"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                                            </svg>
+                                            {{ __('Оплата') }}
+                                        </button>
+                                    @endif
+                                    @if($hasDelivery)
+                                        <button
+                                            type="button"
+                                            data-company-info-open="delivery"
+                                            data-company-info-title="{{ __('Доставка') }}"
+                                            data-company-info-url="{{ route('region.company.info', ['region' => $region->subdomain, 'company' => $company->id, 'type' => 'delivery']) }}"
+                                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-green-first/15 bg-green-first/5 px-3 py-1.5 text-[11px] font-semibold text-green-first transition hover:border-green-first/30 hover:bg-green-first/10"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3.5 w-3.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25h1.5a2.25 2.25 0 0 1 2.25 2.25v6.75m-11.25-6.75h6.75a2.25 2.25 0 0 1 2.25 2.25v4.5" />
+                                            </svg>
+                                            {{ __('Доставка') }}
+                                        </button>
+                                    @endif
                                 </div>
                             @endif
 

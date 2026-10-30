@@ -351,6 +351,105 @@
         });
     });
 
+    // Попапы с графиком работы, оплатой и доставкой компании.
+    var companyInfoModal = document.querySelector('[data-company-info-modal]');
+
+    if (companyInfoModal) {
+        var companyInfoTitle = companyInfoModal.querySelector('[data-company-info-title]');
+        var companyInfoBody = companyInfoModal.querySelector('[data-company-info-body]');
+        var companyInfoLoading = companyInfoModal.querySelector('[data-company-info-loading]');
+        var companyInfoClose = companyInfoModal.querySelector('[data-company-info-close]');
+        var companyInfoError = companyInfoModal.dataset.companyInfoError || '';
+        var companyInfoTrigger = null;
+        var companyInfoRequest = 0;
+
+        var closeCompanyInfo = function () {
+            companyInfoRequest++;
+            companyInfoModal.classList.add('hidden');
+            companyInfoModal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+            companyInfoBody.replaceChildren();
+            companyInfoBody.classList.add('hidden');
+            companyInfoLoading.style.display = 'none';
+            companyInfoTrigger?.focus({ preventScroll: true });
+            companyInfoTrigger = null;
+        };
+
+        var openCompanyInfo = function (button) {
+            var url = button.dataset.companyInfoUrl;
+
+            if (!url) {
+                return;
+            }
+
+            var request = ++companyInfoRequest;
+            companyInfoTitle.textContent = button.dataset.companyInfoTitle || '';
+            companyInfoBody.replaceChildren();
+            companyInfoBody.classList.add('hidden');
+            companyInfoLoading.style.display = 'flex';
+            companyInfoTrigger = button;
+            companyInfoModal.classList.remove('hidden');
+            companyInfoModal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+            companyInfoClose.focus({ preventScroll: true });
+
+            fetch(url, {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Company info request failed');
+                    }
+
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (request !== companyInfoRequest) {
+                        return;
+                    }
+
+                    companyInfoLoading.style.display = 'none';
+                    companyInfoBody.innerHTML = data.html || '';
+                    companyInfoBody.classList.remove('hidden');
+                })
+                .catch(function () {
+                    if (request !== companyInfoRequest) {
+                        return;
+                    }
+
+                    companyInfoLoading.style.display = 'none';
+                    companyInfoBody.textContent = companyInfoError;
+                    companyInfoBody.classList.remove('hidden');
+                });
+        };
+
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-company-info-open]');
+
+            if (button) {
+                event.preventDefault();
+                openCompanyInfo(button);
+            }
+        });
+
+        companyInfoClose.addEventListener('click', closeCompanyInfo);
+
+        companyInfoModal.addEventListener('click', function (event) {
+            if (event.target === companyInfoModal) {
+                closeCompanyInfo();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !companyInfoModal.classList.contains('hidden')) {
+                closeCompanyInfo();
+            }
+        });
+    }
+
     // Галерея изображений товара.
     var galleryModal = document.querySelector('[data-gallery-modal]');
 

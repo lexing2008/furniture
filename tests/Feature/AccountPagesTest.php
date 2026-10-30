@@ -376,6 +376,18 @@ class AccountPagesTest extends TestCase
             'slug' => 'divany',
         ]);
 
+        $this->company->update([
+            'payment' => '<p>Оплата картой и наличными.</p>',
+            'delivery' => '<p>Доставка по городу и области.</p>',
+        ]);
+        $this->company->schedules()->create([
+            'day_of_week' => 1,
+            'open_at' => '09:00',
+            'close_at' => '18:00',
+            'has_break' => false,
+            'is_closed' => false,
+        ]);
+
         Ad::create([
             'company_id' => $this->company->id,
             'category_id' => $this->category->id,
@@ -415,7 +427,21 @@ class AccountPagesTest extends TestCase
             ->assertSee('Ромашка')
             ->assertSee('29 111-22-33')
             ->assertSee('123,45')
-            ->assertSee('text-green-third', false);
+            ->assertSee('text-green-third', false)
+            ->assertSee('График работы')
+            ->assertSee('Оплата')
+            ->assertSee('Доставка');
+
+        $this->getJson('http://minsk.furniture.test/companies/'.$this->company->id.'/info/payment')
+            ->assertOk()
+            ->assertJsonPath('title', 'Оплата')
+            ->assertJsonFragment(['html' => '<p>Оплата картой и наличными.</p>']);
+
+        $scheduleResponse = $this->getJson('http://minsk.furniture.test/companies/'.$this->company->id.'/info/schedule')
+            ->assertOk()
+            ->assertJsonPath('title', 'График работы');
+
+        $this->assertStringContainsString('Понедельник', $scheduleResponse->json('html'));
 
         $this->get('http://minsk.furniture.test/divany?sort=price_asc')
             ->assertOk()

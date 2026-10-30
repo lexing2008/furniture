@@ -16,6 +16,7 @@ use App\Http\Controllers\Account\CompanyScheduleController;
 use App\Http\Controllers\Account\CompanySocialsController;
 use App\Http\Controllers\Account\LanguageController;
 use App\Http\Controllers\Account\PasswordController;
+use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\RegionCategoryController;
 use App\Http\Controllers\RegionPageController;
@@ -112,6 +113,9 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
 
     Route::get('categories/search', [RegionCategoryController::class, 'searchCategories'])
         ->name('region.categories.search');
+
+    Route::get('companies/{company}/info/{type}', [CompanyInfoController::class, 'show'])
+        ->name('region.company.info');
 
     Route::get('favorites', [FavoriteController::class, 'index'])
         ->name('favorites.index');

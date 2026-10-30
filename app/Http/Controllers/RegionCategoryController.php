@@ -131,7 +131,7 @@ class RegionCategoryController extends Controller
         }
 
         $adsQuery = Ad::query()
-            ->with(['images', 'company.phones', 'company.region', 'company.country.countryData', 'category.translations'])
+            ->with(['images', 'company.phones', 'company.schedules', 'company.region', 'company.country.countryData', 'category.translations'])
             ->whereIn('category_id', $categoryIds)
             ->where('is_active', true)
             ->where('is_banned', false);

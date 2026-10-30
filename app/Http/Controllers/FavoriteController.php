@@ -13,7 +13,7 @@ class FavoriteController extends Controller
     public function index(Region $region, FavoriteService $favorites): View
     {
         $items = $favorites->query()
-            ->with(['ad.images', 'ad.company.phones', 'ad.category.translations', 'region'])
+            ->with(['ad.images', 'ad.company.phones', 'ad.company.schedules', 'ad.category.translations', 'region'])
             ->whereHas('ad', function ($query) {
                 $query->where('is_active', true)->where('is_banned', false);
             })

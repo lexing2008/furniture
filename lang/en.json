@@ -615,5 +615,11 @@
     "Следующее фото": "Next photo",
     "Открыть галерею: :title": "Open gallery: :title",
     "Описание должно содержать не менее :min символов без учёта HTML-тегов.": "The description must contain at least :min characters excluding HTML tags.",
-    "минимум :min символов": "minimum :min characters"
+    "минимум :min символов": "minimum :min characters",
+    "Исключения": "Exceptions",
+    "Загрузка информации...": "Loading information...",
+    "Не удалось загрузить информацию.": "Could not load information.",
+    "день|дня|дней": "day|days",
+    "год|года|лет": "year|years",
+    "месяц|месяца|месяцев": "month|months"
 }

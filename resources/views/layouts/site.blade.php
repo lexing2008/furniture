@@ -26,6 +26,7 @@
 
     @include('layouts.partials._footer')
     @include('layouts.partials._gallery-modal')
+    @include('layouts.partials._company-info-modal')
 
     @vite(['resources/js/web.js'])
 </body>
