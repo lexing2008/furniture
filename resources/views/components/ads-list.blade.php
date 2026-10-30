@@ -53,8 +53,8 @@
         @endphp
 
         <article @if($removable) data-favorite-card @endif class="py-6 first:pt-0 last:pb-0">
-            <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-7">
-                <div data-ad-image class="relative flex aspect-[630/467] h-auto w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2] md:aspect-auto md:h-[237px] xl:w-[325px]">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-7">
+                <div data-ad-image class="relative flex aspect-[630/467] h-auto w-full shrink-0 items-center justify-center self-start overflow-hidden rounded-xl bg-[#f5f5f2] md:aspect-auto md:h-[237px] lg:w-[240px] xl:w-[325px]">
 
                     @if($image)
                         <button
@@ -68,7 +68,8 @@
                         >
                             <img
                                 src="{{ $image->thumbnailUrl(325) }}"
-                                srcset="{{ $image->thumbnailUrl(325) }} 1x, {{ $image->thumbnailUrl(630) }} 2x"
+                                srcset="{{ $image->thumbnailUrl(325) }} {{ $image->thumb_325_width ?: 325 }}w, {{ $image->thumbnailUrl(630) }} {{ $image->thumb_630_width ?: 630 }}w"
+                                sizes="(min-width: 1280px) 325px, (min-width: 1024px) 240px, calc(100vw - 32px)"
                                 alt="{{ $ad->title }}"
                                 width="{{ $imageWidth }}"
                                 height="{{ $imageHeight }}"
@@ -86,7 +87,7 @@
                                 </span>
                             </span>
 
-                            <span class="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+                            <span class="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/25 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-3 w-3">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
@@ -153,12 +154,12 @@
                     @if($ad->description)
                         <div class="relative">
                             <div data-ad-description class="ad-description rich-text mt-2 text-sm leading-6 text-gray-600">{!! $ad->description !!}</div>
-                            <div data-ad-description-fade class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white via-white/90 to-transparent"></div>
+                            <div data-ad-description-fade class="pointer-events-none absolute inset-x-0 bottom-0 hidden h-12 bg-gradient-to-t from-white via-white/90 to-transparent"></div>
                         </div>
                     @endif
                 </div>
 
-                <div class="-mt-5 shrink-0 xl:mt-0 xl:w-64 xl:border-l xl:border-gray-100 xl:pl-6">
+                <div class="-mt-5 shrink-0 lg:mt-0 lg:w-56 lg:border-l lg:border-gray-100 lg:pl-6 xl:w-64">
                     <p class="text-2xl font-bold tracking-tight text-gray-900">{{ number_format((float) $ad->price, 2, ',', ' ') }} <span class="text-sm font-semibold text-gray-500">{{ $ad->currency }}</span></p>
 
                     @if($favorite)
@@ -167,7 +168,7 @@
                         <p class="mt-1 text-[11px] {{ $isRecent ? 'text-green-third' : 'text-gray-400' }}">{{ __('Актуален на') }} {{ $publishedAt }}</p>
                     @endif
 
-                    <div class="xl:mt-4 xl:border-t xl:border-gray-100 xl:pt-3">
+                    <div class="lg:mt-4 lg:border-t lg:border-gray-100 lg:pt-3">
                         <p class="truncate text-sm font-semibold text-gray-800">{{ $company->display_name }}</p>
 
                         @if($hasDetails)

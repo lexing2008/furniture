@@ -621,6 +621,7 @@ const dropzone =
                     v-model="form.description"
                     profile="company"
                     height-key="account-wysiwyg"
+                    :allow-h2="false"
                     :invalid="!!errors.description"
                     resizable
                 />

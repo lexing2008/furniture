@@ -28,7 +28,7 @@ class Ad extends Model
     protected function casts(): array
     {
         return [
-            'description' => PurifiedHtml::class.':company',
+            'description' => PurifiedHtml::class.':ad',
             'price' => 'decimal:4',
             'warranty_value' => 'integer',
             'is_moderated' => 'boolean',

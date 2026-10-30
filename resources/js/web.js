@@ -729,13 +729,26 @@
         });
     });
 
+    var updateDescriptionFade = function (description) {
+        var fade = description.parentElement.querySelector('[data-ad-description-fade]');
+
+        if (!fade) {
+            return;
+        }
+
+        var hasOverflow = description.scrollHeight > description.clientHeight + 1;
+        var isExpanded = description.classList.contains('is-expanded');
+        fade.classList.toggle('hidden', !hasOverflow || isExpanded);
+    };
+
     // На десктопе подгоняем количество строк описания под высоту фото.
     var alignAdDescriptions = function () {
-        if (window.innerWidth < 1280) {
+        if (window.innerWidth < 1024) {
             document.querySelectorAll('[data-ad-description]').forEach(function (description) {
                 description.style.removeProperty('-webkit-line-clamp');
                 description.style.removeProperty('max-height');
                 description.style.removeProperty('line-height');
+                updateDescriptionFade(description);
             });
 
             return;
@@ -767,6 +780,7 @@
             description.style.setProperty('-webkit-line-clamp', String(lines));
             description.style.maxHeight = available + 'px';
             description.style.lineHeight = fittedLineHeight + 'px';
+            updateDescriptionFade(description);
         });
     };
 
@@ -825,7 +839,6 @@
         }
 
         card.querySelector('[data-ad-description]')?.classList.remove('is-expanded');
-        card.querySelector('[data-ad-description-fade]')?.classList.remove('hidden');
         card.querySelector('[data-ad-gradient]')?.classList.add('hidden');
         scheduleDescriptionAlignment();
 

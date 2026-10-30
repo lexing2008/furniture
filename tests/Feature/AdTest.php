@@ -361,7 +361,7 @@ class AdTest extends TestCase
                 'number' => '<i>SKU-10</i>',
                 'article' => '<span>ART-10</span>',
                 'category_id' => $this->category->id,
-                'description' => '<p>Описание</p>',
+                'description' => '<h2>Заголовок H2</h2><p>Описание</p>',
                 'price' => '100',
                 'warranty_value' => null,
                 'warranty_unit' => 'months',
@@ -380,7 +380,9 @@ class AdTest extends TestCase
         $this->assertSame('Диван', $ad->title);
         $this->assertSame('SKU-10', $ad->number);
         $this->assertSame('ART-10', $ad->article);
-        $this->assertSame('<p>Описание</p>', $ad->description);
+        $this->assertStringNotContainsString('<h2>', $ad->description);
+        $this->assertStringContainsString('Заголовок H2', $ad->description);
+        $this->assertStringContainsString('<p>Описание</p>', $ad->description);
     }
 
     public function test_ad_name_slug_is_transliterated_and_limited(): void

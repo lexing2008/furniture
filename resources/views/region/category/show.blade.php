@@ -16,7 +16,8 @@
             rel="preload"
             as="image"
             href="{{ $lcpImage->thumbnailUrl(325) }}"
-            imagesrcset="{{ $lcpImage->thumbnailUrl(325) }} 1x, {{ $lcpImage->thumbnailUrl(630) }} 2x"
+            imagesrcset="{{ $lcpImage->thumbnailUrl(325) }} {{ $lcpImage->thumb_325_width ?: 325 }}w, {{ $lcpImage->thumbnailUrl(630) }} {{ $lcpImage->thumb_630_width ?: 630 }}w"
+            imagesizes="(min-width: 1280px) 325px, (min-width: 1024px) 240px, calc(100vw - 32px)"
             fetchpriority="high"
         >
     @endpush
@@ -56,8 +57,8 @@
             </div>
         </section>
 
-        <div class="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-            <aside class="space-y-4 lg:max-w-[240px]">
+        <div class="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[280px_minmax(0,1fr)]">
+            <aside class="space-y-4 lg:max-w-[240px] 2xl:max-w-[280px]">
                 <section class="rounded-2xl border border-gray-200/80 bg-white p-4">
                     <h2 class="text-sm font-bold uppercase tracking-wide text-gray-900">{{ __('Категории') }}</h2>
 

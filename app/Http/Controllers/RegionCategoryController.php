@@ -280,7 +280,7 @@ class RegionCategoryController extends Controller
             ->get();
 
         $categories = Category::sortForDisplay($categories)
-            ->take(10)
+            ->take(20)
             ->map(fn (Category $category) => [
                 'id' => $category->id,
                 'name' => $category->nameIn($locale),
@@ -304,7 +304,7 @@ class RegionCategoryController extends Controller
             ->whereHas('variant.filter', fn (Builder $filterQuery) => $filterQuery->where('is_active', true))
             ->whereHas('variant.filter.category', fn (Builder $categoryQuery) => $categoryQuery->where('is_active', true))
             ->orderBy('id')
-            ->take(10)
+            ->take(20)
             ->get()
             ->map(function (FilterVariantTranslation $translation) use ($locale, $region): ?array {
                 $category = $translation->variant?->filter?->category;
@@ -329,9 +329,18 @@ class RegionCategoryController extends Controller
             ->filter()
             ->values();
 
+        $categoryLimit = min(10, $categories->count());
+        $variantLimit = min(10, $filterVariants->count());
+
+        if ($categoryLimit < 10) {
+            $variantLimit = min($filterVariants->count(), 20 - $categoryLimit);
+        } elseif ($variantLimit < 10) {
+            $categoryLimit = min($categories->count(), 20 - $variantLimit);
+        }
+
         return response()->json([
-            'categories' => $categories,
-            'filter_variants' => $filterVariants,
+            'categories' => $categories->take($categoryLimit)->values(),
+            'filter_variants' => $filterVariants->take($variantLimit)->values(),
         ]);
     }
 

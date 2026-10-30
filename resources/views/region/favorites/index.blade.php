@@ -15,7 +15,8 @@
             rel="preload"
             as="image"
             href="{{ $lcpImage->thumbnailUrl(325) }}"
-            imagesrcset="{{ $lcpImage->thumbnailUrl(325) }} 1x, {{ $lcpImage->thumbnailUrl(630) }} 2x"
+            imagesrcset="{{ $lcpImage->thumbnailUrl(325) }} {{ $lcpImage->thumb_325_width ?: 325 }}w, {{ $lcpImage->thumbnailUrl(630) }} {{ $lcpImage->thumb_630_width ?: 630 }}w"
+            imagesizes="(min-width: 1280px) 325px, (min-width: 1024px) 240px, calc(100vw - 32px)"
             fetchpriority="high"
         >
     @endpush
