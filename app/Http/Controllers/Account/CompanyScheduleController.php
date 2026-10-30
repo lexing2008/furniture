@@ -26,6 +26,8 @@ class CompanyScheduleController extends Controller
     {
         $company = $this->company($request, ['schedules', 'scheduleExceptions', 'region']);
         $schedules = $company->schedules->keyBy('day_of_week');
+        $timezone = $company->region?->getTimezone();
+        $today = now($timezone)->toDateString();
 
         return Inertia::render('Company/Schedule', [
             'schedule' => collect(self::DAYS)
@@ -34,8 +36,10 @@ class CompanyScheduleController extends Controller
             'exceptions' => $company->scheduleExceptions->map(fn ($exception) => [
                 'date' => (string) $exception->date,
                 'name' => $exception->name ?? '',
+                'is_expired' => (string) $exception->date < $today,
             ])->values(),
-            'timezone' => $company->region?->getTimezone(),
+            'timezone' => $timezone,
+            'today' => $today,
         ]);
     }
 

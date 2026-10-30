@@ -15,6 +15,7 @@ const props = defineProps<{
     schedule: ScheduleDay[];
     exceptions: ScheduleException[];
     timezone: string | null;
+    today: string;
 }>();
 
 const form = useForm<ScheduleFormData>({
@@ -27,6 +28,8 @@ const errors = computed(() => form.errors as Record<string, string | undefined>)
 
 const scheduleError = (index: number, field: string) => errors.value[`schedule.${index}.${field}`];
 const exceptionError = (index: number, field: string) => errors.value[`exceptions.${index}.${field}`];
+
+const exceptionIsExpired = (date: string) => date !== '' && date < props.today;
 
 const addException = () => {
     form.exceptions.push({ date: '', name: '' });
@@ -177,10 +180,18 @@ const hint = 'text-sm leading-6 text-gray-500';
                     <div
                         v-for="(exception, index) in form.exceptions"
                         :key="index"
-                        class="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200/80 bg-gray-50/50 p-4"
+                        :class="[
+                            'flex flex-wrap items-end gap-3 rounded-xl border p-4',
+                            exceptionIsExpired(exception.date) ? 'border-red-100 bg-red-50/30' : 'border-gray-200/80 bg-gray-50/50',
+                        ]"
                     >
                         <div class="w-48">
-                            <InputLabel :for="`exception_date_${index}`" :value="$t('Дата')" required :invalid="!!exceptionError(index, 'date')" />
+                            <div class="mb-1 flex items-center justify-between gap-2">
+                                <InputLabel :for="`exception_date_${index}`" :value="$t('Дата')" required :invalid="!!exceptionError(index, 'date')" />
+                                <span v-if="exceptionIsExpired(exception.date)" class="inline-flex shrink-0 items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-600">
+                                    {{ $t('Истекла') }}
+                                </span>
+                            </div>
                             <TextInput
                                 :id="`exception_date_${index}`"
                                         :invalid="!!exceptionError(index, 'date')"

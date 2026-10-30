@@ -103,8 +103,15 @@ class CompanyScheduleRequest extends FormRequest
 
                     $open = $day['open_at'];
                     $close = $day['close_at'];
+                    $openMinutes = $this->minutes($open);
+                    $closeMinutes = $this->minutes($close);
 
-                    if ($this->isTime($open) && $this->isTime($close) && $close <= $open) {
+                    // 00:00 is the end of the current working day, i.e. 24:00.
+                    if ($closeMinutes === 0) {
+                        $closeMinutes = 24 * 60;
+                    }
+
+                    if ($openMinutes !== null && $closeMinutes !== null && $closeMinutes <= $openMinutes) {
                         $validator->errors()->add("schedule.{$index}.close_at", __('Время закрытия должно быть позже времени открытия.'));
                     }
 
@@ -114,16 +121,18 @@ class CompanyScheduleRequest extends FormRequest
 
                     $breakStart = $day['break_start_at'];
                     $breakEnd = $day['break_end_at'];
+                    $breakStartMinutes = $this->minutes($breakStart);
+                    $breakEndMinutes = $this->minutes($breakEnd);
 
-                    if ($this->isTime($breakStart) && $this->isTime($breakEnd) && $breakEnd <= $breakStart) {
+                    if ($breakStartMinutes !== null && $breakEndMinutes !== null && $breakEndMinutes <= $breakStartMinutes) {
                         $validator->errors()->add("schedule.{$index}.break_end_at", __('Конец перерыва должен быть позже его начала.'));
                     }
 
-                    if ($this->isTime($open) && $this->isTime($breakStart) && $breakStart < $open) {
+                    if ($openMinutes !== null && $breakStartMinutes !== null && $breakStartMinutes < $openMinutes) {
                         $validator->errors()->add("schedule.{$index}.break_start_at", __('Перерыв должен быть внутри рабочего времени.'));
                     }
 
-                    if ($this->isTime($close) && $this->isTime($breakEnd) && $breakEnd > $close) {
+                    if ($closeMinutes !== null && $breakEndMinutes !== null && $breakEndMinutes > $closeMinutes) {
                         $validator->errors()->add("schedule.{$index}.break_end_at", __('Перерыв должен быть внутри рабочего времени.'));
                     }
                 }
@@ -207,5 +216,14 @@ class CompanyScheduleRequest extends FormRequest
     private function isTime(string $value): bool
     {
         return preg_match('/^\d{2}:\d{2}$/', $value) === 1;
+    }
+
+    private function minutes(string $value): ?int
+    {
+        if (! $this->isTime($value)) {
+            return null;
+        }
+
+        return ((int) substr($value, 0, 2)) * 60 + ((int) substr($value, 3, 2));
     }
 }

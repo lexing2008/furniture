@@ -621,5 +621,12 @@
     "Не удалось загрузить информацию.": "Could not load information.",
     "день|дня|дней": "day|days",
     "год|года|лет": "year|years",
-    "месяц|месяца|месяцев": "month|months"
+    "месяц|месяца|месяцев": "month|months",
+    "Истекла": "Expired",
+    "Нерабочие дни": "Non-working days",
+    "Открыто": "Open",
+    "Сейчас обед, откроемся в :time": "On lunch break, we will reopen at :time",
+    "Закрыто. Нерабочий день.": "Closed. Day off.",
+    "Закрыто. Нерабочее время": "Closed. Outside working hours",
+    "Для работы до полуночи укажите закрытие 00:00 — это считается как 24:00.": "For opening until midnight, set the closing time to 00:00 — it is treated as 24:00."
 }
