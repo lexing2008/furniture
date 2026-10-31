@@ -30,6 +30,21 @@
 
 ---
 
+## 2026-10-31 — Laravel Debugbar
+
+- Установлен `barryvdh/laravel-debugbar` в `require-dev`.
+- Добавлен `config/debugbar.php`.
+- Debugbar включается только при `APP_ENV != production`; дополнительно проверяется `DEBUGBAR_ENABLED`.
+- В production пакет не устанавливается при `composer install --no-dev`.
+- Проверено: локально панель отображается, при `APP_ENV=production` `debugbar.enabled = false`.
+
+**Проверка**
+
+- `php artisan test`: 79 passed, 1001 assertions.
+- `npm run build`: OK.
+
+---
+
 ## 2026-10-31 — устранены дублирующиеся запросы категории
 
 - Текущая категория переиспользуется из списка дочерних категорий, если она там есть.
@@ -59,6 +74,20 @@
 - Миграция выполнена.
 - `php artisan test`: 79 passed, 1001 assertions.
 - `npm run build`: OK.
+
+---
+
+## 2026-10-31 — один запрос региона на запрос
+
+- `Region::fromHost()` теперь ищет только активные регионы и кэширует результат в атрибутах запроса.
+- Route binding региона использует тот же результат вместо повторного запроса.
+- Оба пути учитывают `is_active = 1`.
+- Количество запросов на странице категории уменьшилось с 35 до 31.
+
+**Проверка**
+
+- `php artisan test`: 79 passed, 1001 assertions.
+- В query log остался один запрос `regions where subdomain ... and is_active = 1`.
 
 ---
 

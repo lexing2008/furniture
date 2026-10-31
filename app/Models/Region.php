@@ -88,15 +88,30 @@ class Region extends Model
      */
     public static function fromHost(string $host): ?self
     {
+        $request = request();
+        $cacheKey = 'region.fromHost:'.$host;
+
+        if ($request->attributes->has($cacheKey)) {
+            return $request->attributes->get($cacheKey);
+        }
+
         $suffix = '.'.Str::before((string) config('app.domain'), ':');
 
         if (! Str::endsWith($host, $suffix)) {
+            $request->attributes->set($cacheKey, null);
+
             return null;
         }
 
-        $region = self::query()->where('subdomain', Str::beforeLast($host, $suffix))->first();
+        $region = self::query()
+            ->where('subdomain', Str::beforeLast($host, $suffix))
+            ->where('is_active', true)
+            ->first();
 
-        return $region?->isAvailable() ? $region : null;
+        $resolved = $region?->isAvailable() ? $region : null;
+        $request->attributes->set($cacheKey, $resolved);
+
+        return $resolved;
     }
 
     /**

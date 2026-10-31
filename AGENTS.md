@@ -125,7 +125,7 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 {region}.furniture.lex
 ```
 
-- `Region::fromHost($host)` находит регион по поддомену.
+- `Region::fromHost($host)` находит активный регион по поддомену и кэширует результат в атрибутах текущего запроса.
 - `Region::root()` возвращает страну.
 - `Region::language()` возвращает `regions.lang` страны.
 - `Region::fallbackLanguage()` возвращает необязательный `regions.fallback_lang` страны.
@@ -392,4 +392,5 @@ php artisan tmp-files:clean
 
 - Тесты: **79 passed, 1001 assertions**.
 - `vue-tsc` и `npm run build` проходят.
+- Laravel Debugbar установлен в `require-dev`; включается только вне `production`.
 - Последние крупные изменения: локализация сайта/кабинета, разделы компании, часовые пояса, расписание, доставка/оплата, страны и валюты, товары/услуги, изображения и миниатюры, копирование товара, WYSIWYG-описание, выбор всех регионов, модерация.
