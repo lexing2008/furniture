@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  * Country (parent_id = null) -> area -> city.
  */
 #[Fillable([
-    'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'fallback_lang', 'timezone', 'is_capital',
+    'parent_id', 'country_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'fallback_lang', 'timezone', 'is_capital',
     'seo_title', 'seo_description', 'seo_block', 'is_active',
 ])]
 class Region extends Model
@@ -31,15 +31,43 @@ class Region extends Model
     protected function casts(): array
     {
         return [
+            'country_id' => 'integer',
             'is_capital' => 'boolean',
             'is_active' => 'boolean',
             'seo_block' => PurifiedHtml::class.':seo',
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $region): void {
+            if ($region->parent_id === null) {
+                if ($region->exists) {
+                    $region->country_id = $region->getKey();
+                }
+
+                return;
+            }
+
+            $parent = self::query()->find($region->parent_id, ['id', 'parent_id', 'country_id']);
+            $region->country_id = $parent?->country_id ?? $parent?->root()->id;
+        });
+
+        static::created(function (self $region): void {
+            if ($region->parent_id === null && $region->country_id !== $region->getKey()) {
+                $region->forceFill(['country_id' => $region->getKey()])->saveQuietly();
+            }
+        });
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'country_id');
     }
 
     public function children(): HasMany

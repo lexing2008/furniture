@@ -628,5 +628,7 @@
     "Сейчас обед, откроемся в :time": "On lunch break, we will reopen at :time",
     "Закрыто. Нерабочий день.": "Closed. Day off.",
     "Закрыто. Нерабочее время": "Closed. Outside working hours",
-    "Для работы до полуночи укажите закрытие 00:00 — это считается как 24:00.": "For opening until midnight, set the closing time to 00:00 — it is treated as 24:00."
+    "Для работы до полуночи укажите закрытие 00:00 — это считается как 24:00.": "For opening until midnight, set the closing time to 00:00 — it is treated as 24:00.",
+    "Не удалось загрузить регионы.": "Failed to load regions.",
+    "Нет доступных регионов.": "No available regions."
 }

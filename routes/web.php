@@ -20,6 +20,7 @@ use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\RegionCategoryController;
 use App\Http\Controllers\RegionPageController;
+use App\Http\Controllers\RegionPopupController;
 use App\Http\Middleware\HandleInertiaAccountRequests;
 use App\Http\Middleware\HandleInertiaAdminRequests;
 use App\Http\Middleware\SetLocaleFromUser;
@@ -113,6 +114,9 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
 
     Route::get('categories/search', [RegionCategoryController::class, 'searchCategories'])
         ->name('region.categories.search');
+
+    Route::get('regions/popup', [RegionPopupController::class, 'show'])
+        ->name('region.popup');
 
     Route::get('companies/{company}/info/{type}', [CompanyInfoController::class, 'show'])
         ->name('region.company.info');

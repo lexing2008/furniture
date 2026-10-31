@@ -54,7 +54,7 @@ class RegionController extends Controller
     public function store(RegionRequest $request): RedirectResponse
     {
         $region = Region::create($request->validated());
-        $this->regionService->forgetCacheCountryAreas($region);
+        $this->regionService->forgetCache();
 
         return redirect()
             ->route('admin.regions.index')
@@ -78,9 +78,8 @@ class RegionController extends Controller
     public function update(RegionRequest $request, Region $region): RedirectResponse
     {
         $data = $request->validated();
-        $this->regionService->forgetCacheCountryAreas($region);
         $region->update($data);
-        $this->regionService->forgetCacheCountryAreas($region->fresh());
+        $this->regionService->forgetCache();
 
         return redirect()
             ->route('admin.regions.index')
@@ -90,7 +89,7 @@ class RegionController extends Controller
     public function toggle(Region $region): RedirectResponse
     {
         $region->update(['is_active' => ! $region->is_active]);
-        $this->regionService->forgetCacheCountryAreas($region);
+        $this->regionService->forgetCache();
 
         return back()->with('success', $region->is_active ? 'Регион активирован.' : 'Регион деактивирован.');
     }

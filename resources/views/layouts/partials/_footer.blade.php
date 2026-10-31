@@ -2,10 +2,7 @@
     $locale = app()->getLocale();
     $regionName = $locale === 'en' ? $region->name_en : $region->name_in;
     $regionLabel = $locale === 'en' ? $region->name_en : $region->name;
-    $capitalCities = collect($areas)
-        ->flatMap(fn ($area) => $area['cities'])
-        ->filter(fn ($city) => $city->is_capital && $city->id !== $region->id)
-        ->values();
+    $capitalCities = $capitalCities->filter(fn ($city) => $city->id !== $region->id)->values();
 @endphp
 
 <footer class="relative overflow-hidden bg-green-first text-white">

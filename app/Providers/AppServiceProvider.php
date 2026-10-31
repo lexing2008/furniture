@@ -92,7 +92,7 @@ class AppServiceProvider extends ServiceProvider
                 $view->with([
                     'region' => $region,
                     'country' => $country,
-                    'areas' => $regionService->getRegionsTreeForPopup($country),
+                    'capitalCities' => $regionService->getCapitalCities($country),
                     // The locale is set by App\Http\Middleware\SetLocaleFromRegion
                     'language' => $locale,
                     'menuCategories' => $menuCategories,

@@ -3,6 +3,9 @@
     var button = document.getElementById('region-button');
     var buttonClose = document.getElementById('region-popup-close');
     var backdrop = document.getElementById('region-popup-overlay');
+    var regionContent = document.querySelector('[data-region-popup-content]');
+    var regionLoaded = false;
+    var regionRequest = null;
     var burger = document.querySelector('[data-header-burger]');
     var mobileMenu = document.querySelector('[data-header-mobile-menu]');
     var mobileClose = document.querySelector('[data-header-mobile-close]');
@@ -27,13 +30,84 @@
         }
     }
 
-    function setRegionPopupOpen(open) {
-        backdrop.classList.toggle('hidden', !open);
+    function bindAreaToggles(root) {
+        if (!root) {
+            return;
+        }
+
+        root.querySelectorAll('[data-area-toggle]').forEach(function (toggle) {
+            if (toggle.dataset.bound === '1') {
+                return;
+            }
+
+            toggle.dataset.bound = '1';
+            toggle.addEventListener('click', function () {
+                toggle.parentElement.classList.toggle('is-open');
+            });
+        });
     }
 
-    button.addEventListener('click', function () {
-        setRegionPopupOpen(true);
-    });
+    function loadRegionPopup() {
+        if (!regionContent || regionLoaded || regionRequest) {
+            return;
+        }
+
+        var loading = regionContent.querySelector('[data-region-popup-loading]');
+        var error = regionContent.querySelector('[data-region-popup-error]');
+
+        if (loading) {
+            loading.classList.remove('hidden');
+        }
+
+        if (error) {
+            error.classList.add('hidden');
+        }
+
+        regionRequest = fetch(regionContent.dataset.regionPopupUrl, {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Region popup request failed');
+                }
+
+                return response.json();
+            })
+            .then(function (data) {
+                regionContent.innerHTML = data.html || '';
+                regionLoaded = true;
+                bindAreaToggles(regionContent);
+            })
+            .catch(function () {
+                if (error) {
+                    error.classList.remove('hidden');
+                }
+            })
+            .finally(function () {
+                regionRequest = null;
+
+                if (!regionLoaded && loading) {
+                    loading.classList.add('hidden');
+                }
+            });
+    }
+
+    function setRegionPopupOpen(open) {
+        backdrop.classList.toggle('hidden', !open);
+
+        if (open) {
+            loadRegionPopup();
+        }
+    }
+
+    if (button) {
+        button.addEventListener('click', function () {
+            setRegionPopupOpen(true);
+        });
+    }
 
     document.querySelectorAll('[data-region-popup-open]').forEach(function (openButton) {
         openButton.addEventListener('click', function () {
@@ -95,12 +169,7 @@
         }
     });
 
-    // Нажатие на область
-    document.querySelectorAll('[data-area-toggle]').forEach(function (toggle) {
-        toggle.addEventListener('click', function () {
-            toggle.parentElement.classList.toggle('is-open');
-        });
-    });
+    bindAreaToggles(document);
 
     function bindCategoryToggles(root) {
         root.querySelectorAll('[data-category-toggle]').forEach(function (toggle) {
