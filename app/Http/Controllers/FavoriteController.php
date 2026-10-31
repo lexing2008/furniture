@@ -17,6 +17,7 @@ class FavoriteController extends Controller
                 'ad.images',
                 'ad.company.phones',
                 'ad.company.schedules',
+                'ad.company.region.parent.parent',
                 'ad.category.translations',
                 'region',
             ])

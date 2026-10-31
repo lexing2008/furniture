@@ -59,12 +59,10 @@ class AppServiceProvider extends ServiceProvider
             URL::defaults(['region' => $value]);
 
             // 3. Если это действительно поддомен, берём регион через общий
-            // кэш запроса — тот же результат использует SetLocaleFromRegion.
-            $region = Region::fromHost($currentHost);
-
-            abort_if($region === null || $region->subdomain !== $value, 404);
-
-            return $region;
+            return Region::query()
+                ->where('subdomain', $value)
+                ->where('is_active', true)
+                ->firstOrFail();
         });
 
         // pass data to template

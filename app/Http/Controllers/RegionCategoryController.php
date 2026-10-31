@@ -140,7 +140,7 @@ class RegionCategoryController extends Controller
                 'images',
                 'company.phones',
                 'company.schedules',
-                'company.region',
+                'company.region.parent.parent',
                 'company.country.countryData',
                 'category.translations',
             ])
