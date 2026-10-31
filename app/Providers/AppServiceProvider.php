@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Http\Services\RegionService;
 use App\Models\Region;
 use App\Services\CurrentCountry;
 use App\Services\MenuCategoryService;
+use App\Services\RegionService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;

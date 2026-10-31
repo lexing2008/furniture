@@ -125,7 +125,7 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 {region}.furniture.lex
 ```
 
-- Region приходит из route-параметра `{region}`, привязанного через `Route::bind('region')`; страна доступна через scoped-сервис `App\Services\CurrentCountry`.
+- Region приходит из route-параметра `{region}`, привязанного через `Route::bind('region')`; страна доступна через scoped-сервис `App\Services\CurrentCountry`; `countryData` читается через `Region::cachedCountryData()`.
 - `Region::root()` возвращает страну.
 - `Region::language()` возвращает `regions.lang` страны.
 - `Region::fallbackLanguage()` возвращает необязательный `regions.fallback_lang` страны.

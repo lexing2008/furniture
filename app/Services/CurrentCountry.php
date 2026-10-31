@@ -17,6 +17,6 @@ final class CurrentCountry
             return null;
         }
 
-        return $region->root()->loadMissing('countryData');
+        return $region->root();
     }
 }

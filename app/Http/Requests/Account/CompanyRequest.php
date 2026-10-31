@@ -196,7 +196,7 @@ abstract class CompanyRequest extends FormRequest
         $region = $this->route('region');
 
         return $region instanceof Region
-            ? ($region->root()->countryData?->tax_id_label ?: 'Tax ID')
+            ? ($region->root()->cachedCountryData()?->tax_id_label ?: 'Tax ID')
             : 'Tax ID';
     }
 

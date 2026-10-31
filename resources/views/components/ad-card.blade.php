@@ -182,7 +182,7 @@
                     @endif
 
                     @if($company->tax_id)
-                        <p class="mt-2 text-[11px] leading-5 text-gray-500">{{ $currentCountry->get()?->countryData?->tax_id_label ?: 'Tax ID' }} {{ $company->tax_id }}</p>
+                        <p class="mt-2 text-[11px] leading-5 text-gray-500">{{ $currentCountry->get()?->cachedCountryData()?->tax_id_label ?: 'Tax ID' }} {{ $company->tax_id }}</p>
                     @endif
 
                     @if($hasWarranty)

@@ -31,7 +31,7 @@ class CompanyContactsController extends Controller
                 'email' => $company->email ?? '',
                 'phones' => $company->phones->map->only(['code', 'number', 'description'])->values(),
             ],
-            'phoneCode' => $country?->countryData?->phone_code,
+            'phoneCode' => $country?->cachedCountryData()?->phone_code,
         ]);
     }
 

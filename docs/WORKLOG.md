@@ -44,6 +44,33 @@
 
 ---
 
+## 2026-10-31 — RegionService перенесён
+
+- `App\Http\Services\RegionService` перенесён в `App\Services\RegionService`.
+- Обновлены namespace и все обращения в контроллерах, провайдере и тестах.
+
+**Проверка**
+
+- `php artisan test`: 79 passed, 1001 assertions.
+
+---
+
+## 2026-10-31 — Region::cachedCountryData
+
+- Добавлен `Region::cachedCountryData()`.
+- При наличии тегов используется `Cache::tags(['regions', 'region.{id}'])`; для file/database — версионированный ключ.
+- В кэш сохраняются атрибуты, модель восстанавливается через `newFromBuilder`.
+- Инвалидация при сохранении/удалении `RegionCountry`.
+- Чтение `countryData` в контроллерах и шаблонах заменено на `cachedCountryData()`.
+
+**Проверка**
+
+- Первый запрос: 1 запрос к `region_countries`; повторный: 0.
+- `/divany`: 200, `УНП`.
+- `php artisan test`: 79 passed, 1001 assertions.
+
+---
+
 ## 2026-10-31 — tax_id_label из CurrentCountry
 
 - В `ad-card` подпись налогового номера берётся из `CurrentCountry`, а не из `company.country`.

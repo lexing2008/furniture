@@ -3,6 +3,7 @@
 namespace App\Cache;
 
 use App\Models\Region;
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Support\Facades\Cache;
 
 class RegionCacheKeys
@@ -24,6 +25,22 @@ class RegionCacheKeys
     public static function countryCapitals(Region|int $country): string
     {
         return self::countryAreas($country).':capitals';
+    }
+
+    public static function countryData(Region|int $country): string
+    {
+        return self::countryAreas($country).':data';
+    }
+
+    public static function forgetCountryData(Region|int $country): void
+    {
+        $countryId = $country instanceof Region ? $country->id : $country;
+
+        if (Cache::getStore() instanceof TaggableStore) {
+            Cache::tags(['regions', "region.{$countryId}"])->flush();
+        }
+
+        self::bumpVersion();
     }
 
     public static function bumpVersion(): void

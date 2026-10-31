@@ -229,12 +229,12 @@ class AdRequest extends FormRequest
      */
     public function currency(): ?string
     {
-        return $this->country()?->countryData?->currency;
+        return $this->country()?->cachedCountryData()?->currency;
     }
 
     public function currencyDecimals(): int
     {
-        return (int) ($this->country()?->countryData?->currency_decimals ?? 2);
+        return (int) ($this->country()?->cachedCountryData()?->currency_decimals ?? 2);
     }
 
     /**

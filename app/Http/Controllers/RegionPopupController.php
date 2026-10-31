@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Services\RegionService;
 use App\Models\Region;
+use App\Services\RegionService;
 use Illuminate\Http\JsonResponse;
 
 class RegionPopupController extends Controller

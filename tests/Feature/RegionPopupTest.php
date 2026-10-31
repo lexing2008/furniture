@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Cache\RegionCacheKeys;
-use App\Http\Services\RegionService;
 use App\Models\Region;
+use App\Services\RegionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;

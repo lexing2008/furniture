@@ -27,7 +27,7 @@ class AdController extends Controller
 
     public function index(Request $request): Response
     {
-        $company = $this->company($request, ['region', 'country.countryData']);
+        $company = $this->company($request, ['region', 'country']);
         $country = $this->currentCountry($request, $company);
         $countryId = $company->country_id ?? $company->region?->root()->id;
 
@@ -163,7 +163,7 @@ class AdController extends Controller
             'ads' => $ads,
             'status' => $status,
             'search' => $search,
-            'currencyDecimals' => (int) ($country?->countryData?->currency_decimals ?? 2),
+            'currencyDecimals' => (int) ($country?->cachedCountryData()?->currency_decimals ?? 2),
             'adFilters' => [
                 'category_id' => $categoryId,
                 'area_id' => $areaId,
@@ -181,11 +181,11 @@ class AdController extends Controller
 
     public function create(Request $request, AdFilterService $filterService): Response
     {
-        $company = $this->company($request, ['region', 'country.countryData']);
+        $company = $this->company($request, ['region', 'country']);
         $country = $this->currentCountry($request, $company);
         $countryId = $company->country_id ?? $company->region?->root()->id;
         $language = $this->language($request, $company);
-        $decimals = (int) ($country?->countryData?->currency_decimals ?? 2);
+        $decimals = (int) ($country?->cachedCountryData()?->currency_decimals ?? 2);
         $source = null;
         $filters = [];
 
@@ -205,7 +205,7 @@ class AdController extends Controller
             'categories' => Category::selectableTree($language),
             'regions' => Region::cityTree($countryId),
             'defaultRegionId' => $company->region_id,
-            'currency' => $country?->countryData?->currency,
+            'currency' => $country?->cachedCountryData()?->currency,
             'currencyDecimals' => $decimals,
             'source' => $source,
             'filters' => $filters,
@@ -251,11 +251,11 @@ class AdController extends Controller
 
     public function edit(Request $request, AdFilterService $filterService): Response
     {
-        $company = $this->company($request, ['region', 'country.countryData']);
+        $company = $this->company($request, ['region', 'country']);
         $ad = $this->ad($request, $company);
         $country = $this->currentCountry($request, $company);
         $countryId = $company->country_id ?? $company->region?->root()->id;
-        $decimals = (int) ($country?->countryData?->currency_decimals ?? 2);
+        $decimals = (int) ($country?->cachedCountryData()?->currency_decimals ?? 2);
 
         return Inertia::render('Ads/Edit', [
             'ad' => [
@@ -281,7 +281,7 @@ class AdController extends Controller
             ],
             'categories' => Category::selectableTree($this->language($request, $company)),
             'regions' => Region::cityTree($countryId),
-            'currency' => $country?->countryData?->currency,
+            'currency' => $country?->cachedCountryData()?->currency,
             'currencyDecimals' => $decimals,
             'filters' => $filterService->forCategory($ad->category_id, $ad, $this->language($request, $company)),
         ]);

@@ -32,8 +32,8 @@ class CompanyRegistrationController extends Controller
         return Inertia::render('Company/Register', [
             'regions' => Region::cityTree(),
             'defaultRegionId' => $region->isCity() ? $region->id : null,
-            'phoneCode' => $country?->countryData?->phone_code,
-            'taxIdLabel' => $country->countryData?->tax_id_label ?: 'Tax ID',
+            'phoneCode' => $country?->cachedCountryData()?->phone_code,
+            'taxIdLabel' => $country->cachedCountryData()?->tax_id_label ?: 'Tax ID',
             // Category names are in the language of the country of the region
             'categories' => Category::selectableTree($region?->language()),
             'terms' => $this->termsLinks(),

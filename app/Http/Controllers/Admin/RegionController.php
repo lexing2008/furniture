@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RegionRequest;
-use App\Http\Services\RegionService;
 use App\Models\Language;
 use App\Models\Region;
+use App\Services\RegionService;
 use App\Support\Timezones;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;

@@ -24,10 +24,10 @@ class CompanyGeneralController extends Controller
 
     public function edit(Request $request, Region $region): Response
     {
-        $company = $this->company($request, ['region', 'country.countryData']);
+        $company = $this->company($request, ['region', 'country']);
 
-        $taxIdLabel = $company->country?->countryData?->tax_id_label
-            ?: $region->root()->countryData?->tax_id_label
+        $taxIdLabel = $company->country?->cachedCountryData()?->tax_id_label
+            ?: $region->root()->cachedCountryData()?->tax_id_label
             ?: 'Tax ID';
 
         return Inertia::render('Company/Edit', [
