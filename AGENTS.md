@@ -125,7 +125,7 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 {region}.furniture.lex
 ```
 
-- `Region::fromHost($host)` находит активный регион по поддомену и кэширует результат в атрибутах текущего запроса.
+- Region приходит из route-параметра `{region}`, привязанного через `Route::bind('region')`; в коде используется `$request->route('region')`.
 - `Region::root()` возвращает страну.
 - `Region::language()` возвращает `regions.lang` страны.
 - `Region::fallbackLanguage()` возвращает необязательный `regions.fallback_lang` страны.

@@ -30,6 +30,20 @@
 
 ---
 
+## 2026-10-31 — регион из route binding
+
+- Удалён `Region::fromHost()`.
+- Middleware, контроллеры и FormRequest получают регион из `$request->route('region')`.
+- Для account-запросов без route-региона сохранён fallback на регион компании.
+- Источником региона теперь является `Route::bind('region')` в `AppServiceProvider`.
+
+**Проверка**
+
+- `/divany` и главная страны: 200.
+- `php artisan test`: 79 passed, 1001 assertions.
+
+---
+
 ## 2026-10-31 — eager-load часового пояса компании
 
 - `ad-card` вызывает `$company->timezone()`, который поднимается по цепочке регионов.

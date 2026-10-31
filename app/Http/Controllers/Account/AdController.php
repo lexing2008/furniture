@@ -473,13 +473,16 @@ class AdController extends Controller
 
     private function currentCountry(Request $request, Company $company): ?Region
     {
-        $region = Region::fromHost($request->getHost()) ?? $company->region;
+        $region = $request->route('region');
+        $region = $region instanceof Region ? $region : $company->region;
 
         return $region?->root() ?? $company->country;
     }
 
     private function language(Request $request, Company $company): ?string
     {
-        return (Region::fromHost($request->getHost()) ?? $company->region)?->language();
+        $region = $request->route('region');
+
+        return ($region instanceof Region ? $region : $company->region)?->language();
     }
 }

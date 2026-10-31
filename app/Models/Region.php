@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Str;
 
 /**
  * Country (parent_id = null) -> area -> city.
@@ -81,37 +80,6 @@ class Region extends Model
     public function countryData(): HasOne
     {
         return $this->hasOne(RegionCountry::class);
-    }
-
-    /**
-     * The region of a host: "berlin.furniture.com" -> Berlin. Null for the main domain, an unknown or a disabled region.
-     */
-    public static function fromHost(string $host): ?self
-    {
-        $request = request();
-        $cacheKey = 'region.fromHost:'.$host;
-
-        if ($request->attributes->has($cacheKey)) {
-            return $request->attributes->get($cacheKey);
-        }
-
-        $suffix = '.'.Str::before((string) config('app.domain'), ':');
-
-        if (! Str::endsWith($host, $suffix)) {
-            $request->attributes->set($cacheKey, null);
-
-            return null;
-        }
-
-        $region = self::query()
-            ->where('subdomain', Str::beforeLast($host, $suffix))
-            ->where('is_active', true)
-            ->first();
-
-        $resolved = $region?->isAvailable() ? $region : null;
-        $request->attributes->set($cacheKey, $resolved);
-
-        return $resolved;
     }
 
     /**

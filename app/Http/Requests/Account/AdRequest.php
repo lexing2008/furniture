@@ -321,7 +321,8 @@ class AdRequest extends FormRequest
     private function country(): ?Region
     {
         $company = $this->company();
-        $region = Region::fromHost($this->getHost()) ?? $company->region;
+        $region = $this->route('region');
+        $region = $region instanceof Region ? $region : $company->region;
 
         return $region?->root() ?? $company->country;
     }

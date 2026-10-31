@@ -63,7 +63,7 @@ Laravel
 
 Ключевые методы `Region`:
 
-- `fromHost($host)` — регион по поддомену;
+- `{region}` — route-параметр, привязанный к модели через `Route::bind('region')`;
 - `root()` — страна;
 - `language()` — язык страны;
 - `fallbackLanguage()` — резервный язык страны;

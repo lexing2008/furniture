@@ -24,7 +24,8 @@ class CompanyContactsController extends Controller
         $company = $this->company($request, ['phones', 'region']);
 
         // The phone code of the country of the region the visitor is on, otherwise of the company region
-        $region = Region::fromHost($request->getHost()) ?? $company->region;
+        $region = $request->route('region');
+        $region = $region instanceof Region ? $region : $company->region;
         $country = $region?->root();
 
         return Inertia::render('Company/Contacts', [
