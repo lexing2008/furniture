@@ -141,7 +141,6 @@ class RegionCategoryController extends Controller
                 'company.phones',
                 'company.schedules',
                 'company.region.parent.parent',
-                'company.country.countryData',
                 'category.translations',
             ])
             ->whereIn('category_id', $categoryIds)

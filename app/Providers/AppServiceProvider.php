@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\Services\RegionService;
 use App\Models\Region;
+use App\Services\CurrentCountry;
 use App\Services\MenuCategoryService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -21,13 +22,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->scoped(CurrentCountry::class);
     }
 
     /**
      * Bootstrap any application services.
      */
-    public function boot(RegionService $regionService): void
+    public function boot(RegionService $regionService, CurrentCountry $currentCountry): void
     {
         Vite::prefetch(concurrency: 3);
 
@@ -68,13 +69,14 @@ class AppServiceProvider extends ServiceProvider
         // pass data to template
         View::composer(
             ['layouts.site', 'region.*', 'guest', 'layouts.partials._header', 'layouts.partials._footer'],
-            function ($view) use ($regionService) {
+            function ($view) use ($regionService, $currentCountry) {
                 // Получаем модель Region из текущего маршрута
                 $region = request()->route('region');
-                if (! $region) {
+                $country = $currentCountry->get();
+
+                if (! $region || ! $country) {
                     return;
                 }
-                $country = $region->root();
 
                 $locale = app()->getLocale();
                 $menuCategories = MenuCategoryService::forLocale($locale)

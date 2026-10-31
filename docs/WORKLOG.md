@@ -44,6 +44,34 @@
 
 ---
 
+## 2026-10-31 — tax_id_label из CurrentCountry
+
+- В `ad-card` подпись налогового номера берётся из `CurrentCountry`, а не из `company.country`.
+- `CurrentCountry::get()` подгружает `countryData` один раз на запрос.
+- Из запроса категории убрана лишняя связь `company.country.countryData`.
+- Убрал повторный запрос региона страны в карточках.
+
+**Проверка**
+
+- `/divany`: 200, подпись `УНП`.
+- `php artisan test`: 79 passed, 1001 assertions.
+
+---
+
+## 2026-10-31 — CurrentCountry
+
+- Добавлен scoped-сервис `App\Services\CurrentCountry`.
+- `View::composer` получает страну через сервис и передаёт её в шаблоны.
+- `CompanyContactsController` получает сервис через DI.
+- Сервис возвращает `root()` текущего route-региона; при отсутствии региона используется fallback компании.
+
+**Проверка**
+
+- `/divany` — 200.
+- `php artisan test`: 79 passed, 1001 assertions.
+
+---
+
 ## 2026-10-31 — регион из route binding
 
 - Удалён `Region::fromHost()`.

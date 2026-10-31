@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Account\Concerns\ResolvesCompany;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\CompanyContactsRequest;
-use App\Models\Region;
+use App\Services\CurrentCountry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,14 +19,12 @@ class CompanyContactsController extends Controller
 {
     use ResolvesCompany;
 
-    public function edit(Request $request): Response
+    public function edit(Request $request, CurrentCountry $currentCountry): Response
     {
         $company = $this->company($request, ['phones', 'region']);
 
         // The phone code of the country of the region the visitor is on, otherwise of the company region
-        $region = $request->route('region');
-        $region = $region instanceof Region ? $region : $company->region;
-        $country = $region?->root();
+        $country = $currentCountry->get() ?? $company->region?->root();
 
         return Inertia::render('Company/Contacts', [
             'company' => [

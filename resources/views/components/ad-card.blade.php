@@ -4,6 +4,8 @@
     'removable' => false,
 ])
 
+@inject('currentCountry', 'App\Services\CurrentCountry')
+
 @php
     $ad = $card->ad;
     $favorite = $card->favorite;
@@ -180,7 +182,7 @@
                     @endif
 
                     @if($company->tax_id)
-                        <p class="mt-2 text-[11px] leading-5 text-gray-500">{{ $company->country?->countryData?->tax_id_label ?: 'Tax ID' }} {{ $company->tax_id }}</p>
+                        <p class="mt-2 text-[11px] leading-5 text-gray-500">{{ $currentCountry->get()?->countryData?->tax_id_label ?: 'Tax ID' }} {{ $company->tax_id }}</p>
                     @endif
 
                     @if($hasWarranty)
