@@ -25,10 +25,17 @@ class CategorySeoService
         $locale = app()->getLocale();
 
         $category->loadMissing('seoTemplate.translations');
-        $translation?->loadMissing('seoTemplate.translations');
-
-        $translationTemplate = $this->templateTranslation($translation?->seoTemplate, $locale);
         $categoryTemplate = $this->templateTranslation($category->seoTemplate, $locale);
+        $translationTemplate = null;
+
+        if ($translation !== null) {
+            if ((int) $translation->seo_template_id === (int) $category->seo_template_id) {
+                $translationTemplate = $categoryTemplate;
+            } else {
+                $translation->loadMissing('seoTemplate.translations');
+                $translationTemplate = $this->templateTranslation($translation->seoTemplate, $locale);
+            }
+        }
 
         return $this->resolve(
             $translation,

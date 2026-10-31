@@ -31,6 +31,7 @@ class Ad extends Model
             'description' => PurifiedHtml::class.':ad',
             'price' => 'decimal:4',
             'warranty_value' => 'integer',
+            'images_count' => 'integer',
             'is_moderated' => 'boolean',
             'is_active' => 'boolean',
             'is_banned' => 'boolean',
@@ -46,6 +47,18 @@ class Ad extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function refreshImagesCount(): int
+    {
+        $count = $this->images()->count();
+
+        if ((int) $this->images_count !== $count) {
+            $this->images_count = $count;
+            $this->saveQuietly();
+        }
+
+        return $count;
     }
 
     public function scopeActive(Builder $query): Builder

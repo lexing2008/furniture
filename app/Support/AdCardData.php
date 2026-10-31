@@ -71,7 +71,7 @@ final class AdCardData
             favorite: $favorite,
             region: $region,
             isFavorite: $favorite !== null || ($favoriteIds?->contains($ad->id) ?? false),
-            isLcpImage: $eagerLcp && $ad->images->isNotEmpty(),
+            isLcpImage: $eagerLcp && (int) $ad->images_count > 0,
             showCategory: $showCategory,
             showRegion: $savedRegionName !== null,
             showBadges: $showCategory || $savedRegionName !== null,

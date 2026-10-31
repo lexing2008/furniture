@@ -12,7 +12,9 @@
     $publishedAt = $ad->published_at?->copy()->timezone($company->timezone())->format('d.m.Y H:i');
     $isRecent = $ad->published_at !== null && $ad->published_at->gt(now()->subDays(3));
     $image = $ad->images->first();
+    $galleryTotal = (int) $ad->images_count;
     $galleryImages = $ad->images
+        ->take(2)
         ->map(fn ($adImage) => [
             'url' => $adImage->url(),
             'alt' => $ad->title,
@@ -46,6 +48,8 @@
                     type="button"
                     data-gallery-open
                     data-gallery-images="{{ json_encode($galleryImages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}"
+                    data-gallery-total="{{ $galleryTotal }}"
+                    data-gallery-url="{{ route('region.ad.gallery', ['region' => $region->subdomain, 'ad' => $ad->id]) }}"
                     data-gallery-title="{{ $ad->title }}"
                     data-gallery-price="{{ number_format((float) $ad->price, 2, ',', ' ') }} {{ $ad->currency }}"
                     aria-label="{{ __('Открыть галерею: :title', ['title' => $ad->title]) }}"
@@ -77,7 +81,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
                         </svg>
-                        {{ count($galleryImages) }}
+                        {{ $galleryTotal }}
                     </span>
                 </button>
             @else

@@ -501,6 +501,37 @@ class AccountPagesTest extends TestCase
             ->assertSeeInOrder(['alt="С фото"', 'loading="eager"', 'fetchpriority="high"'], false);
     }
 
+    public function test_gallery_endpoint_returns_images_after_the_first_two(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Товар с галереей',
+            'price' => 300,
+            'currency' => 'BYN',
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        foreach (range(0, 2) as $index) {
+            AdImage::create([
+                'ad_id' => $ad->id,
+                'path' => 'furniture/manual/divany/gallery-'.$index.'.webp',
+                'uuid' => (string) Str::uuid(),
+                'order' => $index,
+            ]);
+        }
+
+        $response = $this->getJson('http://minsk.furniture.test/ads/'.$ad->id.'/gallery')
+            ->assertOk()
+            ->assertJsonPath('total', 3)
+            ->assertJsonCount(1, 'images');
+
+        $this->assertStringContainsString('gallery-2.webp', $response->json('images.0.url'));
+    }
+
     public function test_category_seo_uses_template_placeholders(): void
     {
         Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);

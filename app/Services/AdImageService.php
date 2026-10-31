@@ -152,6 +152,8 @@ class AdImageService
             TmpFile::query()->whereKey($usedTmpFiles)->delete();
         }
 
+        $ad->refreshImagesCount();
+
         return $pathsToDelete;
     }
 

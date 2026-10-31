@@ -23,6 +23,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class AdImage extends Model
 {
+    protected static function booted(): void
+    {
+        static::created(function (AdImage $image) {
+            Ad::query()->whereKey($image->ad_id)->increment('images_count');
+        });
+
+        static::deleted(function (AdImage $image) {
+            Ad::query()
+                ->whereKey($image->ad_id)
+                ->where('images_count', '>', 0)
+                ->decrement('images_count');
+        });
+    }
+
     protected function casts(): array
     {
         return [

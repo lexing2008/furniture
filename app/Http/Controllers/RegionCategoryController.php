@@ -25,7 +25,7 @@ class RegionCategoryController extends Controller
         $locale = app()->getLocale();
 
         $category = Category::query()
-            ->with(['translations', 'parent'])
+            ->with('parent')
             ->where('is_active', true)
             ->whereHas('translations', function ($query) use ($categorySlug, $locale) {
                 $query->where('lang', $locale)->where('slug', $categorySlug);
@@ -45,6 +45,11 @@ class RegionCategoryController extends Controller
                 ->where('is_active', true)
                 ->get()
         )->filter(fn (Category $item) => $item->slugIn($locale) !== '')->values();
+
+        // The current category is usually one of the root children; reuse its eager-loaded
+        // translations instead of fetching the same category translations a second time.
+        $category = $sidebarCategories->firstWhere('id', $category->id)
+            ?? $category->load('translations');
 
         $categoryIds = $this->categoryIdsWithDescendants($category);
         $favoriteIds = $favoriteService->adIds();
@@ -131,7 +136,14 @@ class RegionCategoryController extends Controller
         }
 
         $adsQuery = Ad::query()
-            ->with(['images', 'company.phones', 'company.schedules', 'company.region', 'company.country.countryData', 'category.translations'])
+            ->with([
+                'images',
+                'company.phones',
+                'company.schedules',
+                'company.region',
+                'company.country.countryData',
+                'category.translations',
+            ])
             ->whereIn('category_id', $categoryIds)
             ->where('is_active', true)
             ->where('is_banned', false);

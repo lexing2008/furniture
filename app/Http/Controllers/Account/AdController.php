@@ -118,9 +118,9 @@ class AdController extends Controller
         }
 
         if ($photo === 'with') {
-            $adsQuery->has('images');
+            $adsQuery->where('images_count', '>', 0);
         } elseif ($photo === 'without') {
-            $adsQuery->whereDoesntHave('images');
+            $adsQuery->where('images_count', 0);
         }
 
         if ($hasVideo === 'with') {
@@ -150,7 +150,7 @@ class AdController extends Controller
                 'price' => (float) $ad->price,
                 'currency' => $ad->currency,
                 'thumb_url' => $ad->images->first()?->thumbnailUrl(100),
-                'images_count' => $ad->images->count(),
+                'images_count' => (int) $ad->images_count,
                 'filter_count' => $ad->filledFiltersCount(),
                 'published_at' => $this->publicationLabel($company, $ad->published_at),
                 'is_active' => $ad->is_active,
