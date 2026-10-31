@@ -60,10 +60,10 @@ class RegionCategoryController extends Controller
         $requestedPerPage = $request->integer('per_page');
         $perPage = in_array($requestedPerPage, [10, 20, 50, 100], true)
             ? $requestedPerPage
-            : (int) $request->session()->get('category_per_page', 20);
+            : (int) $request->session()->get('category_per_page', 10);
 
         if (! in_array($perPage, [10, 20, 50, 100], true)) {
-            $perPage = 20;
+            $perPage = 10;
         }
 
         if (in_array($requestedPerPage, [10, 20, 50, 100], true)) {

@@ -63,9 +63,9 @@
                         </svg>
                         {{ $regionLabel }}
                     </button>
-                    <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80 ring-1 ring-white/10">
+                    <a href="{{ $country->url() }}" class="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80 ring-1 ring-white/10 transition hover:bg-white/15 hover:text-white">
                         {{ $locale === 'en' ? $country->name_en : $country->name }}
-                    </span>
+                    </a>
                 </div>
             </div>
 

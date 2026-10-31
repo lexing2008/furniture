@@ -91,7 +91,7 @@
                         @if($sort !== 'published')
                             <input type="hidden" name="sort" value="{{ $sort }}">
                         @endif
-                        @if($perPage !== 20)
+                        @if($perPage !== 10)
                             <input type="hidden" name="per_page" value="{{ $perPage }}">
                         @endif
 
@@ -123,7 +123,7 @@
                                                                 data-filter-slug="{{ $variant['slug'] }}"
                                                             @endif
                                                             @checked(in_array((string) $variant['id'], array_map('strval', $selectedVariants), true))
-                                                            class="rounded-sm border-gray-300 text-green-first focus:ring-green-first"
+                                                            class="cursor-pointer rounded-sm border-gray-300 text-green-first focus:ring-green-first"
                                                         >
                                                         {{ $variant['name'] }}
                                                     </label>

@@ -16,7 +16,7 @@ class RegionPopupController extends Controller
             'html' => view('layouts.partials._region-popup-content', [
                 'region' => $region,
                 'country' => $country,
-                'areas' => $regionService->getRegionsTreeForPopup($country),
+                'areas' => $regionService->getAreasWithCities($country),
             ])->render(),
         ]);
     }

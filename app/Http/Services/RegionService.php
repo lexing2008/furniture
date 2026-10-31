@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 
 class RegionService
 {
-    public function getRegionsTreeForPopup(Region $country): Collection
+    public function getAreasWithCities(Region $country): Collection
     {
         $key = RegionCacheKeys::countryAreas($country);
 

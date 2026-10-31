@@ -53,6 +53,15 @@ class RegionPopupTest extends TestCase
         ]);
     }
 
+    public function test_country_page_lists_areas_and_cities(): void
+    {
+        $this->get('http://belarus.furniture.test/')
+            ->assertOk()
+            ->assertSee('Беларусь')
+            ->assertSee('Брестская область')
+            ->assertSee('Мебель в Бресте');
+    }
+
     public function test_region_popup_content_is_loaded_with_a_versioned_cache_key(): void
     {
         $response = $this->getJson('http://brest.furniture.test/regions/popup')
