@@ -191,14 +191,17 @@ class RegionCategoryController extends Controller
         }
 
         $translation = $category->translations->firstWhere('lang', $locale);
+        $pageNumber = $ads->currentPage();
+        $withSeoTemplate = $pageNumber === 1;
         $seo = $selectedVariant === null
-            ? $seoService->forCategory($category, $translation, $region)
+            ? $seoService->forCategory($category, $translation, $region, $withSeoTemplate)
             : $seoService->forVariant(
                 $selectedVariant,
                 $selectedVariant->translations->firstWhere('lang', $locale),
                 $category,
                 $translation,
                 $region,
+                $withSeoTemplate,
             );
         $categoryName = $category->nameIn($locale);
         $regionNameIn = $locale === 'en' ? $region->name_en : $region->name_in;
@@ -206,7 +209,6 @@ class RegionCategoryController extends Controller
             ? __(':category в :region', ['category' => $categoryName, 'region' => $regionNameIn])
             : __(':names в :region', ['names' => implode(', ', $selectedVariantNames), 'region' => $regionNameIn]);
 
-        $pageNumber = $ads->currentPage();
         $pageSuffix = $pageNumber > 1
             ? __(' — Страница :page', ['page' => $pageNumber])
             : '';

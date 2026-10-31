@@ -20,20 +20,27 @@ class CategorySeoService
     /**
      * @return array{seo_title: ?string, seo_description: ?string, seo_block: ?string}
      */
-    public function forCategory(Category $category, ?CategoryTranslation $translation, Region $region): array
-    {
+    public function forCategory(
+        Category $category,
+        ?CategoryTranslation $translation,
+        Region $region,
+        bool $withTemplate = true,
+    ): array {
         $locale = app()->getLocale();
-
-        $category->loadMissing('seoTemplate.translations');
-        $categoryTemplate = $this->templateTranslation($category->seoTemplate, $locale);
+        $categoryTemplate = null;
         $translationTemplate = null;
 
-        if ($translation !== null) {
-            if ((int) $translation->seo_template_id === (int) $category->seo_template_id) {
-                $translationTemplate = $categoryTemplate;
-            } else {
-                $translation->loadMissing('seoTemplate.translations');
-                $translationTemplate = $this->templateTranslation($translation->seoTemplate, $locale);
+        if ($withTemplate) {
+            $category->loadMissing('seoTemplate.translations');
+            $categoryTemplate = $this->templateTranslation($category->seoTemplate, $locale);
+
+            if ($translation !== null) {
+                if ((int) $translation->seo_template_id === (int) $category->seo_template_id) {
+                    $translationTemplate = $categoryTemplate;
+                } else {
+                    $translation->loadMissing('seoTemplate.translations');
+                    $translationTemplate = $this->templateTranslation($translation->seoTemplate, $locale);
+                }
             }
         }
 
@@ -60,18 +67,24 @@ class CategorySeoService
         Category $category,
         ?CategoryTranslation $categoryTranslation,
         Region $region,
+        bool $withTemplate = true,
     ): array {
         $locale = app()->getLocale();
+        $primaryTemplate = null;
+        $variantTemplate = null;
 
-        $variant->loadMissing(['translations', 'seoTemplate.translations']);
-        $translation?->loadMissing('seoTemplate.translations');
+        if ($withTemplate) {
+            $variant->loadMissing(['translations', 'seoTemplate.translations']);
+            $translation?->loadMissing('seoTemplate.translations');
 
-        $primaryTemplate = $this->templateTranslation(
-            $translation?->seoTemplate ?? $variant->seoTemplate,
-            $locale,
-        );
-        $variantTemplate = $this->templateTranslation($variant->seoTemplate, $locale);
-        $categorySeo = $this->forCategory($category, $categoryTranslation, $region);
+            $primaryTemplate = $this->templateTranslation(
+                $translation?->seoTemplate ?? $variant->seoTemplate,
+                $locale,
+            );
+            $variantTemplate = $this->templateTranslation($variant->seoTemplate, $locale);
+        }
+
+        $categorySeo = $this->forCategory($category, $categoryTranslation, $region, $withTemplate);
 
         $replacements = [
             '{name}' => mb_strtolower((string) ($translation?->name_full ?: $variant->nameIn($locale))),
