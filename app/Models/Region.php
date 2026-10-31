@@ -91,7 +91,7 @@ class Region extends Model
             return $this->getRelation('countryData');
         }
 
-        $ttl = now()->addHour();
+        $ttl = now()->addMonth();
         $callback = fn () => $this->countryData?->getAttributes();
 
         $attributes = Cache::getStore() instanceof TaggableStore
