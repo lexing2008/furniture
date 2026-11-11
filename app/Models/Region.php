@@ -60,6 +60,15 @@ class Region extends Model
                 $region->forceFill(['country_id' => $region->getKey()])->saveQuietly();
             }
         });
+
+        // The cached region is used for route model binding, so any change must drop it.
+        static::saved(function (self $region): void {
+            RegionCacheKeys::forgetRegion($region, $region->getOriginal('subdomain'));
+        });
+
+        static::deleted(function (self $region): void {
+            RegionCacheKeys::forgetRegion($region);
+        });
     }
 
     public function parent(): BelongsTo

@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-11-11 — кэш региона для route binding
+
+- `Route::bind('region')` больше не делает запрос к БД на каждый запрос.
+- `region:domain:{subdomain}` хранит ключ модели (`region:{id}`), а `region:{id}` — атрибуты региона; на холодном кэше регион ищется одним запросом к БД.
+- Оба ключа входят в тег `regions`; события `saved`/`deleted` модели `Region` сбрасывают кэш (для нетэгируемых хранилищ — точечно, включая старый subdomain).
+- Ключи и инвалидация вынесены в `App\Cache\RegionCacheKeys`.
+- Для локальных замеров добавлен `GET /test/cache-benchmark` с `Benchmark::measure` (только `local`/`testing`).
+
+**Проверка**
+
+- `php artisan test`: 85 passed, 1031 assertions.
+- `pint`: OK.
+
+---
+
 ## 2026-10-28 — запоминание количества товаров на странице
 
 - Выбранное значение `per_page` сохраняется в сессии под ключом `category_per_page`.

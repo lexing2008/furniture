@@ -75,6 +75,7 @@ Laravel
 `AppServiceProvider`:
 
 - настраивает route binding `{region}` по `subdomain`;
+- кэширует регион в два ключа: `region:domain:{subdomain}` → `region:{id}` → атрибуты модели; записи входят в тег `regions` и сбрасываются событиями `saved`/`deleted` модели `Region` (для нетэгируемых хранилищ — точечно через `RegionCacheKeys`);
 - добавляет view composer для `layouts.site`, `region.*`, `guest`;
 - передаёт `region`, `country`, `areas`, `language`.
 

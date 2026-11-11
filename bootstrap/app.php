@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // nginx терминирует TLS и передаёт X-Forwarded-Proto/For/Host.
+        // Без этого Laravel считает запрос http и генерирует http-ссылки на
+        // HTTPS-страницах (mixed content).
+        $middleware->trustProxies(at: '*');
+
         // Outermost, so it also sees the 419 response of the CSRF middleware
         $middleware->web(prepend: [
             \App\Http\Middleware\ExpireStaleSessionCookies::class,

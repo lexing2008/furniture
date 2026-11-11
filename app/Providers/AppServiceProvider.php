@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use App\Cache\RegionCacheKeys;
 use App\Models\Region;
 use App\Services\CurrentCountry;
 use App\Services\MenuCategoryService;
 use App\Services\RegionService;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -60,10 +63,7 @@ class AppServiceProvider extends ServiceProvider
             URL::defaults(['region' => $value]);
 
             // 3. Если это действительно поддомен, берём регион через общий
-            return Region::query()
-                ->where('subdomain', $value)
-                ->where('is_active', true)
-                ->firstOrFail();
+            return $this->regionBySubdomain($value);
         });
 
         // pass data to template
@@ -100,5 +100,50 @@ class AppServiceProvider extends ServiceProvider
                     'menuCategories' => $menuCategories,
                 ]);
             });
+    }
+
+    /**
+     * Resolves a region by subdomain through two cache entries:
+     * "region:domain:{subdomain}" stores the model cache key ("region:12"),
+     * and "region:12" stores the region attributes.
+     */
+    private function regionBySubdomain(string $subdomain): Region
+    {
+        $ttl = now()->addWeek();
+
+        // Tagged stores drop all region entries at once; other stores are forgotten by model events.
+        $cache = Cache::getStore() instanceof TaggableStore
+            ? Cache::tags([RegionCacheKeys::TAG])
+            : Cache::store();
+
+        $regionKey = $cache->remember(
+            RegionCacheKeys::domain($subdomain),
+            $ttl,
+            function () use ($cache, $subdomain, $ttl): string {
+                $region = Region::query()
+                    ->where('subdomain', $subdomain)
+                    ->where('is_active', true)
+                    ->firstOrFail();
+
+                $regionKey = RegionCacheKeys::model($region);
+
+                // Put the model right away so the lookup below doesn't query the database again.
+                $cache->put($regionKey, $region->getAttributes(), $ttl);
+
+                return $regionKey;
+            },
+        );
+
+        $attributes = $cache->remember(
+            $regionKey,
+            $ttl,
+            fn (): array => Region::query()
+                ->whereKey(RegionCacheKeys::idFromModelKey($regionKey))
+                ->where('is_active', true)
+                ->firstOrFail()
+                ->getAttributes(),
+        );
+
+        return (new Region)->newFromBuilder($attributes);
     }
 }

@@ -25,6 +25,7 @@ class RegionPageController extends Controller
         if ($region->children->isNotEmpty()) {
             return view('region.region.show', [
                 'seo' => $region->seo(),
+                'areas' => $regionService->getAreasWithCities($region->root()),
             ]);
         }
 

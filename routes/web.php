@@ -22,6 +22,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\RegionCategoryController;
 use App\Http\Controllers\RegionPageController;
 use App\Http\Controllers\RegionPopupController;
+use App\Http\Controllers\Test\CacheBenchmarkController;
 use App\Http\Middleware\HandleInertiaAccountRequests;
 use App\Http\Middleware\HandleInertiaAdminRequests;
 use App\Http\Middleware\SetLocaleFromUser;
@@ -155,6 +156,11 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return Inertia::render('Index');
 })->middleware(['auth', 'verified', 'role:'.implode(',', Roles::employeeRoles()), HandleInertiaAdminRequests::class])->name('dashboard');
+
+if (app()->environment('local', 'testing')) {
+    Route::get('/test/cache-benchmark', CacheBenchmarkController::class)
+        ->name('test.cache-benchmark');
+}
 
 require __DIR__.'/admin.php';
 require __DIR__.'/account.php';
