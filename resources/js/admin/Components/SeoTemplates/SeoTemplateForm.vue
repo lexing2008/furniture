@@ -75,9 +75,17 @@ const inputClass =
                 <div v-show="activeTab === index" class="space-y-6 pt-6">
                     <p class="text-xs text-gray-500">
                         Оставьте название пустым, если шаблон на этом языке не нужен.
-                        В SEO-полях можно использовать <code class="rounded-sm bg-gray-100 px-1">{name}</code> —
-                        подставится название категории.
                     </p>
+
+                    <div class="rounded-lg border border-indigo-100 bg-indigo-50/60 px-4 py-3 text-xs text-indigo-900">
+                        <p class="font-semibold">В SEO-полях можно подставлять:</p>
+                        <ul class="mt-1.5 space-y-1">
+                            <li><code class="rounded-sm bg-white/70 px-1 font-mono">{name}</code> — название категории или варианта фильтра;</li>
+                            <li><code class="rounded-sm bg-white/70 px-1 font-mono">{name_buy}</code> — название для покупки;</li>
+                            <li><code class="rounded-sm bg-white/70 px-1 font-mono">{region}</code> — название текущего региона.</li>
+                            <li><code class="rounded-sm bg-white/70 px-1 font-mono">{region_in}</code> — название текущего региона в предложном падеже.</li>
+                        </ul>
+                    </div>
 
                     <div>
                         <InputLabel :for="`name_${index}`" value="Название" />

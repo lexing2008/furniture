@@ -27,7 +27,7 @@ class AdController extends Controller
 
     public function index(Request $request): Response
     {
-        $company = $this->company($request, ['region', 'country.countryData']);
+        $company = $this->company($request, ['region', 'country']);
         $country = $this->currentCountry($request, $company);
         $countryId = $company->country_id ?? $company->region?->root()->id;
 
@@ -118,9 +118,9 @@ class AdController extends Controller
         }
 
         if ($photo === 'with') {
-            $adsQuery->has('images');
+            $adsQuery->where('images_count', '>', 0);
         } elseif ($photo === 'without') {
-            $adsQuery->whereDoesntHave('images');
+            $adsQuery->where('images_count', 0);
         }
 
         if ($hasVideo === 'with') {
@@ -150,7 +150,7 @@ class AdController extends Controller
                 'price' => (float) $ad->price,
                 'currency' => $ad->currency,
                 'thumb_url' => $ad->images->first()?->thumbnailUrl(100),
-                'images_count' => $ad->images->count(),
+                'images_count' => (int) $ad->images_count,
                 'filter_count' => $ad->filledFiltersCount(),
                 'published_at' => $this->publicationLabel($company, $ad->published_at),
                 'is_active' => $ad->is_active,
@@ -163,7 +163,7 @@ class AdController extends Controller
             'ads' => $ads,
             'status' => $status,
             'search' => $search,
-            'currencyDecimals' => (int) ($country?->countryData?->currency_decimals ?? 2),
+            'currencyDecimals' => (int) ($country?->cachedCountryData()?->currency_decimals ?? 2),
             'adFilters' => [
                 'category_id' => $categoryId,
                 'area_id' => $areaId,
@@ -181,11 +181,11 @@ class AdController extends Controller
 
     public function create(Request $request, AdFilterService $filterService): Response
     {
-        $company = $this->company($request, ['region', 'country.countryData']);
+        $company = $this->company($request, ['region', 'country']);
         $country = $this->currentCountry($request, $company);
         $countryId = $company->country_id ?? $company->region?->root()->id;
         $language = $this->language($request, $company);
-        $decimals = (int) ($country?->countryData?->currency_decimals ?? 2);
+        $decimals = (int) ($country?->cachedCountryData()?->currency_decimals ?? 2);
         $source = null;
         $filters = [];
 
@@ -205,7 +205,7 @@ class AdController extends Controller
             'categories' => Category::selectableTree($language),
             'regions' => Region::cityTree($countryId),
             'defaultRegionId' => $company->region_id,
-            'currency' => $country?->countryData?->currency,
+            'currency' => $country?->cachedCountryData()?->currency,
             'currencyDecimals' => $decimals,
             'source' => $source,
             'filters' => $filters,
@@ -251,11 +251,11 @@ class AdController extends Controller
 
     public function edit(Request $request, AdFilterService $filterService): Response
     {
-        $company = $this->company($request, ['region', 'country.countryData']);
+        $company = $this->company($request, ['region', 'country']);
         $ad = $this->ad($request, $company);
         $country = $this->currentCountry($request, $company);
         $countryId = $company->country_id ?? $company->region?->root()->id;
-        $decimals = (int) ($country?->countryData?->currency_decimals ?? 2);
+        $decimals = (int) ($country?->cachedCountryData()?->currency_decimals ?? 2);
 
         return Inertia::render('Ads/Edit', [
             'ad' => [
@@ -281,7 +281,7 @@ class AdController extends Controller
             ],
             'categories' => Category::selectableTree($this->language($request, $company)),
             'regions' => Region::cityTree($countryId),
-            'currency' => $country?->countryData?->currency,
+            'currency' => $country?->cachedCountryData()?->currency,
             'currencyDecimals' => $decimals,
             'filters' => $filterService->forCategory($ad->category_id, $ad, $this->language($request, $company)),
         ]);
@@ -319,6 +319,18 @@ class AdController extends Controller
 
         return response()->json([
             'published_at' => $this->publicationLabel($company, $ad->published_at),
+        ]);
+    }
+
+    public function toggleActive(Request $request): JsonResponse
+    {
+        $company = $this->company($request, ['region']);
+        $ad = $this->ad($request, $company);
+
+        $ad->update(['is_active' => ! $ad->is_active]);
+
+        return response()->json([
+            'is_active' => $ad->is_active,
         ]);
     }
 
@@ -461,13 +473,16 @@ class AdController extends Controller
 
     private function currentCountry(Request $request, Company $company): ?Region
     {
-        $region = Region::fromHost($request->getHost()) ?? $company->region;
+        $region = $request->route('region');
+        $region = $region instanceof Region ? $region : $company->region;
 
         return $region?->root() ?? $company->country;
     }
 
     private function language(Request $request, Company $company): ?string
     {
-        return (Region::fromHost($request->getHost()) ?? $company->region)?->language();
+        $region = $request->route('region');
+
+        return ($region instanceof Region ? $region : $company->region)?->language();
     }
 }

@@ -12,6 +12,7 @@ interface Country {
     phone_code: string | null;
     currency: string | null;
     currency_decimals: number | null;
+    tax_id_label: string | null;
 }
 
 defineProps<{
@@ -44,6 +45,7 @@ defineProps<{
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Код телефона</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Валюта</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-500">Знаков после запятой</th>
+                            <th class="px-4 py-3 text-left font-medium text-gray-500">Налоговый номер</th>
                             <th class="px-4 py-3" />
                         </tr>
                     </thead>
@@ -60,6 +62,7 @@ defineProps<{
                             </td>
                             <td class="px-4 py-3 font-mono">{{ country.currency ?? '—' }}</td>
                             <td class="px-4 py-3">{{ country.currency_decimals ?? '—' }}</td>
+                            <td class="px-4 py-3">{{ country.tax_id_label ?? 'Tax ID' }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-right">
                                 <Link
                                     :href="route('admin.countries.edit', country.id)"

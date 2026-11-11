@@ -12,6 +12,7 @@ const props = defineProps<{
     company: CompanyAboutFields;
     regions: RegionNode[];
     categories: CategoryNode[];
+    taxIdLabel: string;
 }>();
 
 const form = useForm<CompanyAboutFields>({
@@ -34,7 +35,7 @@ const submit = () => {
         />
 
         <form class="space-y-6" @submit.prevent="submit">
-            <CompanyInfoFields :form="form" :regions="regions" />
+            <CompanyInfoFields :form="form" :regions="regions" :tax-id-label="taxIdLabel" />
 
             <CompanyDescriptionFields :form="form" />
 

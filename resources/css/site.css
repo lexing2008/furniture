@@ -1,0 +1,141 @@
+@import 'tailwindcss' source(none);
+@import './base.css';
+
+@plugin '@tailwindcss/forms';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../views/layouts/**/*.blade.php';
+@source '../views/region/**/*.blade.php';
+@source '../views/components/**/*.blade.php';
+@source '../js/web.js';
+
+.current_region {
+  font-size: 19px;
+  border-bottom: 1px dashed;
+}
+
+#region-popup .area-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 4px;
+  border: 0;
+  border-bottom: 1px solid #f3f4f6;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+#region-popup .area-button:hover {
+  background: #f9fafb;
+}
+#region-popup .area-button .arrow {
+  transition: transform 0.15s;
+  color: #9ca3af;
+}
+#region-popup .area.is-open > .area-button .arrow {
+  transform: rotate(90deg);
+}
+#region-popup .area.is-open > .cities {
+  display: block;
+}
+
+[data-gallery-stage] {
+  touch-action: pan-y;
+}
+
+@media (max-width: 767px) {
+  [data-ad-image] img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+@keyframes gallery-image-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.gallery-image-enter {
+  animation: gallery-image-in 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-image-enter {
+    animation: none;
+  }
+}
+
+.gallery-zoom {
+  display: none;
+  opacity: 0;
+}
+
+@media (min-width: 768px) {
+  [data-gallery-open] .gallery-zoom {
+    display: flex;
+  }
+
+  [data-gallery-open]:hover .gallery-zoom,
+  [data-gallery-open]:focus-visible .gallery-zoom {
+    opacity: 1;
+  }
+}
+
+.ad-description {
+  display: -webkit-box;
+  max-height: 4.5rem;
+  overflow: hidden;
+  overflow-y: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.ad-description.is-expanded {
+  display: block;
+  max-height: none;
+  overflow: visible;
+  overflow-y: visible;
+  -webkit-line-clamp: unset;
+}
+
+@media (min-width: 1024px) {
+  .ad-description {
+    max-height: 9rem;
+    -webkit-line-clamp: 6;
+  }
+}
+
+[data-ad-company-details] {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: max-height 300ms ease, opacity 250ms ease, visibility 0s linear 300ms;
+}
+
+[data-ad-company-details].is-expanded {
+  max-height: 800px;
+  opacity: 1;
+  visibility: visible;
+  transition: max-height 300ms ease, opacity 250ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ad-company-details],
+  [data-ad-company-details].is-expanded {
+    transition: none;
+  }
+}
+
+.seo-block ul li::marker,
+.seo-block ol li::marker {
+  color: var(--color-green-first);
+}

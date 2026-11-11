@@ -2,20 +2,22 @@
 
 namespace App\Models;
 
+use App\Cache\RegionCacheKeys;
 use App\Casts\PurifiedHtml;
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Country (parent_id = null) -> area -> city.
  */
 #[Fillable([
-    'parent_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'fallback_lang', 'timezone', 'is_capital',
+    'parent_id', 'country_id', 'name', 'name_en', 'name_in', 'subdomain', 'lang', 'fallback_lang', 'timezone', 'is_capital',
     'seo_title', 'seo_description', 'seo_block', 'is_active',
 ])]
 class Region extends Model
@@ -31,15 +33,43 @@ class Region extends Model
     protected function casts(): array
     {
         return [
+            'country_id' => 'integer',
             'is_capital' => 'boolean',
             'is_active' => 'boolean',
             'seo_block' => PurifiedHtml::class.':seo',
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $region): void {
+            if ($region->parent_id === null) {
+                if ($region->exists) {
+                    $region->country_id = $region->getKey();
+                }
+
+                return;
+            }
+
+            $parent = self::query()->find($region->parent_id, ['id', 'parent_id', 'country_id']);
+            $region->country_id = $parent?->country_id ?? $parent?->root()->id;
+        });
+
+        static::created(function (self $region): void {
+            if ($region->parent_id === null && $region->country_id !== $region->getKey()) {
+                $region->forceFill(['country_id' => $region->getKey()])->saveQuietly();
+            }
+        });
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'country_id');
     }
 
     public function children(): HasMany
@@ -55,25 +85,24 @@ class Region extends Model
         return $this->hasOne(RegionCountry::class);
     }
 
-    /**
-     * The region of a host: "berlin.furniture.com" -> Berlin. Null for the main domain, an unknown or a disabled region.
-     */
-    public static function fromHost(string $host): ?self
+    public function cachedCountryData(): ?RegionCountry
     {
-        $suffix = '.'.Str::before((string) config('app.domain'), ':');
-
-        if (! Str::endsWith($host, $suffix)) {
-            return null;
+        if ($this->relationLoaded('countryData')) {
+            return $this->getRelation('countryData');
         }
 
-        $region = self::query()->where('subdomain', Str::beforeLast($host, $suffix))->first();
+        $ttl = now()->addMonth();
+        $callback = fn () => $this->countryData?->getAttributes();
 
-        return $region?->isAvailable() ? $region : null;
+        $attributes = Cache::getStore() instanceof TaggableStore
+            ? Cache::tags(['regions', "region.{$this->id}"])->remember('country-data', $ttl, $callback)
+            : Cache::remember(RegionCacheKeys::countryData($this), $ttl, $callback);
+
+        return $attributes === null
+            ? null
+            : (new RegionCountry)->newFromBuilder($attributes);
     }
 
-    /**
-     * Whether the region is a city: the third level, country -> area -> city.
-     */
     public function isCity(): bool
     {
         return $this->parent_id !== null && $this->parent?->parent_id !== null;
@@ -256,6 +285,7 @@ class Region extends Model
 
         foreach (self::SEO_FIELDS as $field) {
             $value = filled($this->{$field}) ? $this->{$field} : $root->{$field};
+            $value = str_replace('{region}', $this->name, $value);
             $value = str_replace('{region_in}', $this->name_in, $value);
             $result[$field] = $value;
         }

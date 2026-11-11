@@ -1,0 +1,13 @@
+@import 'tailwindcss' source(none);
+@import './base.css';
+
+@plugin '@tailwindcss/forms';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../views/account.blade.php';
+@source '../views/guest.blade.php';
+@source '../views/layouts/partials/**/*.blade.php';
+@source '../js/account/**/*.vue';
+@source '../js/account/**/*.ts';
+@source '../js/common/**/*.vue';
+@source '../js/common/**/*.ts';

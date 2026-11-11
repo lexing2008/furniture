@@ -22,6 +22,7 @@ const props = defineProps<{
     regions: RegionNode[];
     defaultRegionId: number | null;
     phoneCode: string | null;
+    taxIdLabel: string;
     categories: CategoryNode[];
     terms: { rules: string; privacy: string };
 }>();
@@ -74,7 +75,7 @@ const submit = () => {
             </AccountPageHeader>
 
             <form class="space-y-6" @submit.prevent="submit">
-                <CompanyFields :form="form" :regions="regions" :phone-code="phoneCode" :categories="categories" />
+                <CompanyFields :form="form" :regions="regions" :phone-code="phoneCode" :tax-id-label="taxIdLabel" :categories="categories" />
 
                 <section :class="formCard">
                     <h2 :class="[formTitle, 'text-gray-900']">{{ $t('Ваш аккаунт') }}</h2>

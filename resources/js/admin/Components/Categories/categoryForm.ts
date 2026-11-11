@@ -21,6 +21,7 @@ export interface TranslationData {
     lang: string;
     name: string;
     menu_name: string;
+    name_buy: string;
     slug: string;
     seo_template_id: number | null;
     seo_title: string;
@@ -48,6 +49,7 @@ export const makeTranslations = (
         lang: language.code,
         name: String(existing[language.code]?.name ?? ''),
         menu_name: String(existing[language.code]?.menu_name ?? ''),
+        name_buy: String(existing[language.code]?.name_buy ?? ''),
         slug: String(existing[language.code]?.slug ?? ''),
         seo_template_id: existing[language.code]?.seo_template_id ? Number(existing[language.code]?.seo_template_id) : null,
         seo_title: String(existing[language.code]?.seo_title ?? ''),

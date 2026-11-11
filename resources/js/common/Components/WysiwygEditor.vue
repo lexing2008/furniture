@@ -7,7 +7,7 @@ import { editorHeights } from './wysiwygHeight';
 
 /**
  * WYSIWYG editor (TipTap, MIT). It only produces the tags the server keeps (see config/purify.php):
- * paragraphs, h3-h5, bold, italic, lists, tables; the "seo" profile also has line breaks.
+ * paragraphs, headings, bold, italic, lists, tables; the "seo" profile also has line breaks.
  * The server cleans the HTML anyway, so the editor is not a security boundary.
  */
 const props = withDefaults(
@@ -19,8 +19,10 @@ const props = withDefaults(
         resizable?: boolean;
         // The height is remembered between visits under this localStorage key
         heightKey?: string;
+        // H2 is available everywhere except ad/service descriptions
+        allowH2?: boolean;
     }>(),
-    { profile: 'seo', invalid: false, resizable: false, heightKey: 'wysiwyg-height' },
+    { profile: 'seo', invalid: false, resizable: false, heightKey: 'wysiwyg-height', allowH2: true },
 );
 
 const emit = defineEmits<{
@@ -123,7 +125,7 @@ const editor = useEditor({
     content: props.modelValue,
     extensions: [
         StarterKit.configure({
-            heading: { levels: [3, 4, 5] },
+            heading: { levels: props.allowH2 ? [2, 3, 4, 5] : [3, 4, 5] },
             blockquote: false,
             code: false,
             codeBlock: false,
@@ -174,6 +176,8 @@ const active = (name: string, attributes?: Record<string, unknown>) => {
     return editor.value?.isActive(name, attributes) ?? false;
 };
 
+const headingLevels = computed(() => (props.allowH2 ? ([2, 3, 4, 5] as const) : ([3, 4, 5] as const)));
+
 const inTable = () => active('table');
 
 const button =
@@ -201,7 +205,7 @@ const buttonClass = (isActive: boolean) =>
                 ¶
             </button>
             <button
-                v-for="level in [3, 4, 5] as const"
+                v-for="level in headingLevels"
                 :key="level"
                 type="button"
                 :class="buttonClass(active('heading', { level }))"

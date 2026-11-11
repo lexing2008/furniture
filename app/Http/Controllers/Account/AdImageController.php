@@ -129,6 +129,7 @@ class AdImageController extends Controller
             'id' => $tmp->id,
             'url' => url('/storage/'.ltrim($tmp->path, '/')),
             'thumb_630_url' => url('/storage/'.ltrim(AdImagePath::medium($tmp->path), '/')),
+            'thumb_325_url' => url('/storage/'.ltrim(AdImagePath::listing($tmp->path), '/')),
             'thumb_100_url' => url('/storage/'.ltrim(AdImagePath::small($tmp->path), '/')),
         ], 201);
     }

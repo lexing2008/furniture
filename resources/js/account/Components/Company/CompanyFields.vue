@@ -11,12 +11,13 @@ defineProps<{
     regions: RegionNode[];
     categories: CategoryNode[];
     phoneCode?: string | null;
+    taxIdLabel?: string;
 }>();
 </script>
 
 <template>
     <div class="space-y-6">
-        <CompanyInfoFields :form="form" :regions="regions" />
+        <CompanyInfoFields :form="form" :regions="regions" :tax-id-label="taxIdLabel" />
         <CompanyDescriptionFields :form="form" />
         <CompanyPhonesFields :form="form" :phone-code="phoneCode" />
         <CompanyCategoriesFields :form="form" :categories="categories" />

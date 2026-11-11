@@ -27,9 +27,10 @@ class CountryController extends Controller
                 'name_en' => $region->name_en,
                 'subdomain' => $region->subdomain,
                 'timezone' => $region->timezone,
-                'phone_code' => $region->countryData?->phone_code,
-                'currency' => $region->countryData?->currency,
-                'currency_decimals' => $region->countryData?->currency_decimals,
+                'phone_code' => $region->cachedCountryData()?->phone_code,
+                'currency' => $region->cachedCountryData()?->currency,
+                'currency_decimals' => $region->cachedCountryData()?->currency_decimals,
+                'tax_id_label' => $region->cachedCountryData()?->tax_id_label,
             ]);
 
         return Inertia::render('countries/IndexCountries', [
@@ -50,9 +51,10 @@ class CountryController extends Controller
                 'name_en' => $country->name_en,
                 'subdomain' => $country->subdomain,
                 'timezone' => $country->timezone,
-                'phone_code' => $country->countryData?->phone_code ?? '',
-                'currency' => $country->countryData?->currency ?? '',
-                'currency_decimals' => $country->countryData?->currency_decimals ?? 2,
+                'phone_code' => $country->cachedCountryData()?->phone_code ?? '',
+                'currency' => $country->cachedCountryData()?->currency ?? '',
+                'currency_decimals' => $country->cachedCountryData()?->currency_decimals ?? 2,
+                'tax_id_label' => $country->cachedCountryData()?->tax_id_label ?? '',
             ],
         ]);
     }

@@ -20,6 +20,7 @@ class CountryRequest extends FormRequest
             // The phone code is stored without "+"
             'phone_code' => ltrim(trim((string) $this->input('phone_code', '')), '+'),
             'currency' => mb_strtoupper(trim((string) $this->input('currency', ''))),
+            'tax_id_label' => trim((string) $this->input('tax_id_label', '')) ?: null,
         ]);
     }
 
@@ -32,6 +33,7 @@ class CountryRequest extends FormRequest
             'phone_code' => ['required', 'regex:/^\d{1,5}$/'],
             'currency' => ['required', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
             'currency_decimals' => ['required', 'integer', 'between:0,4'],
+            'tax_id_label' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -54,6 +56,7 @@ class CountryRequest extends FormRequest
             'phone_code' => 'код телефона',
             'currency' => 'валюта',
             'currency_decimals' => 'количество знаков после запятой',
+            'tax_id_label' => 'название налогового номера',
         ];
     }
 }

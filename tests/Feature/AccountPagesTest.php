@@ -4,14 +4,20 @@ namespace Tests\Feature;
 
 use App\Enums\Roles;
 use App\Models\Ad;
+use App\Models\AdImage;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Favorite;
+use App\Models\Filter;
+use App\Models\FilterVariant;
 use App\Models\Language;
 use App\Models\Region;
 use App\Models\RegionCountry;
+use App\Models\SeoTemplate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -102,6 +108,22 @@ class AccountPagesTest extends TestCase
         return "http://minsk.furniture.test/account{$path}";
     }
 
+    public function test_company_forms_use_the_country_tax_id_label(): void
+    {
+        $this->country->countryData()->update(['tax_id_label' => 'УНП']);
+
+        $this->get('http://minsk.furniture.test/account/register')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('taxIdLabel', 'УНП'));
+
+        $this->actingAs($this->user)
+            ->get($this->url('/general'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('taxIdLabel', 'УНП'));
+    }
+
     public function test_customer_login_does_a_full_page_load_into_the_account(): void
     {
         $response = $this->post($this->url('/login'), [
@@ -153,7 +175,7 @@ class AccountPagesTest extends TestCase
         $this->get('http://minsk.furniture.test/')
             ->assertOk()
             ->assertSee('Мебель в Минске')
-            ->assertSee('О нас');
+            ->assertSee('Информация');
 
         Language::create(['code' => 'en', 'name' => 'English', 'name_en' => 'English']);
         Language::create(['code' => 'de', 'name' => 'Deutsch', 'name_en' => 'German']);
@@ -162,7 +184,7 @@ class AccountPagesTest extends TestCase
         $this->get('http://minsk.furniture.test/')
             ->assertOk()
             ->assertSee('Furniture in Minsk')
-            ->assertSee('About us');
+            ->assertSee('Information');
 
         // The country language is not supported: its fallback language wins
         $this->country->update(['lang' => 'de', 'fallback_lang' => 'en']);
@@ -284,6 +306,595 @@ class AccountPagesTest extends TestCase
                 ->where('completed_tasks', 5)
                 ->where('progress', 71)
                 ->has('recent_ads', 4));
+    }
+
+    public function test_header_and_footer_show_categories_with_menu_name(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+        $withoutMenu = Category::create(['is_active' => true]);
+        $withoutMenu->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Столы',
+            'slug' => 'stoly',
+        ]);
+
+        $vitebskArea = Region::create([
+            'name' => 'Витебская область',
+            'name_en' => 'Vitebsk region',
+            'name_in' => 'Витебской области',
+            'subdomain' => 'vitebsk-region',
+            'parent_id' => $this->country->id,
+            'is_active' => true,
+        ]);
+        Region::create([
+            'name' => 'Витебск',
+            'name_en' => 'Vitebsk',
+            'name_in' => 'Витебске',
+            'subdomain' => 'vitebsk',
+            'parent_id' => $vitebskArea->id,
+            'is_capital' => true,
+            'is_active' => true,
+        ]);
+        $this->city->update(['is_capital' => true]);
+
+        $this->get('http://minsk.furniture.test/')
+            ->assertOk()
+            ->assertSee('Диваны в меню')
+            ->assertSee('Диваны в Минске')
+            ->assertSee('Мебель в Витебске')
+            ->assertSee('vitebsk.furniture.test')
+            ->assertDontSee('Столы');
+
+        $this->get('http://minsk.furniture.test/divany')
+            ->assertOk()
+            ->assertSee('Диваны в меню')
+            ->assertSee('Диваны в Минске');
+
+        $this->category->translations()->firstOrFail()->update(['menu_name' => 'Диваны обновлённые']);
+
+        $this->get('http://minsk.furniture.test/')
+            ->assertOk()
+            ->assertSee('Диваны обновлённые')
+            ->assertDontSee('Диваны в меню');
+    }
+
+    public function test_category_page_shows_active_ads_with_company_details(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $this->company->update([
+            'payment' => '<p>Оплата картой и наличными.</p>',
+            'delivery' => '<p>Доставка по городу и области.</p>',
+        ]);
+        $this->company->schedules()->create([
+            'day_of_week' => 1,
+            'open_at' => '09:00',
+            'close_at' => '18:00',
+            'has_break' => false,
+            'is_closed' => false,
+        ]);
+
+        Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Товар в категории',
+            'description' => '<p>Описание товара для категории</p>',
+            'price' => 123.45,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_moderated' => false,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Дешёвый товар',
+            'description' => '<p>Короткое описание</p>',
+            'price' => 50,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_moderated' => false,
+            'is_banned' => false,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany')
+            ->assertOk()
+            ->assertSee('Товар в категории')
+            ->assertSee('Описание товара для категории')
+            ->assertSee('Подробнее')
+            ->assertSee('Скрыть')
+            ->assertSee('Ромашка')
+            ->assertSee('29 111-22-33')
+            ->assertSee('123,45')
+            ->assertSee('text-green-third', false)
+            ->assertSee('График работы')
+            ->assertSee('Оплата')
+            ->assertSee('Доставка');
+
+        $this->getJson('http://minsk.furniture.test/companies/'.$this->company->id.'/info/payment')
+            ->assertOk()
+            ->assertJsonPath('title', 'Оплата')
+            ->assertJsonFragment(['html' => '<p>Оплата картой и наличными.</p>']);
+
+        $scheduleResponse = $this->getJson('http://minsk.furniture.test/companies/'.$this->company->id.'/info/schedule')
+            ->assertOk()
+            ->assertJsonPath('title', 'График работы');
+
+        $this->assertStringContainsString('Понедельник', $scheduleResponse->json('html'));
+
+        $this->get('http://minsk.furniture.test/divany?sort=price_asc')
+            ->assertOk()
+            ->assertSeeInOrder(['Дешёвый товар', 'Товар в категории']);
+
+        $this->get('http://minsk.furniture.test/divany?price_from=100')
+            ->assertOk()
+            ->assertSee('Товар в категории')
+            ->assertDontSee('Дешёвый товар');
+    }
+
+    public function test_lcp_image_uses_first_ad_with_a_photo(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Без фото',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $withPhoto = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'С фото',
+            'price' => 200,
+            'currency' => 'BYN',
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now()->subMinute(),
+        ]);
+
+        $image = AdImage::create([
+            'ad_id' => $withPhoto->id,
+            'path' => 'furniture/manual/divany/lcp-test.webp',
+            'uuid' => (string) Str::uuid(),
+            'order' => 0,
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany')
+            ->assertOk()
+            ->assertSee('href="'.$image->thumbnailUrl(325).'"', false)
+            ->assertSee('imagesrcset="'.$image->thumbnailUrl(325).' 325w, '.$image->thumbnailUrl(630).' 630w"', false)
+            ->assertSeeInOrder(['alt="С фото"', 'loading="eager"', 'fetchpriority="high"'], false);
+    }
+
+    public function test_gallery_endpoint_returns_images_after_the_first_two(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Товар с галереей',
+            'price' => 300,
+            'currency' => 'BYN',
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        foreach (range(0, 2) as $index) {
+            AdImage::create([
+                'ad_id' => $ad->id,
+                'path' => 'furniture/manual/divany/gallery-'.$index.'.webp',
+                'uuid' => (string) Str::uuid(),
+                'order' => $index,
+            ]);
+        }
+
+        $response = $this->getJson('http://minsk.furniture.test/ads/'.$ad->id.'/gallery')
+            ->assertOk()
+            ->assertJsonPath('total', 3)
+            ->assertJsonCount(1, 'images');
+
+        $this->assertStringContainsString('gallery-2.webp', $response->json('images.0.url'));
+    }
+
+    public function test_category_seo_uses_template_placeholders(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $template = SeoTemplate::create(['name' => 'Категория — диваны']);
+        $template->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'seo_title' => 'Купить {name} в {region_in}',
+            'seo_description' => 'Описание {name_buy} в {region_in}',
+            'seo_block' => '<p>Статья о {name_buy} в {region}.</p>',
+        ]);
+
+        $this->category->update(['seo_template_id' => $template->id]);
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'name_buy' => 'Купить диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany')
+            ->assertOk()
+            ->assertSee('Купить диваны в Минске')
+            ->assertSee('Описание купить диваны в Минске')
+            ->assertSee('Статья о купить диваны в Минск.');
+    }
+
+    public function test_ad_can_be_added_to_favorites_with_its_region(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Избранный диван',
+            'price' => 500,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertOk()
+            ->assertJson(['favorited' => true]);
+
+        $this->assertDatabaseHas('favorites', [
+            'ad_id' => $ad->id,
+            'region_id' => $this->city->id,
+            'user_id' => $this->user->id,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get('http://minsk.furniture.test/favorites')
+            ->assertOk()
+            ->assertSee('Избранный диван')
+            ->assertSee('Минск');
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertOk()
+            ->assertJson(['favorited' => false]);
+
+        $this->assertSame(0, Favorite::query()->count());
+    }
+
+    public function test_favorite_toggle_is_rate_limited_to_two_requests_per_second(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Лимитируемый диван',
+            'price' => 500,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertOk();
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertOk();
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($ad))
+            ->assertStatus(429);
+    }
+
+    public function test_favorites_above_250_drop_the_oldest_item(): void
+    {
+        $now = now();
+        $ads = [];
+
+        for ($i = 1; $i <= 250; $i++) {
+            $ads[] = [
+                'company_id' => $this->company->id,
+                'category_id' => $this->category->id,
+                'title' => 'Товар '.$i,
+                'number' => 'limit-'.$i,
+                'price' => 100,
+                'currency' => 'BYN',
+                'warranty_unit' => 'months',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        Ad::insert($ads);
+
+        $adIds = Ad::query()->orderBy('id')->pluck('id');
+        $oldestAdId = $adIds->first();
+
+        $favorites = $adIds->values()->map(fn ($adId, $index) => [
+            'ad_id' => $adId,
+            'region_id' => $this->city->id,
+            'user_id' => $this->user->id,
+            'visitor_token' => null,
+            'created_at' => $now->copy()->subMinutes(250 - $index),
+        ])->all();
+
+        Favorite::insert($favorites);
+
+        $newAd = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Новый товар',
+            'price' => 500,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson($this->favoriteUrl($newAd))
+            ->assertOk();
+
+        $this->assertSame(250, Favorite::query()->count());
+        $this->assertDatabaseMissing('favorites', ['ad_id' => $oldestAdId]);
+        $this->assertDatabaseHas('favorites', ['ad_id' => $newAd->id]);
+    }
+
+    private function favoriteUrl(Ad $ad): string
+    {
+        return 'http://minsk.furniture.test/favorites/'.$ad->id;
+    }
+
+    public function test_category_search_returns_matching_categories(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $this->get('http://minsk.furniture.test/categories/search?query=Див')
+            ->assertOk()
+            ->assertJsonCount(1, 'categories')
+            ->assertJsonPath('categories.0.name', 'Диваны')
+            ->assertJsonPath('categories.0.url', 'http://minsk.furniture.test/divany');
+
+        $filter = Filter::create([
+            'category_id' => $this->category->id,
+            'type' => 'checkbox',
+            'order' => 0,
+            'is_active' => true,
+        ]);
+        $variant = FilterVariant::create(['filter_id' => $filter->id, 'order' => 0]);
+        $variant->translations()->create([
+            'lang' => 'ru',
+            'name_in_filter' => 'Угловой',
+            'name_full' => 'Угловой диван',
+            'name_buy' => 'Купить угловой диван',
+            'slug' => 'uglovoy',
+            'is_active' => true,
+        ]);
+
+        $this->get('http://minsk.furniture.test/categories/search?query=Угловой')
+            ->assertOk()
+            ->assertJsonCount(0, 'categories')
+            ->assertJsonCount(1, 'filter_variants')
+            ->assertJsonPath('filter_variants.0.name_full', 'Угловой диван')
+            ->assertJsonPath('filter_variants.0.url', 'http://minsk.furniture.test/divany/uglovoy/');
+
+        $this->get('http://minsk.furniture.test/categories/search?query='.urlencode('диван Угловой'))
+            ->assertOk()
+            ->assertJsonCount(0, 'categories')
+            ->assertJsonCount(1, 'filter_variants')
+            ->assertJsonPath('filter_variants.0.name_full', 'Угловой диван');
+
+        $this->get('http://minsk.furniture.test/categories/search?query=zzz')
+            ->assertOk()
+            ->assertJsonCount(0, 'categories')
+            ->assertJsonCount(0, 'filter_variants');
+    }
+
+    public function test_variant_seo_uses_its_template_placeholders(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'name_buy' => 'Купить диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+        $filter = Filter::create([
+            'category_id' => $this->category->id,
+            'type' => 'checkbox',
+            'order' => 0,
+            'is_active' => true,
+        ]);
+        $variant = FilterVariant::create(['filter_id' => $filter->id, 'order' => 0]);
+        $variantTranslation = $variant->translations()->create([
+            'lang' => 'ru',
+            'name_in_filter' => 'Угловой',
+            'name_full' => 'Угловой диван',
+            'name_buy' => 'Купить угловой диван',
+            'slug' => 'uglovoy',
+            'is_active' => true,
+        ]);
+
+        $template = SeoTemplate::create(['name' => 'Угловые диваны']);
+        $template->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Угловые диваны',
+            'seo_title' => '{name} в {region_in}',
+            'seo_description' => '{name_buy} в {region_in}',
+            'seo_block' => '<p>{name_buy} — статья для {region_in}.</p>',
+        ]);
+        $variantTranslation->update(['seo_template_id' => $template->id]);
+
+        $secondVariant = FilterVariant::create(['filter_id' => $filter->id, 'order' => 1]);
+        $secondVariant->translations()->create([
+            'lang' => 'ru',
+            'name_in_filter' => 'Диван-шкаф',
+            'name_full' => 'Диван-шкаф',
+            'name_buy' => 'Купить диван-шкаф',
+            'slug' => 'divan-shkaf',
+            'is_active' => true,
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany/uglovoy/')
+            ->assertOk()
+            ->assertSee('угловой диван в Минске')
+            ->assertSee('купить угловой диван в Минске')
+            ->assertSee('купить угловой диван — статья для Минске.');
+
+        $this->get('http://minsk.furniture.test/divany/uglovoy;divan-shkaf/')
+            ->assertOk()
+            ->assertSee('Угловой диван, Диван-шкаф в Минске');
+    }
+
+    public function test_category_filter_variant_slug_filters_ads(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        $filter = Filter::create([
+            'category_id' => $this->category->id,
+            'type' => 'checkbox',
+            'order' => 0,
+            'is_active' => true,
+        ]);
+        $variant = FilterVariant::create(['filter_id' => $filter->id, 'order' => 0]);
+        $variant->translations()->create([
+            'lang' => 'ru',
+            'name_in_filter' => 'Угловой',
+            'name_full' => 'Угловой диван',
+            'name_buy' => 'Купить угловой диван',
+            'slug' => 'uglovoy',
+            'is_active' => true,
+        ]);
+
+        $matching = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Подходящий диван',
+            'description' => '<p>Описание</p>',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+        $matching->filterVariants()->create([
+            'filter_id' => $filter->id,
+            'filter_variant_id' => $variant->id,
+        ]);
+
+        Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Другой диван',
+            'description' => '<p>Описание</p>',
+            'price' => 200,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->get('http://minsk.furniture.test/divany/uglovoy/')
+            ->assertOk()
+            ->assertSee('Подходящий диван')
+            ->assertDontSee('Другой диван');
+    }
+
+    public function test_category_children_are_available_as_json(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+        $child = Category::create(['parent_id' => $this->category->id, 'is_active' => true]);
+        $child->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Угловые диваны',
+            'slug' => 'uglovye-divany',
+        ]);
+
+        $this->get('http://minsk.furniture.test/categories/'.$this->category->id.'/children')
+            ->assertOk()
+            ->assertJsonCount(1, 'categories')
+            ->assertJsonPath('categories.0.name', 'Угловые диваны')
+            ->assertJsonPath('categories.0.has_children', false);
     }
 
     public function test_account_language_is_saved_and_used(): void

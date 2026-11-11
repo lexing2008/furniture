@@ -91,12 +91,19 @@ class AdRequest extends FormRequest
             'article' => ['nullable', 'string', 'max:255'],
             'category_id' => ['required', 'integer'],
             'description' => [
-                'nullable',
+                'required',
                 'string',
                 function (string $attribute, mixed $value, Closure $fail): void {
-                    $text = html_entity_decode(strip_tags((string) $value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    $text = trim((string) preg_replace(
+                        '/\s+/u',
+                        ' ',
+                        html_entity_decode(strip_tags((string) $value), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    ));
+                    $length = mb_strlen($text);
 
-                    if (mb_strlen($text) > 15000) {
+                    if ($length < 20) {
+                        $fail(__('Описание должно содержать не менее :min символов без учёта HTML-тегов.', ['min' => 20]));
+                    } elseif ($length > 15000) {
                         $fail(__('Описание не должно быть длиннее :max символов без учёта HTML-тегов.', ['max' => 15000]));
                     }
                 },
@@ -222,12 +229,12 @@ class AdRequest extends FormRequest
      */
     public function currency(): ?string
     {
-        return $this->country()?->countryData?->currency;
+        return $this->country()?->cachedCountryData()?->currency;
     }
 
     public function currencyDecimals(): int
     {
-        return (int) ($this->country()?->countryData?->currency_decimals ?? 2);
+        return (int) ($this->country()?->cachedCountryData()?->currency_decimals ?? 2);
     }
 
     /**
@@ -314,7 +321,8 @@ class AdRequest extends FormRequest
     private function country(): ?Region
     {
         $company = $this->company();
-        $region = Region::fromHost($this->getHost()) ?? $company->region;
+        $region = $this->route('region');
+        $region = $region instanceof Region ? $region : $company->region;
 
         return $region?->root() ?? $company->country;
     }

@@ -53,7 +53,7 @@ return [
         'seo' => [
             'Core.Encoding' => 'utf-8',
             'HTML.Doctype' => 'HTML 4.01 Transitional',
-            'HTML.Allowed' => 'p,h3,h4,h5,b,strong,i,em,br,ul,ol,li,table,caption,thead,tbody,tfoot,tr,th[colspan|rowspan],td[colspan|rowspan]',
+            'HTML.Allowed' => 'p,h2,h3,h4,h5,b,strong,i,em,br,ul,ol,li,table,caption,thead,tbody,tfoot,tr,th[colspan|rowspan],td[colspan|rowspan]',
             'CSS.AllowedProperties' => '',
             'AutoFormat.AutoParagraph' => false,
             'AutoFormat.RemoveEmpty' => false,
@@ -61,6 +61,16 @@ return [
 
         // Company description. Bold and italic are only <b> and <i>: see App\Casts\PurifiedHtml
         'company' => [
+            'Core.Encoding' => 'utf-8',
+            'HTML.Doctype' => 'HTML 4.01 Transitional',
+            'HTML.Allowed' => 'p,h2,h3,h4,h5,b,i,ul,ol,li,table,caption,thead,tbody,tfoot,tr,th[colspan|rowspan],td[colspan|rowspan]',
+            'CSS.AllowedProperties' => '',
+            'AutoFormat.AutoParagraph' => false,
+            'AutoFormat.RemoveEmpty' => false,
+        ],
+
+        // Ad/service descriptions keep the company rules, but H2 is not available there.
+        'ad' => [
             'Core.Encoding' => 'utf-8',
             'HTML.Doctype' => 'HTML 4.01 Transitional',
             'HTML.Allowed' => 'p,h3,h4,h5,b,i,ul,ol,li,table,caption,thead,tbody,tfoot,tr,th[colspan|rowspan],td[colspan|rowspan]',

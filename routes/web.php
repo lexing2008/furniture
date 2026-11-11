@@ -13,13 +13,18 @@ use App\Http\Controllers\Account\CompanyGeneralController;
 use App\Http\Controllers\Account\CompanyPaymentController;
 use App\Http\Controllers\Account\CompanyRegistrationController;
 use App\Http\Controllers\Account\CompanyScheduleController;
-use App\Http\Controllers\Account\LanguageController;
 use App\Http\Controllers\Account\CompanySocialsController;
+use App\Http\Controllers\Account\LanguageController;
 use App\Http\Controllers\Account\PasswordController;
+use App\Http\Controllers\AdGalleryController;
+use App\Http\Controllers\CompanyInfoController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\RegionCategoryController;
 use App\Http\Controllers\RegionPageController;
+use App\Http\Controllers\RegionPopupController;
 use App\Http\Middleware\HandleInertiaAccountRequests;
-use App\Http\Middleware\SetLocaleFromUser;
 use App\Http\Middleware\HandleInertiaAdminRequests;
+use App\Http\Middleware\SetLocaleFromUser;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -73,6 +78,7 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
         Route::put('ads/{ad}', [AdController::class, 'update'])->name('account.ads.update');
         Route::patch('ads/{ad}/price', [AdController::class, 'updatePrice'])->name('account.ads.price.update');
         Route::patch('ads/{ad}/actualize', [AdController::class, 'actualize'])->name('account.ads.actualize');
+        Route::patch('ads/{ad}/active', [AdController::class, 'toggleActive'])->name('account.ads.active.update');
 
         // General information about the company
         Route::get('general', [CompanyGeneralController::class, 'edit'])->name('account.general');
@@ -106,6 +112,34 @@ Route::domain('{region}.'.config('app.domain'))->group(function () {
             ->name('account.logout');
     });
     // - - - end Account
+
+    Route::get('categories/search', [RegionCategoryController::class, 'searchCategories'])
+        ->name('region.categories.search');
+
+    Route::get('regions/popup', [RegionPopupController::class, 'show'])
+        ->name('region.popup');
+
+    Route::get('companies/{company}/info/{type}', [CompanyInfoController::class, 'show'])
+        ->name('region.company.info');
+
+    Route::get('ads/{ad}/gallery', [AdGalleryController::class, 'show'])
+        ->name('region.ad.gallery');
+
+    Route::get('favorites', [FavoriteController::class, 'index'])
+        ->name('favorites.index');
+    Route::post('favorites/{ad}', [FavoriteController::class, 'toggle'])
+        ->middleware('throttle:favorite-toggle')
+        ->name('favorites.toggle');
+
+    // Placeholder category page and lazy-loaded category menu.
+    Route::get('categories/{category}/children', [RegionCategoryController::class, 'children'])
+        ->whereNumber('category')
+        ->name('region.category.children');
+
+    Route::get('/{categorySlug}/{filterSlugs?}', [RegionCategoryController::class, 'show'])
+        ->where('categorySlug', '[a-z0-9-]+')
+        ->where('filterSlugs', '[a-z0-9;-]+')
+        ->name('region.category');
 });
 
 Route::get('/', function () {

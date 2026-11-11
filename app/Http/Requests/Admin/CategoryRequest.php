@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Models\Category;
 use App\Support\Slug;
 use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -12,7 +13,7 @@ use Illuminate\Validation\Validator;
 /**
  * Store and update of a category.
  *
- * translations: [{lang, name, slug, seo_template_id, seo_title, seo_description, seo_block}, ...]
+ * translations: [{lang, name, menu_name, name_buy, slug, seo_template_id, seo_title, seo_description, seo_block}, ...]
  * A language block with an empty name means "no translation for this language".
  */
 class CategoryRequest extends FormRequest
@@ -29,12 +30,14 @@ class CategoryRequest extends FormRequest
                 $translation = is_array($translation) ? $translation : [];
                 $name = trim((string) ($translation['name'] ?? ''));
                 $menuName = trim((string) ($translation['menu_name'] ?? ''));
+                $nameBuy = trim((string) ($translation['name_buy'] ?? ''));
                 $slug = trim((string) ($translation['slug'] ?? ''));
 
                 return [
                     ...$translation,
                     'name' => $name,
                     'menu_name' => $menuName,
+                    'name_buy' => $nameBuy,
                     // Slug transliterates Cyrillic: "Мягкая мебель" -> "myagkaya-mebel"
                     'slug' => Slug::make($slug !== '' ? $slug : $name),
                     // The select sends "" for "no template"
@@ -52,7 +55,7 @@ class CategoryRequest extends FormRequest
     }
 
     /**
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -74,6 +77,7 @@ class CategoryRequest extends FormRequest
 
             $rules["translations.{$index}.name"] = $filled ? ['string', 'max:255'] : ['nullable'];
             $rules["translations.{$index}.menu_name"] = ['nullable', 'string', 'max:255'];
+            $rules["translations.{$index}.name_buy"] = ['nullable', 'string', 'max:255'];
 
             $rules["translations.{$index}.slug"] = $filled
                 ? [

@@ -16,12 +16,14 @@ interface Country {
     phone_code: string;
     currency: string;
     currency_decimals: number;
+    tax_id_label: string;
 }
 
 interface CountryFormData {
     phone_code: string;
     currency: string;
     currency_decimals: number;
+    tax_id_label: string;
 }
 
 const props = defineProps<{
@@ -32,6 +34,7 @@ const form = useForm<CountryFormData>({
     phone_code: props.country.phone_code,
     currency: props.country.currency,
     currency_decimals: props.country.currency_decimals,
+    tax_id_label: props.country.tax_id_label,
 });
 
 const submit = () => {
@@ -98,6 +101,20 @@ const hint = 'mt-1 text-xs text-gray-500';
                     />
                     <p :class="hint">Например, 2 для BYN.</p>
                     <InputError class="mt-2" :message="form.errors.currency_decimals" />
+                </div>
+
+                <div>
+                    <InputLabel for="tax_id_label" value="Название налогового номера" />
+                    <TextInput
+                        id="tax_id_label"
+                        type="text"
+                        class="mt-1 block w-full md:w-72"
+                        v-model="form.tax_id_label"
+                        maxlength="50"
+                        placeholder="ИНН или УНП"
+                    />
+                    <p :class="hint">Например, ИНН для России или УНП для Беларуси.</p>
+                    <InputError class="mt-2" :message="form.errors.tax_id_label" />
                 </div>
 
                 <div class="flex items-center gap-4">

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\MenuCategoryService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['parent_id', 'seo_template_id', 'is_active', 'order'])]
 class Category extends Model
 {
+    protected static function booted(): void
+    {
+        static::saved(fn () => MenuCategoryService::clear());
+        static::deleted(fn () => MenuCategoryService::clear());
+    }
+
     protected function casts(): array
     {
         return [

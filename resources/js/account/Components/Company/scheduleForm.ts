@@ -11,6 +11,7 @@ export interface ScheduleDay {
 export interface ScheduleException {
     date: string;
     name: string;
+    is_expired?: boolean;
 }
 
 export interface ScheduleFormData {

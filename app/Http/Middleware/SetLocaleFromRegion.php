@@ -17,7 +17,8 @@ class SetLocaleFromRegion
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->is('admin', 'admin/*')) {
-            $region = Region::fromHost($request->getHost());
+            $region = $request->route('region');
+            $region = $region instanceof Region ? $region : null;
             $locale = $region?->language() ?? $region?->fallbackLanguage();
             $supported = config('app.supported_locales', ['ru', 'en']);
 

@@ -132,6 +132,7 @@ class AdTest extends TestCase
         $this->assertStringEndsWith('.webp', $tmp->path);
         Storage::disk('public')->assertExists($tmp->path);
         Storage::disk('public')->assertExists(AdImagePath::medium($tmp->path));
+        Storage::disk('public')->assertExists(AdImagePath::listing($tmp->path));
         Storage::disk('public')->assertExists(AdImagePath::small($tmp->path));
 
         [$imageWidth, $imageHeight] = getimagesize(Storage::disk('public')->path($tmp->path));
@@ -142,6 +143,10 @@ class AdTest extends TestCase
         $this->assertLessThanOrEqual(630, $mediumWidth);
         $this->assertLessThanOrEqual(467, $mediumHeight);
 
+        [$listingWidth, $listingHeight] = getimagesize(Storage::disk('public')->path(AdImagePath::listing($tmp->path)));
+        $this->assertLessThanOrEqual(325, $listingWidth);
+        $this->assertLessThanOrEqual(237, $listingHeight);
+
         [$smallWidth, $smallHeight] = getimagesize(Storage::disk('public')->path(AdImagePath::small($tmp->path)));
         $this->assertLessThanOrEqual(100, $smallWidth);
         $this->assertLessThanOrEqual(100, $smallHeight);
@@ -151,7 +156,7 @@ class AdTest extends TestCase
             'number' => 'SKU-1',
             'article' => 'ART-1',
             'category_id' => $this->category->id,
-            'description' => 'Удобный диван',
+            'description' => 'Описание товара для теста',
             'price' => '1999.90',
             'warranty_value' => 12,
             'warranty_unit' => 'months',
@@ -197,11 +202,26 @@ class AdTest extends TestCase
             AdImagePath::medium($image->path),
         );
         $this->assertSame(
+            'furniture/manual/divany/325/divan-oslo.'.$image->uuid.'.webp',
+            AdImagePath::listing($image->path),
+        );
+        $this->assertSame(
             'furniture/manual/divany/100/divan-oslo.'.$image->uuid.'.webp',
             AdImagePath::small($image->path),
         );
         Storage::disk('public')->assertExists(AdImagePath::medium($image->path));
+        Storage::disk('public')->assertExists(AdImagePath::listing($image->path));
         Storage::disk('public')->assertExists(AdImagePath::small($image->path));
+
+        $image->refresh();
+        $this->assertSame($imageWidth, $image->width);
+        $this->assertSame($imageHeight, $image->height);
+        $this->assertSame($mediumWidth, $image->thumb_630_width);
+        $this->assertSame($mediumHeight, $image->thumb_630_height);
+        $this->assertSame($listingWidth, $image->thumb_325_width);
+        $this->assertSame($listingHeight, $image->thumb_325_height);
+        $this->assertSame($smallWidth, $image->thumb_100_width);
+        $this->assertSame($smallHeight, $image->thumb_100_height);
 
         $this->actingAs($this->user)
             ->get($this->url("/ads/{$ad->id}/edit"))
@@ -341,7 +361,7 @@ class AdTest extends TestCase
                 'number' => '<i>SKU-10</i>',
                 'article' => '<span>ART-10</span>',
                 'category_id' => $this->category->id,
-                'description' => '<p>Описание</p>',
+                'description' => '<h2>Заголовок H2</h2><p>Описание</p>',
                 'price' => '100',
                 'warranty_value' => null,
                 'warranty_unit' => 'months',
@@ -360,7 +380,36 @@ class AdTest extends TestCase
         $this->assertSame('Диван', $ad->title);
         $this->assertSame('SKU-10', $ad->number);
         $this->assertSame('ART-10', $ad->article);
-        $this->assertSame('<p>Описание</p>', $ad->description);
+        $this->assertStringNotContainsString('<h2>', $ad->description);
+        $this->assertStringContainsString('Заголовок H2', $ad->description);
+        $this->assertStringContainsString('<p>Описание</p>', $ad->description);
+    }
+
+    public function test_ad_description_is_required_and_has_a_minimum_plain_text_length(): void
+    {
+        $payload = [
+            'title' => 'Без описания',
+            'number' => null,
+            'category_id' => $this->category->id,
+            'description' => '<p></p>',
+            'price' => '100',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'video' => null,
+            'regions' => [$this->city->id],
+            'filters' => [],
+            'existing_images' => [],
+            'new_images' => [],
+            'deleted_image_ids' => [],
+        ];
+
+        $this->actingAs($this->user)
+            ->post($this->url('/ads'), $payload)
+            ->assertSessionHasErrors('description');
+
+        $this->actingAs($this->user)
+            ->post($this->url('/ads'), [...$payload, 'description' => '<p>Короткий текст</p>'])
+            ->assertSessionHasErrors('description');
     }
 
     public function test_ad_name_slug_is_transliterated_and_limited(): void
@@ -410,7 +459,7 @@ class AdTest extends TestCase
             'title' => 'Без номера',
             'number' => '',
             'category_id' => $this->category->id,
-            'description' => '',
+            'description' => 'Описание товара для теста',
             'price' => '10',
             'warranty_value' => null,
             'warranty_unit' => 'months',
@@ -454,7 +503,7 @@ class AdTest extends TestCase
                 'number' => null,
                 'article' => null,
                 'category_id' => $this->category->id,
-                'description' => '',
+                'description' => 'Описание товара для теста',
                 'price' => '100',
                 'warranty_value' => null,
                 'warranty_unit' => 'months',
@@ -568,7 +617,7 @@ class AdTest extends TestCase
             'category_id' => $this->category->id,
             'title' => 'Диван',
             'number' => 'MOD-1',
-            'description' => '<p>Описание</p>',
+            'description' => '<p>Описание товара для теста</p>',
             'price' => 100,
             'currency' => 'BYN',
             'warranty_value' => null,
@@ -580,7 +629,7 @@ class AdTest extends TestCase
             'title' => 'Диван',
             'number' => 'MOD-1',
             'category_id' => $this->category->id,
-            'description' => '<p>Описание</p>',
+            'description' => '<p>Описание товара для теста</p>',
             'price' => '120',
             'warranty_value' => null,
             'warranty_unit' => 'months',
@@ -742,7 +791,7 @@ class AdTest extends TestCase
             'title' => 'Угловой диван',
             'number' => 'SKU-RADIO',
             'category_id' => $this->category->id,
-            'description' => '',
+            'description' => 'Описание товара для теста',
             'price' => '100',
             'warranty_value' => null,
             'warranty_unit' => 'months',
@@ -793,7 +842,7 @@ class AdTest extends TestCase
                 'title' => 'Стол',
                 'number' => 'SKU-2',
                 'category_id' => $this->category->id,
-                'description' => '',
+                'description' => 'Описание товара для теста',
                 'price' => '100',
                 'warranty_value' => 1,
                 'warranty_unit' => 'years',
@@ -857,6 +906,36 @@ class AdTest extends TestCase
     private function url(string $path): string
     {
         return 'http://minsk.furniture.test/account'.$path;
+    }
+
+    public function test_ad_can_be_disabled_and_enabled_from_the_list(): void
+    {
+        $ad = Ad::create([
+            'company_id' => $this->company->id,
+            'category_id' => $this->category->id,
+            'title' => 'Переключаемый товар',
+            'price' => 100,
+            'currency' => 'BYN',
+            'warranty_value' => null,
+            'warranty_unit' => 'months',
+            'is_active' => true,
+            'is_banned' => false,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url('/ads/'.$ad->id.'/active'))
+            ->assertOk()
+            ->assertJson(['is_active' => false]);
+
+        $this->assertFalse($ad->fresh()->is_active);
+
+        $this->actingAs($this->user)
+            ->patchJson($this->url('/ads/'.$ad->id.'/active'))
+            ->assertOk()
+            ->assertJson(['is_active' => true]);
+
+        $this->assertTrue($ad->fresh()->is_active);
     }
 
     /**
