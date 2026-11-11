@@ -76,6 +76,44 @@ class Region extends Model
         return $this->belongsTo(self::class, 'parent_id');
     }
 
+    /**
+     * Parent region from the cache or from the already loaded relation.
+     */
+    public function cachedParent(): ?self
+    {
+        if ($this->relationLoaded('parent')) {
+            return $this->getRelation('parent');
+        }
+
+        if ($this->parent_id === null) {
+            return null;
+        }
+
+        $ttl = now()->addWeek();
+        $cache = RegionCacheKeys::store();
+        $attributes = $cache->get(RegionCacheKeys::model($this->parent_id));
+
+        if (is_array($attributes)) {
+            $parent = (new self)->newFromBuilder($attributes);
+            $this->setRelation('parent', $parent);
+
+            return $parent;
+        }
+
+        $parent = self::query()->whereKey($this->parent_id)->first();
+
+        if ($parent === null) {
+            $this->setRelation('parent', null);
+
+            return null;
+        }
+
+        RegionCacheKeys::putRegion($parent, $ttl);
+        $this->setRelation('parent', $parent);
+
+        return $parent;
+    }
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(self::class, 'country_id');
@@ -114,7 +152,7 @@ class Region extends Model
 
     public function isCity(): bool
     {
-        return $this->parent_id !== null && $this->parent?->parent_id !== null;
+        return $this->parent_id !== null && $this->cachedParent()?->parent_id !== null;
     }
 
     /**
@@ -227,7 +265,7 @@ class Region extends Model
         $region = $this;
 
         while ($region->parent_id !== null) {
-            $region = $region->parent;
+            $region = $region->cachedParent();
         }
 
         return $region;
@@ -242,7 +280,7 @@ class Region extends Model
         }
 
         while ($region !== null) {
-            $region = $region->parent;
+            $region = $region->cachedParent();
             if ($region?->timezone) {
                 return $region->timezone;
             }
@@ -272,7 +310,7 @@ class Region extends Model
      */
     public function isAvailable(): bool
     {
-        for ($region = $this; $region !== null; $region = $region->parent) {
+        for ($region = $this; $region !== null; $region = $region->cachedParent()) {
             if (! $region->is_active) {
                 return false;
             }

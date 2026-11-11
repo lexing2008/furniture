@@ -64,6 +64,7 @@ Laravel
 Ключевые методы `Region`:
 
 - `{region}` — route-параметр, привязанный к модели через `Route::bind('region')`;
+- `cachedParent()` — родитель из кэша `region:{id}` с регистрацией `region:domain:{subdomain}`;
 - `root()` — страна;
 - `language()` — язык страны;
 - `fallbackLanguage()` — резервный язык страны;

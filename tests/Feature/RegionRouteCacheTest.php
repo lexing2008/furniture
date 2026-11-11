@@ -91,6 +91,66 @@ class RegionRouteCacheTest extends TestCase
         );
     }
 
+    public function test_cached_parent_is_cached_by_id_and_registers_its_subdomain(): void
+    {
+        $area = $this->city->cachedParent();
+
+        $this->assertSame($this->area->id, $area?->id);
+        $this->assertTrue($this->regionCache()->has('region:'.$this->area->id));
+        $this->assertSame(
+            'region:'.$this->area->id,
+            $this->regionCache()->get('region:domain:brest-region'),
+        );
+
+        $country = $area?->cachedParent();
+
+        $this->assertSame($this->country->id, $country?->id);
+        $this->assertTrue($this->regionCache()->has('region:'.$this->country->id));
+        $this->assertSame(
+            'region:'.$this->country->id,
+            $this->regionCache()->get('region:domain:belarus'),
+        );
+    }
+
+    public function test_cached_parent_uses_the_cache_for_a_new_model_instance(): void
+    {
+        $this->city->cachedParent();
+
+        $freshCity = Region::query()->findOrFail($this->city->id);
+
+        DB::enableQueryLog();
+        $parent = $freshCity->cachedParent();
+        $queries = collect(DB::getQueryLog())->pluck('query');
+
+        $this->assertSame($this->area->id, $parent?->id);
+        $this->assertCount(
+            0,
+            $queries->filter(fn (string $query) => str_contains($query, 'from "regions"')),
+        );
+    }
+
+    public function test_cached_parent_cache_is_forgotten_when_the_parent_changes(): void
+    {
+        $this->city->cachedParent();
+
+        $this->assertTrue($this->regionCache()->has('region:'.$this->area->id));
+        $this->assertTrue($this->regionCache()->has('region:domain:brest-region'));
+
+        $this->area->update(['name' => 'Брестская область 2']);
+
+        $this->assertFalse($this->regionCache()->has('region:'.$this->area->id));
+        $this->assertFalse($this->regionCache()->has('region:domain:brest-region'));
+    }
+
+    public function test_root_warms_the_parent_cache(): void
+    {
+        $root = $this->city->root();
+
+        $this->assertSame($this->country->id, $root->id);
+        $this->assertTrue($this->regionCache()->has('region:'.$this->area->id));
+        $this->assertTrue($this->regionCache()->has('region:'.$this->country->id));
+    }
+
     public function test_region_cache_is_forgotten_when_the_subdomain_changes(): void
     {
         $this->get('http://brest.furniture.test/')->assertOk();

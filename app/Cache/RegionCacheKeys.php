@@ -3,7 +3,9 @@
 namespace App\Cache;
 
 use App\Models\Region;
+use DateTimeInterface;
 use Illuminate\Cache\TaggableStore;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 
 class RegionCacheKeys
@@ -15,6 +17,16 @@ class RegionCacheKeys
     private const MODEL_PREFIX = 'region:';
 
     private const DOMAIN_PREFIX = 'region:domain:';
+
+    /**
+     * Cache repository that stores region entries: tagged where the store supports tags.
+     */
+    public static function store(): Repository
+    {
+        return Cache::getStore() instanceof TaggableStore
+            ? Cache::tags([self::TAG])
+            : Cache::store();
+    }
 
     public static function version(): int
     {
@@ -42,6 +54,26 @@ class RegionCacheKeys
     public static function idFromModelKey(string $key): int
     {
         return (int) substr($key, strlen(self::MODEL_PREFIX));
+    }
+
+    /**
+     * Caches the region attributes by id and links its subdomain to that cache key.
+     *
+     * @return string The region model cache key ("region:12").
+     */
+    public static function putRegion(Region $region, ?DateTimeInterface $ttl = null): string
+    {
+        $ttl ??= now()->addWeek();
+        $cache = self::store();
+        $key = self::model($region);
+
+        $cache->put($key, $region->getAttributes(), $ttl);
+
+        if (filled($region->subdomain)) {
+            $cache->put(self::domain($region->subdomain), $key, $ttl);
+        }
+
+        return $key;
     }
 
     /**

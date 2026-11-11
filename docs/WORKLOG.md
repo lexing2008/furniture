@@ -11,11 +11,12 @@
 - `region:domain:{subdomain}` хранит ключ модели (`region:{id}`), а `region:{id}` — атрибуты региона; на холодном кэше регион ищется одним запросом к БД.
 - Оба ключа входят в тег `regions`; события `saved`/`deleted` модели `Region` сбрасывают кэш (для нетэгируемых хранилищ — точечно, включая старый subdomain).
 - Ключи и инвалидация вынесены в `App\Cache\RegionCacheKeys`.
+- `Region::cachedParent()` читает родителя из `region:{parent_id}`; при промахе кэширует его и регистрирует `region:domain:{parent_subdomain}`. `root()`, `getTimezone()` и `isAvailable()` переведены на `cachedParent()`, eager load `parent.parent` убран.
 - Для локальных замеров добавлен `GET /test/cache-benchmark` с `Benchmark::measure` (только `local`/`testing`).
 
 **Проверка**
 
-- `php artisan test`: 85 passed, 1031 assertions.
+- `php artisan test`: 89 passed, 1046 assertions.
 - `pint`: OK.
 
 ---

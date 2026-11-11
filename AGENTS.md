@@ -127,6 +127,7 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 
 - Region приходит из route-параметра `{region}`, привязанного через `Route::bind('region')`; страна доступна через scoped-сервис `App\Services\CurrentCountry`; `countryData` читается через `Region::cachedCountryData()`.
 - Привязка региона кэшируется: `region:domain:{subdomain}` хранит ключ `region:{id}`, а `region:{id}` — атрибуты модели; кэш лежит в теге `regions` и сбрасывается при сохранении/удалении региона (`RegionCacheKeys::forgetRegion()`; для нетэгируемых хранилищ — точечно).
+- `Region::cachedParent()` берёт родителя из `region:{parent_id}`, при промахе кэширует его и регистрирует `region:domain:{parent_subdomain}`; `root()`, `getTimezone()` и `isAvailable()` используют `cachedParent()`.
 - `Region::root()` возвращает страну.
 - `Region::language()` возвращает `regions.lang` страны.
 - `Region::fallbackLanguage()` возвращает необязательный `regions.fallback_lang` страны.
@@ -392,7 +393,7 @@ php artisan tmp-files:clean
 
 ## 16. Текущий baseline
 
-- Тесты: **85 passed, 1031 assertions**.
+- Тесты: **89 passed, 1046 assertions**.
 - `vue-tsc` и `npm run build` проходят.
 - Laravel Debugbar установлен в `require-dev`; включается только вне `production`.
 - Последние крупные изменения: локализация сайта/кабинета, разделы компании, часовые пояса, расписание, доставка/оплата, страны и валюты, товары/услуги, изображения и миниатюры, копирование товара, WYSIWYG-описание, выбор всех регионов, модерация.

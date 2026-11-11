@@ -8,9 +8,7 @@ use App\Services\CurrentCountry;
 use App\Services\MenuCategoryService;
 use App\Services\RegionService;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Cache\TaggableStore;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -110,29 +108,19 @@ class AppServiceProvider extends ServiceProvider
     private function regionBySubdomain(string $subdomain): Region
     {
         $ttl = now()->addWeek();
+        $cache = RegionCacheKeys::store();
 
-        // Tagged stores drop all region entries at once; other stores are forgotten by model events.
-        $cache = Cache::getStore() instanceof TaggableStore
-            ? Cache::tags([RegionCacheKeys::TAG])
-            : Cache::store();
+        $regionKey = $cache->get(RegionCacheKeys::domain($subdomain));
 
-        $regionKey = $cache->remember(
-            RegionCacheKeys::domain($subdomain),
-            $ttl,
-            function () use ($cache, $subdomain, $ttl): string {
-                $region = Region::query()
-                    ->where('subdomain', $subdomain)
-                    ->where('is_active', true)
-                    ->firstOrFail();
+        if (! is_string($regionKey)) {
+            $region = Region::query()
+                ->where('subdomain', $subdomain)
+                ->where('is_active', true)
+                ->firstOrFail();
 
-                $regionKey = RegionCacheKeys::model($region);
-
-                // Put the model right away so the lookup below doesn't query the database again.
-                $cache->put($regionKey, $region->getAttributes(), $ttl);
-
-                return $regionKey;
-            },
-        );
+            // Stores "region:{id}" and links "region:domain:{subdomain}" to it.
+            $regionKey = RegionCacheKeys::putRegion($region, $ttl);
+        }
 
         $attributes = $cache->remember(
             $regionKey,
