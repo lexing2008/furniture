@@ -52,7 +52,6 @@ class RegionCategoryController extends Controller
             ?? $category->load('translations');
 
         $categoryIds = $this->categoryIdsWithDescendants($category);
-        $favoriteIds = $favoriteService->adIds();
         $filters = $filterService->forCategory($category->id, null, $locale);
         $filterValues = $request->input('filters', []);
         $filterValues = is_array($filterValues) ? $filterValues : [];
@@ -169,6 +168,7 @@ class RegionCategoryController extends Controller
         };
 
         $ads = $adsQuery->paginate($perPage)->withQueryString();
+        $favoriteIds = $ads->isNotEmpty() ? $favoriteService->adIds() : collect();
 
         $perPageUrls = [];
 
