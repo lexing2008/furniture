@@ -5,15 +5,24 @@ namespace App\Services;
 use App\Cache\RegionCacheKeys;
 use App\Models\Region;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 
 class RegionService
 {
+    /** @var array<int, Collection<int, array{region: Region, cities: Collection<int, Region>}>> */
+    private array $areasWithCities = [];
+
+    /** @var array<int, Collection<int, Region>> */
+    private array $capitalCities = [];
+
     public function getAreasWithCities(Region $country): Collection
     {
+        if (isset($this->areasWithCities[$country->id])) {
+            return $this->areasWithCities[$country->id];
+        }
+
         $key = RegionCacheKeys::countryAreas($country);
 
-        $rawTree = Cache::remember($key, now()->addWeek(), function () use ($country) {
+        $rawTree = RegionCacheKeys::store()->remember($key, now()->addWeek(), function () use ($country) {
             $areas = Region::query()
                 ->where('country_id', $country->id)
                 ->where('parent_id', $country->id)
@@ -42,7 +51,7 @@ class RegionService
             ])->all();
         });
 
-        return collect($rawTree)->map(function ($item) {
+        return $this->areasWithCities[$country->id] = collect($rawTree)->map(function ($item) {
             $regionModel = (new Region)->newFromBuilder($item['region']);
             $citiesCollection = collect($item['cities'])->map(
                 fn ($cityArray) => (new Region)->newFromBuilder($cityArray),
@@ -57,26 +66,34 @@ class RegionService
 
     public function getCapitalCities(Region $country): Collection
     {
+        if (isset($this->capitalCities[$country->id])) {
+            return $this->capitalCities[$country->id];
+        }
+
         $key = RegionCacheKeys::countryCapitals($country);
 
-        $rawCities = Cache::remember($key, now()->addWeek(), function () use ($country) {
+        $rawCities = RegionCacheKeys::store()->remember($key, now()->addWeek(), function () use ($country) {
             return Region::query()
+                ->select(['id', 'subdomain', 'name', 'name_in', 'name_en'])
                 ->where('country_id', $country->id)
                 ->where('is_capital', true)
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get()
-                ->map(fn (Region $city) => $city->toArray())
+                ->map(fn (Region $city) => $city->only(['id', 'subdomain', 'name', 'name_in', 'name_en']))
                 ->all();
         });
 
-        return collect($rawCities)->map(
+        return $this->capitalCities[$country->id] = collect($rawCities)->map(
             fn (array $city) => (new Region)->newFromBuilder($city),
         );
     }
 
     public function forgetCache(): void
     {
-        RegionCacheKeys::bumpVersion();
+        $this->areasWithCities = [];
+        $this->capitalCities = [];
+
+        RegionCacheKeys::flush();
     }
 }

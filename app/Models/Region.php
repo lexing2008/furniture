@@ -4,14 +4,12 @@ namespace App\Models;
 
 use App\Cache\RegionCacheKeys;
 use App\Casts\PurifiedHtml;
-use Illuminate\Cache\TaggableStore;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Country (parent_id = null) -> area -> city.
@@ -141,13 +139,20 @@ class Region extends Model
         $ttl = now()->addMonth();
         $callback = fn () => $this->countryData?->getAttributes();
 
-        $attributes = Cache::getStore() instanceof TaggableStore
-            ? Cache::tags(['regions', "region.{$this->id}"])->remember('country-data', $ttl, $callback)
-            : Cache::remember(RegionCacheKeys::countryData($this), $ttl, $callback);
+        $attributes = RegionCacheKeys::store()->remember(
+            RegionCacheKeys::countryData($this),
+            $ttl,
+            $callback,
+        );
 
-        return $attributes === null
+        $countryData = $attributes === null
             ? null
             : (new RegionCountry)->newFromBuilder($attributes);
+
+        // Keep the value on the model so repeated calls in the same request don't hit the cache again.
+        $this->setRelation('countryData', $countryData);
+
+        return $countryData;
     }
 
     public function isCity(): bool

@@ -58,16 +58,16 @@ class Filter extends Model
     {
         $translation = $this->translations->firstWhere('lang', $lang)
             ?? $this->translations->firstWhere('lang', self::BASE_LANG)
-            ?? $this->baseTranslation;
+            ?? $this->translations->first();
 
-        return $translation?->name ?? $this->displayName();
+        return $translation?->name ?? "#{$this->id}";
     }
 
     public function unitIn(?string $lang): ?string
     {
         $translation = $this->translations->firstWhere('lang', $lang)
             ?? $this->translations->firstWhere('lang', self::BASE_LANG)
-            ?? $this->baseTranslation;
+            ?? $this->translations->first();
 
         return $translation?->unit;
     }

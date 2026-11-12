@@ -13,6 +13,10 @@
 
         <!-- Scripts -->
         @routes
+        {{-- В dev Vite вставляет CSS из app.ts после JS — подключаем заранее, чтобы не было FOUC. --}}
+        @if (Vite::isRunningHot())
+            @vite('resources/css/account.css')
+        @endif
         @vite(['resources/js/web.js'])
         @vite(['resources/js/account/app.ts', "resources/js/account/Pages/{$page['component']}.vue"])
         @inertiaHead
@@ -21,7 +25,8 @@
 
         @include('layouts.partials._header')
 
-        <main class="grow">
+        {{-- Резервируем высоту формы входа, чтобы футер не прыгал до монтирования Inertia. --}}
+        <main @class(['grow', 'min-h-[45rem]' => request()->routeIs('account.login')])>
             @inertia
         </main>
 

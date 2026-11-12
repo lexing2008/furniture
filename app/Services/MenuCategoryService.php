@@ -17,12 +17,27 @@ class MenuCategoryService
 {
     private const CACHE_PREFIX = 'menu_categories:v3:';
 
+    /** @var array<string, Collection<int, array{id: int, name: string, menu_name: string, slug: string, has_children: bool}>> */
+    private array $items = [];
+
     /**
      * @return Collection<int, array{id: int, name: string, menu_name: string, slug: string, has_children: bool}>
      */
     public static function forLocale(?string $locale = null): Collection
     {
+        return app(self::class)->itemsForLocale($locale);
+    }
+
+    /**
+     * @return Collection<int, array{id: int, name: string, menu_name: string, slug: string, has_children: bool}>
+     */
+    public function itemsForLocale(?string $locale = null): Collection
+    {
         $locale ??= app()->getLocale();
+
+        if (isset($this->items[$locale])) {
+            return $this->items[$locale];
+        }
 
         $items = Cache::remember(
             self::cacheKey($locale),
@@ -61,7 +76,7 @@ class MenuCategoryService
         );
 
         // File cache is not allowed to unserialize classes; keep arrays in the cache.
-        return collect($items);
+        return $this->items[$locale] = collect($items);
     }
 
     /**
@@ -72,6 +87,15 @@ class MenuCategoryService
         foreach (Language::query()->pluck('code') as $locale) {
             Cache::forget(self::cacheKey((string) $locale));
         }
+
+        if (app()->resolved(self::class)) {
+            app(self::class)->forgetMemo();
+        }
+    }
+
+    public function forgetMemo(): void
+    {
+        $this->items = [];
     }
 
     private static function cacheKey(string $locale): string

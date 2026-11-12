@@ -5,6 +5,83 @@
 
 ---
 
+## 2026-11-11 — фикс прыжка страницы входа
+
+- В `guest.blade.php` CSS подключается заранее при запущенном Vite (`Vite::isRunningHot()`), чтобы не было FOUC: в dev CSS из `app.ts` вставлялся после JS.
+- Для `account.login` у `main` зарезервирована высота `min-h-[45rem]`, чтобы футер не прыгал до монтирования Inertia.
+- Проверено headless Chrome: до фикса два layout shift (1.0 и 0.88), после — 0.
+
+**Проверка**
+
+- `php artisan test`: 93 passed, 1065 assertions.
+- `npm run build`: OK.
+- `php artisan view:clear`: OK.
+
+---
+
+## 2026-11-11 — компактный кэш столиц
+
+- В `regions:country:{id}:capitals` больше не пишется вся модель региона: только `id`, `subdomain`, `name`, `name_in`, `name_en`.
+- `name_en` оставлен, потому что подвал использует его при английской локали.
+- Запрос столиц выбирает только эти колонки; тест проверяет состав кэша.
+
+**Проверка**
+
+- `php artisan test`: 93 passed, 1065 assertions.
+- `pint`: OK.
+
+---
+
+## 2026-11-11 — memoization меню категорий
+
+- `MenuCategoryService` зарегистрирован как scoped: `forLocale()` резолвит scoped-инстанс, `itemsForLocale()` мемоизирует меню по языку на время запроса.
+- `clear()` сбрасывает memo текущего scoped-инстанса вместе с кэшем.
+- View composer для пяти шаблонов теперь даёт один cache hit `menu_categories:v3:ru` вместо пяти.
+
+**Проверка**
+
+- `php artisan test`: 93 passed, 1064 assertions.
+- `pint`: OK.
+
+---
+
+## 2026-11-11 — memoization столиц в RegionService
+
+- `RegionService` зарегистрирован как scoped и мемоизирует `getAreasWithCities()` / `getCapitalCities()` на время запроса.
+- View composer резолвит `RegionService` через контейнер для каждого запроса, поэтому повторные вызовы для header/footer дают один cache hit `regions:country:1:capitals` вместо пяти.
+- `forgetCache()` очищает memo вместе с тегом `regions`.
+
+**Проверка**
+
+- `php artisan test`: 92 passed, 1061 assertions.
+- `pint`: OK.
+
+---
+
+## 2026-11-11 — документация Laravel Octane
+
+- В `AGENTS.md`, `docs/ARCHITECTURE.md` и `README.md` зафиксировано, что проект работает под Laravel Octane (в dev — FrankenPHP).
+- Добавлены правила для долгоживущих воркеров: per-request состояние — в scoped-сервисах, не в static/синглтонах.
+
+**Проверка**
+
+- Только документация; тесты не менялись (91 passed, 1058 assertions).
+
+---
+
+## 2026-11-11 — один запрос переводов фильтров
+
+- `AdFilterService` больше не eager-загружает `baseTranslation`: базовый перевод уже входит в `translations`, из-за чего debugbar показывал два запроса к `filter_trans`.
+- `Filter::nameIn()` и `unitIn()` строят fallback из `translations` и не обращаются к `baseTranslation`.
+- Добавлен тест, проверяющий ровно один запрос к `filter_trans`.
+
+**Проверка**
+
+- `php artisan test`: 91 passed, 1058 assertions.
+- `pint`: OK.
+
+---
+
 ## 2026-11-11 — кэш региона для route binding
 
 - `Route::bind('region')` больше не делает запрос к БД на каждый запрос.
@@ -12,11 +89,14 @@
 - Оба ключа входят в тег `regions`; события `saved`/`deleted` модели `Region` сбрасывают кэш (для нетэгируемых хранилищ — точечно, включая старый subdomain).
 - Ключи и инвалидация вынесены в `App\Cache\RegionCacheKeys`.
 - `Region::cachedParent()` читает родителя из `region:{parent_id}`; при промахе кэширует его и регистрирует `region:domain:{parent_subdomain}`. `root()`, `getTimezone()` и `isAvailable()` переведены на `cachedParent()`, eager load `parent.parent` убран.
+- `RegionService` кэширует области/города и столицы в теге `regions`; для Redis ключи `regions:country:{id}` и `...:capitals` без `tag_regions_v`, сброс — `Cache::tags(['regions'])->flush()`.
+- Версионирование `tag_regions_v` оставлено только как fallback для нетэгируемых хранилищ (file/database).
+- `Region::cachedCountryData()` запоминает результат в relation `countryData`: повторные вызовы на том же экземпляре региона не делают cache hit (в debugbar было 10 hit `regions:country:1:data`).
 - Для локальных замеров добавлен `GET /test/cache-benchmark` с `Benchmark::measure` (только `local`/`testing`).
 
 **Проверка**
 
-- `php artisan test`: 89 passed, 1046 assertions.
+- `php artisan test`: 89 passed, 1052 assertions.
 - `pint`: OK.
 
 ---

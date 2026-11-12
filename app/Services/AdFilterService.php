@@ -25,7 +25,7 @@ class AdFilterService
         $filters = Filter::query()
             ->where('category_id', $categoryId)
             ->where('is_active', true)
-            ->with(['translations', 'baseTranslation', 'variants.translations'])
+            ->with(['translations', 'variants.translations'])
             ->orderBy('order')
             ->orderBy('id')
             ->get();

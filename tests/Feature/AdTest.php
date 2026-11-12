@@ -13,11 +13,13 @@ use App\Models\Region;
 use App\Models\RegionCountry;
 use App\Models\TmpFile;
 use App\Models\User;
+use App\Services\AdFilterService;
 use App\Support\AdImagePath;
 use App\Support\Slug;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -936,6 +938,25 @@ class AdTest extends TestCase
             ->assertJson(['is_active' => true]);
 
         $this->assertTrue($ad->fresh()->is_active);
+    }
+
+    public function test_filter_translations_are_loaded_with_one_query(): void
+    {
+        $this->checkboxFilter('Цвет', 'Белый', 'white');
+        $this->intFilter('Высота', 'см');
+
+        DB::enableQueryLog();
+
+        $filters = app(AdFilterService::class)->forCategory($this->category->id, null, 'ru');
+
+        $queries = collect(DB::getQueryLog())->pluck('query');
+
+        $this->assertSame('Цвет', $filters[0]['name']);
+        $this->assertSame('Высота', $filters[1]['name']);
+        $this->assertCount(
+            1,
+            $queries->filter(fn (string $query) => str_contains($query, 'from "filter_trans"')),
+        );
     }
 
     /**

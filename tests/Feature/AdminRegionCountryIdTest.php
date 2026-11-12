@@ -8,6 +8,7 @@ use App\Models\Language;
 use App\Models\Region;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class AdminRegionCountryIdTest extends TestCase
@@ -91,15 +92,21 @@ class AdminRegionCountryIdTest extends TestCase
         $this->assertSame($country->id, $city->country_id);
     }
 
-    public function test_saving_a_region_invalidates_the_region_cache_version(): void
+    public function test_saving_a_region_invalidates_the_region_cache(): void
     {
-        $before = RegionCacheKeys::version();
+        $country = Region::create($this->countryData('existing', 'Существующая страна'));
+
+        $tagged = Cache::tags([RegionCacheKeys::TAG]);
+        $key = RegionCacheKeys::countryAreas($country);
+        $tagged->put($key, [], now()->addWeek());
+
+        $this->assertTrue($tagged->has($key));
 
         $this->actingAs($this->admin)
             ->post('/admin/regions', $this->countryData())
             ->assertRedirect(route('admin.regions.index'));
 
-        $this->assertSame($before + 1, RegionCacheKeys::version());
+        $this->assertFalse($tagged->has($key));
     }
 
     public function test_country_id_changes_when_a_region_is_moved_to_another_country(): void

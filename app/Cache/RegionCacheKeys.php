@@ -23,9 +23,24 @@ class RegionCacheKeys
      */
     public static function store(): Repository
     {
-        return Cache::getStore() instanceof TaggableStore
+        return self::tagged()
             ? Cache::tags([self::TAG])
             : Cache::store();
+    }
+
+    /**
+     * Drops all region caches. Tagged stores (Redis) delete the tagged entries;
+     * the others fall back to a version bump.
+     */
+    public static function flush(): void
+    {
+        if (self::tagged()) {
+            Cache::tags([self::TAG])->flush();
+
+            return;
+        }
+
+        self::bumpVersion();
     }
 
     public static function version(): int
@@ -81,13 +96,14 @@ class RegionCacheKeys
      */
     public static function forgetRegion(Region $region, ?string $oldSubdomain = null): void
     {
-        if (Cache::getStore() instanceof TaggableStore) {
+        if (self::tagged()) {
             Cache::tags([self::TAG])->flush();
 
             return;
         }
 
         Cache::forget(self::model($region));
+        Cache::forget(self::countryData($region));
 
         if (filled($region->subdomain)) {
             Cache::forget(self::domain($region->subdomain));
@@ -101,6 +117,10 @@ class RegionCacheKeys
     public static function countryAreas(Region|int $country): string
     {
         $countryId = $country instanceof Region ? $country->id : $country;
+
+        if (self::tagged()) {
+            return 'regions:country:'.$countryId;
+        }
 
         return 'regions:tag_regions_v'.self::version().':country:'.$countryId;
     }
@@ -117,10 +137,10 @@ class RegionCacheKeys
 
     public static function forgetCountryData(Region|int $country): void
     {
-        $countryId = $country instanceof Region ? $country->id : $country;
+        if (self::tagged()) {
+            Cache::tags([self::TAG])->flush();
 
-        if (Cache::getStore() instanceof TaggableStore) {
-            Cache::tags(['regions', "region.{$countryId}"])->flush();
+            return;
         }
 
         self::bumpVersion();
@@ -129,5 +149,10 @@ class RegionCacheKeys
     public static function bumpVersion(): void
     {
         Cache::forever(self::VERSION_KEY, self::version() + 1);
+    }
+
+    private static function tagged(): bool
+    {
+        return Cache::getStore() instanceof TaggableStore;
     }
 }

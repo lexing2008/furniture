@@ -23,6 +23,8 @@ Laravel
 
 ## 2. Жизненный цикл запроса
 
+Приложение работает под **Laravel Octane** (в dev-инфраструктуре — FrankenPHP). PHP-воркеры живут между запросами, а состояние сбрасывают listeners из `config/octane.php`. Per-request данные храним в scoped-сервисах (например, `App\Services\CurrentCountry`), а не в static-свойствах/синглтонах. После изменения PHP-кода или конфига воркеры перезапускаются: в dev — через `--watch`, вручную — `php artisan octane:reload`.
+
 1. Запрос приходит на `{region}.furniture.lex`.
 2. Web-middleware `ExpireStaleSessionCookies` и `SetLocaleFromRegion`.
 3. `SetLocaleFromRegion`:
@@ -71,7 +73,8 @@ Laravel
 - `cityTree(?int $countryId)` — дерево городов;
 - `cityOptions()` — плоский список городов;
 - `isCity()`, `isAvailable()`, `url()`, `seo()`;
-- `countryData()` — `RegionCountry` (телефон, валюта, decimals).
+- `countryData()` — `RegionCountry` (телефон, валюта, decimals); `cachedCountryData()` кэширует их в теге `regions` (ключ `regions:country:{id}:data`).
+- `RegionService` зарегистрирован как scoped: кэширует области/города и столицы в теге `regions` (ключи `regions:country:{id}` и `regions:country:{id}:capitals`) и мемоизирует результат на время запроса; для столиц в кэш попадают только `id`, `subdomain`, `name`, `name_in`, `name_en`; для нетэгируемых хранилищ используется версионированный fallback.
 
 `AppServiceProvider`:
 

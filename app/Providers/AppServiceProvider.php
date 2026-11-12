@@ -24,12 +24,14 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(CurrentCountry::class);
+        $this->app->scoped(RegionService::class);
+        $this->app->scoped(MenuCategoryService::class);
     }
 
     /**
      * Bootstrap any application services.
      */
-    public function boot(RegionService $regionService, CurrentCountry $currentCountry): void
+    public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
 
@@ -67,10 +69,10 @@ class AppServiceProvider extends ServiceProvider
         // pass data to template
         View::composer(
             ['layouts.site', 'region.*', 'guest', 'layouts.partials._header', 'layouts.partials._footer'],
-            function ($view) use ($regionService, $currentCountry) {
+            function ($view) {
                 // Получаем модель Region из текущего маршрута
                 $region = request()->route('region');
-                $country = $currentCountry->get();
+                $country = app(CurrentCountry::class)->get();
 
                 if (! $region || ! $country) {
                     return;
@@ -92,7 +94,7 @@ class AppServiceProvider extends ServiceProvider
                 $view->with([
                     'region' => $region,
                     'country' => $country,
-                    'capitalCities' => $regionService->getCapitalCities($country),
+                    'capitalCities' => app(RegionService::class)->getCapitalCities($country),
                     // The locale is set by App\Http\Middleware\SetLocaleFromRegion
                     'language' => $locale,
                     'menuCategories' => $menuCategories,

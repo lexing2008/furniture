@@ -116,5 +116,5 @@ Route::prefix('admin')->middleware(['auth', 'role:'.implode(',', Roles::employee
 
     // todo should solve
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
-        ->name('logout');
+        ->name('admin.logout');
 });

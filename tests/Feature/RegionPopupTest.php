@@ -62,7 +62,7 @@ class RegionPopupTest extends TestCase
             ->assertSee('Мебель в Бресте');
     }
 
-    public function test_region_popup_content_is_loaded_with_a_versioned_cache_key(): void
+    public function test_region_popup_content_is_loaded_with_a_tagged_cache_key(): void
     {
         $response = $this->getJson('http://brest.furniture.test/regions/popup')
             ->assertOk()
@@ -73,7 +73,11 @@ class RegionPopupTest extends TestCase
         $this->assertStringContainsString('Брестская область', $html);
         $this->assertStringContainsString('Брест', $html);
         $this->assertSame(1, RegionCacheKeys::version());
-        $this->assertTrue(Cache::has('regions:tag_regions_v1:country:'.$this->country->id));
+
+        $tagged = Cache::tags([RegionCacheKeys::TAG]);
+
+        $this->assertSame('regions:country:'.$this->country->id, RegionCacheKeys::countryAreas($this->country));
+        $this->assertTrue($tagged->has(RegionCacheKeys::countryAreas($this->country)));
     }
 
     public function test_region_popup_content_is_not_present_in_the_initial_page_html(): void
@@ -137,15 +141,33 @@ class RegionPopupTest extends TestCase
         $this->assertCount(1, $cities);
         $this->assertSame($this->city->id, $cities->first()->id);
         $this->assertNotContains($notCapital->id, $cities->pluck('id')->all());
-        $this->assertTrue(Cache::has(RegionCacheKeys::countryCapitals($this->country)));
+        $tagged = Cache::tags([RegionCacheKeys::TAG]);
+        $key = RegionCacheKeys::countryCapitals($this->country);
+
+        $this->assertTrue($tagged->has($key));
+        $this->assertSame(
+            ['id', 'subdomain', 'name', 'name_in', 'name_en'],
+            array_keys($tagged->get($key)[0]),
+        );
     }
 
-    public function test_region_cache_version_is_incremented_when_regions_change(): void
+    public function test_region_cache_is_flushed_when_regions_change(): void
     {
-        $before = RegionCacheKeys::version();
+        $service = app(RegionService::class);
+        $service->getAreasWithCities($this->country);
+        $service->getCapitalCities($this->country);
 
-        app(RegionService::class)->forgetCache();
+        $tagged = Cache::tags([RegionCacheKeys::TAG]);
+        $areasKey = RegionCacheKeys::countryAreas($this->country);
+        $capitalsKey = RegionCacheKeys::countryCapitals($this->country);
 
-        $this->assertSame($before + 1, RegionCacheKeys::version());
+        $this->assertTrue($tagged->has($areasKey));
+        $this->assertTrue($tagged->has($capitalsKey));
+
+        $service->forgetCache();
+
+        $this->assertFalse($tagged->has($areasKey));
+        $this->assertFalse($tagged->has($capitalsKey));
+        $this->assertSame(1, RegionCacheKeys::version());
     }
 }

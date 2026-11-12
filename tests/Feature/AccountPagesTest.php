@@ -15,7 +15,10 @@ use App\Models\Region;
 use App\Models\RegionCountry;
 use App\Models\SeoTemplate;
 use App\Models\User;
+use App\Services\MenuCategoryService;
+use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -363,6 +366,31 @@ class AccountPagesTest extends TestCase
             ->assertOk()
             ->assertSee('Диваны обновлённые')
             ->assertDontSee('Диваны в меню');
+    }
+
+    public function test_menu_categories_are_memoized_per_request(): void
+    {
+        Language::create(['code' => 'ru', 'name' => 'Русский', 'name_en' => 'Russian']);
+
+        $this->category->translations()->create([
+            'lang' => 'ru',
+            'name' => 'Диваны',
+            'menu_name' => 'Диваны в меню',
+            'slug' => 'divany',
+        ]);
+
+        // Warm the cache through one scoped instance, then start a new request scope.
+        MenuCategoryService::forLocale('ru');
+        app()->forgetScopedInstances();
+
+        Event::fake([CacheHit::class]);
+
+        $first = MenuCategoryService::forLocale('ru');
+        $second = MenuCategoryService::forLocale('ru');
+
+        Event::assertDispatchedTimes(CacheHit::class, 1);
+        $this->assertSame($first, $second);
+        $this->assertSame('Диваны в меню', $first->first()['menu_name']);
     }
 
     public function test_category_page_shows_active_ads_with_company_details(): void

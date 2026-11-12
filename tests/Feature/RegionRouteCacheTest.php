@@ -4,11 +4,15 @@ namespace Tests\Feature;
 
 use App\Cache\RegionCacheKeys;
 use App\Models\Region;
+use App\Models\RegionCountry;
+use App\Services\RegionService;
+use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\TaggedCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -89,6 +93,47 @@ class RegionRouteCacheTest extends TestCase
             1,
             $queries->filter(fn (string $query) => str_contains($query, 'from "regions"')),
         );
+    }
+
+    public function test_country_data_is_memoized_on_the_region_instance(): void
+    {
+        RegionCountry::create([
+            'region_id' => $this->country->id,
+            'phone_code' => '375',
+            'currency' => 'BYN',
+            'currency_decimals' => 2,
+            'tax_id_label' => 'УНП',
+        ]);
+
+        // Warm the cache with one instance, then measure repeated calls on a fresh one.
+        $this->country->cachedCountryData();
+
+        $country = Region::query()->findOrFail($this->country->id);
+
+        Event::fake([CacheHit::class]);
+
+        $first = $country->cachedCountryData();
+        $second = $country->cachedCountryData();
+
+        Event::assertDispatchedTimes(CacheHit::class, 1);
+        $this->assertSame($first, $second);
+        $this->assertSame('УНП', $first?->tax_id_label);
+    }
+
+    public function test_capital_cities_are_memoized_on_the_region_service(): void
+    {
+        (new RegionService)->getCapitalCities($this->country);
+
+        $service = new RegionService;
+
+        Event::fake([CacheHit::class]);
+
+        $first = $service->getCapitalCities($this->country);
+        $second = $service->getCapitalCities($this->country);
+
+        Event::assertDispatchedTimes(CacheHit::class, 1);
+        $this->assertSame($first, $second);
+        $this->assertSame($this->city->id, $first->first()?->id);
     }
 
     public function test_cached_parent_is_cached_by_id_and_registers_its_subdomain(): void

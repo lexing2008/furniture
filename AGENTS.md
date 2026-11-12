@@ -17,8 +17,8 @@
 
 ## 2. Стек и окружение
 
-- PHP **8.4** — только внутри Docker-контейнера `lamp-apachephp-1`.
-- Laravel **13**.
+- PHP **8.4** — внутри Docker-контейнера приложения; в текущем dev-окружении это `laravel-octane-dev-app-1` (FrankenPHP). В примерах команд ниже сохранено имя `lamp-apachephp-1` из прежнего окружения — подставляйте актуальное.
+- Laravel **13** + **Laravel Octane** (`laravel/octane ^2.24`); в dev-инфраструктуре воркеры запускает FrankenPHP (`octane:frankenphp`), конфиг — `config/octane.php`.
 - MySQL, база `furnituredb` (см. `.env`, секреты в документацию не переносить).
 - Inertia.js 2 + Vue 3 + TypeScript.
 - Tailwind CSS 4; отдельные CSS-бандлы для сайта, кабинета и админки (`site.css`, `account.css`, `admin.css`, общий `base.css`).
@@ -28,6 +28,8 @@
 Важно:
 
 - host PHP 8.3 не подходит для запуска Laravel 13;
+- приложение работает под Octane: воркеры живут между запросами, поэтому состояние запроса нельзя хранить в static-свойствах/синглтонах — для per-request данных используй scoped-биндинги (пример — `App\Services\CurrentCountry`);
+- после правок PHP-кода/конфига воркеры Octane нужно перезапустить (`php artisan octane:reload`; в dev обычно работает `--watch`);
 - artisan, composer, pint и тесты запускай через Docker;
 - Node/npm/vite запускаются на хосте.
 
@@ -128,12 +130,15 @@ lang/ru.json, lang/en.json      общие переводы backend + frontend
 - Region приходит из route-параметра `{region}`, привязанного через `Route::bind('region')`; страна доступна через scoped-сервис `App\Services\CurrentCountry`; `countryData` читается через `Region::cachedCountryData()`.
 - Привязка региона кэшируется: `region:domain:{subdomain}` хранит ключ `region:{id}`, а `region:{id}` — атрибуты модели; кэш лежит в теге `regions` и сбрасывается при сохранении/удалении региона (`RegionCacheKeys::forgetRegion()`; для нетэгируемых хранилищ — точечно).
 - `Region::cachedParent()` берёт родителя из `region:{parent_id}`, при промахе кэширует его и регистрирует `region:domain:{parent_subdomain}`; `root()`, `getTimezone()` и `isAvailable()` используют `cachedParent()`.
+- `Region::cachedCountryData()` читает данные страны из тега `regions` и запоминает результат в relation `countryData`, поэтому повторные вызовы на том же экземпляре не обращаются к кэшу.
 - `Region::root()` возвращает страну.
 - `Region::language()` возвращает `regions.lang` страны.
 - `Region::fallbackLanguage()` возвращает необязательный `regions.fallback_lang` страны.
 - `Region::country()` — страна региона;
 - содержимое попапа выбора региона загружается AJAX-запросом `GET /regions/popup`;
-- кэш регионов версионируется ключом `tag_regions_v`; ключи попапа и подвала используют `regions:tag_regions_v{version}:country:{country_id}`;
+- кэш регионов хранится в теге `regions`; ключи попапа и подвала — `regions:country:{country_id}` и `...:capitals`; на нетэгируемых хранилищах остаётся fallback-версионирование `tag_regions_v`;
+- в `regions:country:{country_id}:capitals` хранятся только `id`, `subdomain`, `name`, `name_in`, `name_en` (последний нужен для английского подвала);
+- `RegionService` зарегистрирован как scoped и запоминает области/столицы на время запроса, поэтому повторные вызовы из view composer не делают повторных cache hit;
 - `Region::cityTree(?int $countryId)` — дерево городов; используется в регистрации, общих данных и товарах.
 - `Region::url()` строит URL региона.
 
@@ -346,7 +351,7 @@ php artisan tmp-files:clean
 - Для подвала столичные города выбираются из `regions` по `country_id` и `is_capital = true` и кэшируются.
 - В шапке и подвале сайта выводятся активные категории с заполненным `menu_name` для языка страны региона; в подвале название категории выводится как «{name} в {region_name_in}».
 - В блоке «Другие города» выводятся столичные города страны (`country_id` + `is_capital = true`) со ссылками «Мебель в {region_name_in}», кроме текущего города.
-- Меню категорий кэшируется на час и сбрасывается при изменении категорий/переводов.
+- Меню категорий кэшируется на 3 дня (`menu_categories:v3:{locale}`), сбрасывается при изменении категорий/переводов; `MenuCategoryService` scoped и мемоизирует меню на время запроса.
 - Локальный `GET /test/cache-benchmark?key=region:3&iterations=1000` замеряет чтение из кэша через `Benchmark::measure`; маршрут доступен только в `local`/`testing`.
 - Для категорий есть страница `GET /{categorySlug}` на поддомене: меню категорий, фильтры, список активных товаров/услуг, включая находящиеся на модерации, сортировка по `published_at` или цене, компания с раскрываемыми реквизитами и телефонами; варианты фильтров открываются по SEO-URL `/category/slug;slug/`; radio-фильтры на публичной странице выводятся и работают как checkbox. Для всех категорий доступен фильтр цены `price_from`/`price_to` и выбор 10/20/50/100 товаров на странице (по умолчанию 10, выбор запоминается в сессии).
 - SEO категории и одиночного варианта фильтра: title, meta description и SEO-блок под списком; шаблоны с заменами `{name}`, `{name_buy}`, `{region}`, `{region_in}`. H1 на странице вариантов собирается из `name_full` выбранных вариантов. Под пагинацией есть «Показать ещё»: следующая страница товаров подгружается без перезагрузки, пагинация обновляется. Со 2-й страницы title, H1 и meta description получают суффикс с номером страницы, в хлебных крошках появляется «Страница N»; SEO-шаблоны и их переводы для страниц > 1 не загружаются.
@@ -393,7 +398,7 @@ php artisan tmp-files:clean
 
 ## 16. Текущий baseline
 
-- Тесты: **89 passed, 1046 assertions**.
+- Тесты: **93 passed, 1065 assertions**.
 - `vue-tsc` и `npm run build` проходят.
 - Laravel Debugbar установлен в `require-dev`; включается только вне `production`.
 - Последние крупные изменения: локализация сайта/кабинета, разделы компании, часовые пояса, расписание, доставка/оплата, страны и валюты, товары/услуги, изображения и миниатюры, копирование товара, WYSIWYG-описание, выбор всех регионов, модерация.
